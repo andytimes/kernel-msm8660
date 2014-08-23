@@ -30,7 +30,6 @@
 #ifdef CONFIG_EARLYSUSPEND
 #include <linux/earlysuspend.h>
 #endif
-#include <linux/rq_stats.h>
 
 #include <linux/syscalls.h>
 #include <linux/highuid.h>
@@ -1346,7 +1345,7 @@ static void do_dbs_timer(struct work_struct *work)
 	policy = dbs_info->cur_policy;
 #endif
 
-	if (num_online_cpus() >= 2 && rq_info.rq_avg > 38)
+	if (num_online_cpus() >= 2)
 		rq_persist_count++;
 	else
 		if (rq_persist_count > 0)
@@ -1371,7 +1370,6 @@ static void do_dbs_timer(struct work_struct *work)
 	}
 	else
 		lmf_browsing_state = true;
-	//pr_info("Run Queue Average: %u\n", rq_info.rq_avg);
 
 	if (!lmf_browsing_state && lmf_screen_state)
 	{
