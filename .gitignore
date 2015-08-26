@@ -95,6 +95,7 @@ GTAGS
 #
 log.txt
 dmesg.txt
+mk
 
 #
 # Update patch
