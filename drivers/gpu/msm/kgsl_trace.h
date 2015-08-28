@@ -251,6 +251,7 @@ TRACE_EVENT(kgsl_pwrlevel,
 	)
 );
 
+#if 0
 TRACE_EVENT(kgsl_mpdcvs,
 
 	TP_PROTO(struct kgsl_device *device, unsigned int state),
@@ -273,6 +274,7 @@ TRACE_EVENT(kgsl_mpdcvs,
 		__entry->state ? "BUSY" : "IDLE"
 	)
 );
+#endif
 
 DECLARE_EVENT_CLASS(kgsl_pwrstate_template,
 	TP_PROTO(struct kgsl_device *device, unsigned int state),
