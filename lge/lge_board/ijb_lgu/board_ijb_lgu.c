@@ -93,6 +93,8 @@
 #include <mach/rpm.h>
 #include <mach/rpm-regulator.h>
 #include <mach/restart.h>
+#include <linux/msm_tsens.h>
+#include <linux/msm_thermal.h>
 #include <mach/board-msm8660.h>
 
 #if 1 /*                                                              */
@@ -2731,11 +2733,39 @@ static struct platform_device *early_devices[] __initdata = {
 	&msm_device_dmov_adm1,
 };
 
+static struct tsens_platform_data lge_tsens_pdata  = {
+		.slope			= {910, 910, 910, 910, 910},
+		.tsens_factor		= 1000,
+		.hw_type		= MSM_8660,
+		.tsens_num_sensor	= 5,
+};
+
 static struct platform_device msm_tsens_device = {
 	.name   = "tsens-tm",
 	.id = -1,
 };
 
+static struct msm_thermal_data msm_thermal_pdata = {
+	.sensor_id = 0,
+	.poll_ms = 250,
+#ifdef CONFIG_CPU_OC
+	.limit_temp_degC = 70,
+#else
+	.limit_temp_degC = 60,
+#endif
+	.temp_hysteresis_degC = 10,
+	.freq_step = 2,
+#ifdef CONFIG_INTELLI_THERMAL
+	.freq_control_mask = 0xf,
+#ifdef CONFIG_CPU_OC
+	.core_limit_temp_degC = 90,
+#else
+	.core_limit_temp_degC = 80,
+#endif
+	.core_temp_hysteresis_degC = 10,
+	.core_control_mask = 0xe,
+#endif
+};
 
 #ifdef CONFIG_SENSORS_MSM_ADC
 static struct adc_access_fn xoadc_fn = {
@@ -3417,6 +3447,7 @@ static struct platform_device *surf_devices[] __initdata = {
 #endif
 
 	&msm_tsens_device,
+
 #if 0 /*                                                       */
 	&msm_rpm_device,
 #else
@@ -7351,6 +7382,9 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	};
 #endif
 	pmic_reset_irq = PM8058_IRQ_BASE + PM8058_RESOUT_IRQ;
+
+	msm_tsens_early_init(&lge_tsens_pdata);
+	msm_thermal_init(&msm_thermal_pdata);
 
 	/*
 	 * Initialize RPM first as other drivers and devices may need
