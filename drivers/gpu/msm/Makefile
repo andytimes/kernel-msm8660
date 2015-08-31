@@ -1,4 +1,4 @@
-ccflags-y := -Iinclude/drm -Idrivers/gpu/msm -Wno-unused-function
+ccflags-y := -Iinclude/drm -Idrivers/gpu/msm -O2 -pipe -std=gnu89
 
 msm_kgsl_core-y = \
 	kgsl.o \
