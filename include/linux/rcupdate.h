@@ -190,6 +190,7 @@ extern void rcu_idle_enter(void);
 extern void rcu_idle_exit(void);
 extern void rcu_irq_enter(void);
 extern void rcu_irq_exit(void);
+extern void exit_rcu(void);
 
 /**
  * RCU_NONIDLE - Indicate idle-loop code that needs RCU readers
@@ -254,6 +255,10 @@ static inline void destroy_rcu_head_on_stack(struct rcu_head *head)
 }
 #endif	/* #else !CONFIG_DEBUG_OBJECTS_RCU_HEAD */
 
+#if defined(CONFIG_DEBUG_LOCK_ALLOC) || defined(CONFIG_SMP)
+extern int rcu_is_cpu_idle(void);
+#endif /* #if defined(CONFIG_DEBUG_LOCK_ALLOC) || defined(CONFIG_SMP) */
+
 #if defined(CONFIG_HOTPLUG_CPU) && defined(CONFIG_PROVE_RCU)
 bool rcu_lockdep_current_cpu_online(void);
 #else /* #if defined(CONFIG_HOTPLUG_CPU) && defined(CONFIG_PROVE_RCU) */
@@ -264,15 +269,6 @@ static inline bool rcu_lockdep_current_cpu_online(void)
 #endif /* #else #if defined(CONFIG_HOTPLUG_CPU) && defined(CONFIG_PROVE_RCU) */
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
-
-#ifdef CONFIG_PROVE_RCU
-extern int rcu_is_cpu_idle(void);
-#else /* !CONFIG_PROVE_RCU */
-static inline int rcu_is_cpu_idle(void)
-{
-	return 0;
-}
-#endif /* else !CONFIG_PROVE_RCU */
 
 static inline void rcu_lock_acquire(struct lockdep_map *map)
 {
@@ -430,8 +426,7 @@ extern int rcu_my_thread_group_empty(void);
 static inline void rcu_preempt_sleep_check(void)
 {
 	rcu_lockdep_assert(!lock_is_held(&rcu_lock_map),
-			   "Illegal context switch in RCU read-side "
-			   "critical section");
+			   "Illegal context switch in RCU read-side critical section");
 }
 #else /* #ifdef CONFIG_PROVE_RCU */
 static inline void rcu_preempt_sleep_check(void)

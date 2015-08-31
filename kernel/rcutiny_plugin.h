@@ -351,8 +351,9 @@ static int rcu_initiate_boost(void)
 			rcu_preempt_ctrlblk.boost_tasks =
 				rcu_preempt_ctrlblk.gp_tasks;
 		invoke_rcu_callbacks();
-	} else
+	} else {
 		RCU_TRACE(rcu_initiate_boost_trace());
+	}
 	return 1;
 }
 
@@ -823,9 +824,9 @@ void synchronize_rcu_expedited(void)
 		rpcp->exp_tasks = NULL;
 
 	/* Wait for tail of ->blkd_tasks list to drain. */
-	if (!rcu_preempted_readers_exp())
+	if (!rcu_preempted_readers_exp()) {
 		local_irq_restore(flags);
-	else {
+	} else {
 		rcu_initiate_boost();
 		local_irq_restore(flags);
 		wait_event(sync_rcu_preempt_exp_wq,
@@ -849,22 +850,6 @@ int rcu_preempt_needs_cpu(void)
 	if (!rcu_preempt_running_reader())
 		rcu_preempt_cpu_qs();
 	return rcu_preempt_ctrlblk.rcb.rcucblist != NULL;
-}
-
-/*
- * Check for a task exiting while in a preemptible -RCU read-side
- * critical section, clean up if so.  No need to issue warnings,
- * as debug_check_no_locks_held() already does this if lockdep
- * is enabled.
- */
-void exit_rcu(void)
-{
-	struct task_struct *t = current;
-
-	if (t->rcu_read_lock_nesting == 0)
-		return;
-	t->rcu_read_lock_nesting = 1;
-	__rcu_read_unlock();
 }
 
 #else /* #ifdef CONFIG_TINY_PREEMPT_RCU */
