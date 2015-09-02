@@ -1550,11 +1550,6 @@ config CPU_OC
 	bool "Enable CPU Overclocking"
 	default n
 
-config CPU_OC_BALANCE
-	bool "Make OC or not blance"
-	depends on CPU_OC
-	default y
-
 if CPU_FREQ_MSM
 
 config MSM_CPU_FREQ_SET_MIN_MAX

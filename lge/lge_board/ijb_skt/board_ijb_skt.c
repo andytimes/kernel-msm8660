@@ -2737,11 +2737,7 @@ static struct msm_thermal_data msm_thermal_pdata = {
 	.sensor_id = 0,
 	.poll_ms = 500,
 #ifdef CONFIG_CPU_OC
-#ifdef CONFIG_CPU_OC_BALANCE
-	.limit_temp_degC = 65,
-#else
 	.limit_temp_degC = 70,
-#endif
 #else
 	.limit_temp_degC = 60,
 #endif
@@ -2750,11 +2746,7 @@ static struct msm_thermal_data msm_thermal_pdata = {
 #ifdef CONFIG_INTELLI_THERMAL
 	.freq_control_mask = 0xf,
 #ifdef CONFIG_CPU_OC
-#ifdef CONFIG_CPU_OC_BALANCE
-	.core_limit_temp_degC = 85,
-#else
 	.core_limit_temp_degC = 90,
-#endif
 #else
 	.core_limit_temp_degC = 80,
 #endif
