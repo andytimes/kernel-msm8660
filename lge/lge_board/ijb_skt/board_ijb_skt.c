@@ -2739,17 +2739,13 @@ static struct msm_thermal_data msm_thermal_pdata = {
 #ifdef CONFIG_CPU_OC
 	.limit_temp_degC = 70,
 #else
-	.limit_temp_degC = 60,
+	.limit_temp_degC = 65,
 #endif
 	.temp_hysteresis_degC = 10,
 	.freq_step = 2,
 #ifdef CONFIG_INTELLI_THERMAL
 	.freq_control_mask = 0xf,
-#ifdef CONFIG_CPU_OC
-	.core_limit_temp_degC = 90,
-#else
-	.core_limit_temp_degC = 80,
-#endif
+	.core_limit_temp_degC = 65,
 	.core_temp_hysteresis_degC = 10,
 	.core_control_mask = 0xe,
 #endif
