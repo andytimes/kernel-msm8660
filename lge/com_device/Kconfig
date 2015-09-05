@@ -21,7 +21,6 @@ config LGE_MACH_BOARD_REVC
 	help
 		LGE MSM8660 RevC Board Configuration
 
-
 menu "Audio"
 source "lge/com_device/audio/Kconfig"
 endmenu 
