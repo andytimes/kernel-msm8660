@@ -28,8 +28,10 @@
 #define TZ_GOVERNOR_PERFORMANCE	0
 #define TZ_GOVERNOR_ONDEMAND	1
 #define TZ_GOVERNOR_INTERACTIVE	2
+#if 0
 #ifdef CONFIG_MSM_KGSL_SIMPLE_GOV
 #define TZ_GOVERNOR_SIMPLE	3
+#endif
 #endif
 
 struct tz_priv {
@@ -114,9 +116,11 @@ static ssize_t tz_governor_show(struct kgsl_device *device,
 		ret = snprintf(buf, 10, "ondemand\n");
 	else if (priv->governor == TZ_GOVERNOR_INTERACTIVE)
 		ret = snprintf(buf, 13, "interactive\n");
+#if 0
 #ifdef CONFIG_MSM_KGSL_SIMPLE_GOV
 	else if (priv->governor == TZ_GOVERNOR_SIMPLE)
 		ret = snprintf(buf, 8, "simple\n");
+#endif
 #endif
 	else
 		ret = snprintf(buf, 13, "performance\n");
@@ -137,9 +141,11 @@ static ssize_t tz_governor_store(struct kgsl_device *device,
 		priv->governor = TZ_GOVERNOR_ONDEMAND;
 	else if (!strncmp(buf, "interactive", 11))
 		priv->governor = TZ_GOVERNOR_INTERACTIVE;
+#if 0
 #ifdef CONFIG_MSM_KGSL_SIMPLE_GOV
 	else if (!strncmp(buf, "simple", 6))
 		priv->governor = TZ_GOVERNOR_SIMPLE;
+#endif
 #endif
 	else if (!strncmp(buf, "performance", 11))
 		priv->governor = TZ_GOVERNOR_PERFORMANCE;
@@ -171,6 +177,7 @@ static void tz_wake(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 	return;
 }
 
+#if 0
 #ifdef CONFIG_MSM_KGSL_SIMPLE_GOV
 /* KGSL Simple GPU Governor */
 /* Copyright (c) 2011-2013, Paul Reioux (Faux123). All rights reserved. */
@@ -212,6 +219,7 @@ static int simple_governor(struct kgsl_device *device, int idle_stat)
 	}
 	return val;
 }
+#endif
 #endif
 
 static void tz_idle(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
@@ -339,7 +347,7 @@ static int tz_init(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 	if (pwrscale->priv == NULL)
 		return -ENOMEM;
 	priv->idle_dcvs = 0;
-	priv->governor = TZ_GOVERNOR_SIMPLE;
+	priv->governor = TZ_GOVERNOR_INTERACTIVE;
 	spin_lock_init(&tz_lock);
 	kgsl_pwrscale_policy_add_files(device, pwrscale, &tz_attr_group);
 	for (i = 0; i < pwr->num_pwrlevels - 1; i++) {
