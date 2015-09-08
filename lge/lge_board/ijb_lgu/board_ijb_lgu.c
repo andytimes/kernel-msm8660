@@ -2733,27 +2733,37 @@ static struct platform_device *early_devices[] __initdata = {
 	&msm_device_dmov_adm1,
 };
 
+#ifdef CONFIG_THERMAL_TSENS8X60
 static struct tsens_platform_data lge_tsens_pdata  = {
-		.slope			= {910, 910, 910, 910, 910},
+		.slope			= {702, 702, 702, 702, 702},
 		.tsens_factor		= 1000,
 		.hw_type		= MSM_8660,
-		.tsens_num_sensor	= 5,
+		.tsens_num_sensor	= 6,
 };
-
+#else
 static struct platform_device msm_tsens_device = {
 	.name   = "tsens-tm",
 	.id = -1,
 };
+#endif
 
 static struct msm_thermal_data msm_thermal_pdata = {
 	.sensor_id = 0,
 	.poll_ms = 250,
-	.limit_temp_degC = 65,
+#ifdef CONFIG_CPU_OC
+	.limit_temp_degC = 70,
+#else
+	.limit_temp_degC = 60,
+#endif
 	.temp_hysteresis_degC = 10,
 	.freq_step = 2,
 #ifdef CONFIG_INTELLI_THERMAL
 	.freq_control_mask = 0xf,
-	.core_limit_temp_degC = 70,
+#ifdef CONFIG_CPU_OC
+	.core_limit_temp_degC = 90,
+#else
+	.core_limit_temp_degC = 80,
+#endif
 	.core_temp_hysteresis_degC = 10,
 	.core_control_mask = 0xe,
 #endif
@@ -3438,7 +3448,9 @@ static struct platform_device *surf_devices[] __initdata = {
 	&msm_device_rng,
 #endif
 
+#ifndef CONFIG_THERMAL_TSENS8X60
 	&msm_tsens_device,
+#endif
 
 #if 0 /*                                                       */
 	&msm_rpm_device,
@@ -7375,7 +7387,9 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 #endif
 	pmic_reset_irq = PM8058_IRQ_BASE + PM8058_RESOUT_IRQ;
 
+#ifdef CONFIG_THERMAL_TSENS8X60
 	msm_tsens_early_init(&lge_tsens_pdata);
+#endif
 	msm_thermal_init(&msm_thermal_pdata);
 
 	/*
