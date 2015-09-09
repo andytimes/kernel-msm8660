@@ -12,3 +12,5 @@ obj-$(CONFIG_MACH_LGE_IJB_BOARD_LGU)	+= platform_ijb_lgu_panel.o
 obj-$(CONFIG_MACH_LGE_IJB_BOARD_LGU)	+= platform_ijb_lgu_snd.o
 obj-$(CONFIG_MACH_LGE_IJB_BOARD_LGU)	+= gpiomux_ijb_lgu.o
 obj-$(CONFIG_MACH_LGE_IJB_BOARD_LGU)	+= devices_ijb_lgu.o
+
+CFLAGS_platform_ijb_lgu_panel.o += -Idrivers/video

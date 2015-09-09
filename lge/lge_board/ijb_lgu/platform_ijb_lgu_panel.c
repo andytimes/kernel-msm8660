@@ -36,9 +36,11 @@
 #include <linux/i2c.h>
 #include <linux/ion.h>
 #include <mach/ion.h>
+#include <msm/mdp.h>
 
 #include "devices_ijb_lgu.h"
 #include "board_ijb_lgu.h"
+#include "lg_power_common.h"
 
 #ifdef CONFIG_FB_MSM_LCDC_DSUB
 /* VGA = 1440 x 900 x 4(bpp) x 2(pages)
@@ -103,6 +105,14 @@ unsigned char hdmi_is_primary;
 #define HDMI_PANEL_NAME	"hdmi_msm"
 #define TVOUT_PANEL_NAME	"tvout_msm"
 
+#ifdef CONFIG_LGE_KCAL
+#ifdef CONFIG_LGE_QC_LCDC_LUT
+extern int set_qlut_kcal_values(int kcal_r, int kcal_g, int kcal_b);
+extern int refresh_qlut_display(void);
+#else
+#error only kcal by Qucalcomm LUT is supported now!!!
+#endif
+#endif
 
 static struct resource msm_fb_resources[] = {
 	{
@@ -131,8 +141,38 @@ static int msm_fb_detect_panel(const char *name)
 	return -ENODEV;
 }
 
+#ifdef CONFIG_UPDATE_LCDC_LUT
+extern unsigned int lcd_color_preset_lut[];
+int update_preset_lcdc_lut(void)
+{
+	struct fb_cmap cmap;
+	int ret = 0;
+
+	cmap.start = 0;
+	cmap.len = 256;
+	cmap.transp = NULL;
+
+#ifdef CONFIG_LCD_KCAL
+	cmap.red = (uint16_t *)&(kcal_value.red);
+	cmap.green = (uint16_t *)&(kcal_value.green);
+	cmap.blue = (uint16_t *)&(kcal_value.blue);
+#else
+	cmap.red = NULL;
+	cmap.green = NULL;
+	cmap.blue = NULL;
+#endif
+
+	ret = mdp_preset_lut_update_lcdc(&cmap, lcd_color_preset_lut);
+	if (ret)
+		pr_err("%s: failed to set lut! %d\n", __func__, ret);
+
+	return ret;
+}
+#endif
+
 static struct msm_fb_platform_data msm_fb_pdata = {
 	.detect_client = msm_fb_detect_panel,
+	
 };
 
 static struct platform_device msm_fb_device = {
@@ -375,8 +415,31 @@ void __init msm8x60_set_display_params(char *prim_panel, char *ext_panel)
 	}
 }
 
+#ifdef CONFIG_LGE_KCAL
+extern int set_kcal_values(int kcal_r, int kcal_g, int kcal_b);
+extern int refresh_kcal_display(void);
+extern int get_kcal_values(int *kcal_r, int *kcal_g, int *kcal_b);
+
+static struct kcal_platform_data kcal_pdata = {
+	.set_values = set_kcal_values,
+	.get_values = get_kcal_values,
+	.refresh_display = refresh_kcal_display
+};
+
+static struct platform_device kcal_platrom_device = {
+	.name   = "kcal_ctrl",
+	.dev = {
+		.platform_data = &kcal_pdata,
+	}
+};
+#endif
+
 static struct platform_device *panel_devices[] __initdata = {
 	&msm_fb_device,
+
+#ifdef CONFIG_LGE_KCAL
+	&kcal_platrom_device,
+#endif
 
 #ifdef CONFIG_FB_MSM_MIPI_DSI
 

@@ -4086,6 +4086,26 @@ static int __init battery_information_setup(char *batt_info)
 __setup("lge.batt_info=", battery_information_setup);
 #endif
 
+#ifdef CONFIG_LGE_KCAL
+int g_kcal_r = 255;
+int g_kcal_g = 255;
+int g_kcal_b = 255;
+static int __init display_kcal_setup(char *kcal)
+{
+		char vaild_k = 0;
+        sscanf(kcal, "%d|%d|%d|%c", &g_kcal_r, &g_kcal_g, &g_kcal_b, &vaild_k );
+        printk(KERN_INFO "kcal is %d|%d|%d|%c\n",
+                                        g_kcal_r, g_kcal_g, g_kcal_b, vaild_k);
+
+        if(vaild_k != 'K') {
+                printk(KERN_INFO "kcal not calibrated yet : %d\n", vaild_k);
+                g_kcal_r = g_kcal_g = g_kcal_b = 255;
+                printk(KERN_INFO "set to default : %d\n", g_kcal_r);
+        }
+        return 1;
+}
+__setup("lge.kcal=", display_kcal_setup);
+#endif
 
 #ifdef CONFIG_PMIC8058
 #define PMIC_GPIO_SDC3_DET 22

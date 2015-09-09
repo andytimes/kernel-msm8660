@@ -13,3 +13,5 @@ obj-$(CONFIG_MACH_LGE_IJB_BOARD_SKT)	+= platform_ijb_skt_panel.o
 obj-$(CONFIG_MACH_LGE_IJB_BOARD_SKT)	+= platform_ijb_skt_snd.o
 obj-$(CONFIG_MACH_LGE_IJB_BOARD_SKT)	+= gpiomux_ijb_skt.o
 obj-$(CONFIG_MACH_LGE_IJB_BOARD_SKT)	+= devices_ijb_skt.o
+
+CFLAGS_platform_ijb_skt_panel.o += -Idrivers/video
