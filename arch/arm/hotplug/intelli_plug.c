@@ -90,7 +90,7 @@ defined(CONFIG_ARCH_MSM8974)
 defined (CONFIG_ARCH_MSM8610) || defined (CONFIG_ARCH_MSM8228)
 #define THREAD_CAPACITY (190 - CAPACITY_RESERVE)
 #else
-#define THREAD_CAPACITY	(300 - CAPACITY_RESERVE)
+#define THREAD_CAPACITY	(289 - CAPACITY_RESERVE)
 #endif
 
 #define MULT_FACTOR	4
@@ -121,7 +121,7 @@ static unsigned int nr_run_thresholds_conservative[] = {
 };
 
 static unsigned int nr_run_thresholds_eco[] = {
-        (THREAD_CAPACITY * 380 * MULT_FACTOR) / DIV_FACTOR,
+        (THREAD_CAPACITY * 625 * MULT_FACTOR) / DIV_FACTOR,
 	UINT_MAX
 };
 
