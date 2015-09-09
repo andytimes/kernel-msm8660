@@ -7,6 +7,13 @@ config MACH_LGE_I_BOARD
        ---help---
          LGE I-project. 
 
+config LGE_QFPROM_INTERFACE
+	bool "Support qfprom interface"
+	default n
+	depends on MACH_LGE_I_BOARD
+	help
+	  LGE QFPROM DRIVER.
+
 config LGE_QC_LCDC_LUT
 	bool "Set initial Qualcomm LCDC lut"
 	default n

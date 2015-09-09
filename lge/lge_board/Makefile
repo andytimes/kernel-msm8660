@@ -13,6 +13,8 @@ obj-$(CONFIG_MACH_LGE_I_BOARD_VZW)	+= i_vzw/
 obj-$(CONFIG_MACH_LGE_IJB_BOARD_LGU)	+= ijb_lgu/
 obj-$(CONFIG_MACH_LGE_IJB_BOARD_SKT)	+= ijb_skt/
 
+obj-$(CONFIG_LGE_QFPROM_INTERFACE) += lge_qfprom_access.o
+
 obj-$(CONFIG_LGE_QC_LCDC_LUT) += lge_qc_lcdc_luts.o
 obj-$(CONFIG_LGE_KCAL) += lge_kcal_ctrl.o
 obj-$(CONFIG_LGE_KCAL_QLUT) += kcal_qlut.o

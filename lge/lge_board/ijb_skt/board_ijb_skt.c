@@ -1077,7 +1077,7 @@ static int msm_hsusb_config_vddcx(int high)
 #define USB_PHY_1P8_LPM_LOAD	4000	/* uA */
 
 #ifdef CONFIG_USB_G_LGE_ANDROID_FACTORY
-#include "../../../lge/include/lg_power_common.h"
+#include "lg_power_common.h"
 static int usb_ldo_vltg = USB_PHY_3P3_VOL_MIN;
 int msm_hsusb_ldo_set_3p5(acc_cable_type usb_cable_type)
 {
