@@ -696,7 +696,7 @@ static void tsens8960_sensor_mode_init(void)
 
 	reg_cntl = readl_relaxed(TSENS_CNTL_ADDR);
 	if (tmdev->hw_type == MSM_8960 || tmdev->hw_type == MDM_9615 ||
-			tmdev->hw_type == APQ_8064) {
+		tmdev->hw_type == APQ_8064 || tmdev->hw_type == MSM_8660) {
 		writel_relaxed(reg_cntl &
 				~((((1 << tmdev->tsens_num_sensor) - 1) >> 1)
 				<< (TSENS_SENSOR0_SHIFT + 1)), TSENS_CNTL_ADDR);
