@@ -1,5 +1,7 @@
 #platform-bsp@lge.com	2011.01
 EXTRA_CFLAGS += -Ilge/include
+EXTRA_CFLAGS += -Idrivers/video/msm
+
 obj-$(CONFIG_LGE_BACKLIGHT_LM3530) += backlight_lm3530.o	#for tag
 obj-$(CONFIG_LGE_BACKLIGHT_LM3528) += backlight_lm3528.o
 obj-$(CONFIG_LGE_BACKLIGHT_LM3533) += backlight_lm3533.o	#for vu

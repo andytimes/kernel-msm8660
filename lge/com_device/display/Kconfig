@@ -130,3 +130,8 @@ config LGE_K_CAL
 #===========================================================
 
 endmenu
+
+config LGE_OPTIMUS_G_COLOR
+      bool "transform to LG Optimus G calibration"
+      default n
+	  depends on LGE_DISPLAY_MIPI_LGIT_IJB_VIDEO_HD_PT
