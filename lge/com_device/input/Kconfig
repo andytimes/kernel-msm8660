@@ -298,7 +298,24 @@ config LGE_TOUCH_SYNAPTICS_IJB_FW_UPGRADE
 	bool "Synaptics ClearPad IJB F/W upgrade"
 	depends on LGE_TOUCHSCREEN_SYNAPTICS_RMI4_I2C
 	help
-	  This enables support for Synaptics general F/W upgrade.               
+	  This enables support for Synaptics general F/W upgrade.
+
+config TOUCHSCREEN_SWEEP2WAKE
+	tristate "Sweep2Wake for touchscreens"
+	select TOUCHSCREEN_PREVENT_SLEEP
+	default n
+
+config TOUCHSCREEN_DOUBLETAP2WAKE
+	tristate "DoubleTap2Wake for touchscreens"
+	select TOUCHSCREEN_PREVENT_SLEEP
+	default n
+
+config TOUCHSCREEN_PREVENT_SLEEP
+	bool "Inihibit sleep on modified touchscreen drivers"
+	default n
+	help
+	  This disables the sleep function of modified touchscreen drivers.
+
 #===============end IJB
 
 config LGE_HEADSET_DETECTION_FSA8008

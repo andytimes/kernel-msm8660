@@ -39,4 +39,9 @@ obj-$(CONFIG_LGE_TOUCH_SYNAPTICS_120_FW_UPGRADE) += touch_synaptics_120_fw_upgra
 obj-$(CONFIG_LGE_TOUCHSCREEN_CORE_IJB) += lge_touch_core_ijb.o	#<- lge_touch_core.c
 obj-$(CONFIG_LGE_TOUCH_SYNAPTICS_IJB) += touch_synaptics_ijb.o	#<- touch_synaptics.c
 obj-$(CONFIG_LGE_TOUCH_SYNAPTICS_IJB_FW_UPGRADE) += touch_synaptics_ijb_fw_upgrade.o	#<- touch_synaptics_fw_upgrade.c
+
+# for sweep2wake, leave 1st to avoid merge issues at the end of the file
+obj-$(CONFIG_TOUCHSCREEN_SWEEP2WAKE)		+= sweep2wake.o
+# for doubletap2wake, leave 1st to avoid merge issues at the end of the file
+obj-$(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)	+= doubletap2wake.o
 #=====================================================================================

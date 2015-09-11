@@ -375,11 +375,11 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Wno-format-security -pipe -std=gnu89 \
 		   -fno-delete-null-pointer-checks
 KBUILD_AFLAGS_KERNEL :=
-KBUILD_CFLAGS_KERNEL := -pipe -march=armv7-a -mtune=cortex-a8 -mfpu=neon
+KBUILD_CFLAGS_KERNEL := -pipe -marm -march=armv7-a -mtune=cortex-a8 -mcpu=cortex-a8 -mfpu=vfpv3 -mfloat-abi=softfp 
 # KBUILD_CFLAGS_KERNEL := -pipe -march=armv7-a -mtune=cortex-a8 -mfpu=neon -mfloat-abi=softfp
 KBUILD_AFLAGS   := -D__ASSEMBLY__
 KBUILD_AFLAGS_MODULE  := -DMODULE
-KBUILD_CFLAGS_MODULE  := -DMODULE -pipe -march=armv7-a -mtune=cortex-a8 -mfpu=neon
+KBUILD_CFLAGS_MODULE  := -DMODULE -pipe -marm -march=armv7-a -mtune=cortex-a8 -mcpu=cortex-a8 -mfpu=vfpv3 -mfloat-abi=softfp 
 KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
 
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
