@@ -103,6 +103,7 @@ mk
 patch-3.4.108
 
 *.orig
+*.rej
 *~
 .directory
 .version
