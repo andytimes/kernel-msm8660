@@ -18,21 +18,16 @@
 #include <linux/spinlock.h>
 #include <mach/socinfo.h>
 #include <mach/scm.h>
-#include <linux/jiffies.h>
 #include <linux/module.h>
+#include <linux/jiffies.h>
 
 #include "kgsl.h"
 #include "kgsl_pwrscale.h"
 #include "kgsl_device.h"
 
-#define TZ_GOVERNOR_PERFORMANCE	0
-#define TZ_GOVERNOR_ONDEMAND	1
-#define TZ_GOVERNOR_INTERACTIVE	2
-#if 0
-#ifdef CONFIG_MSM_KGSL_SIMPLE_GOV
-#define TZ_GOVERNOR_SIMPLE	3
-#endif
-#endif
+#define TZ_GOVERNOR_PERFORMANCE 0
+#define TZ_GOVERNOR_ONDEMAND    1
+#define TZ_GOVERNOR_INTERACTIVE  2
 
 struct tz_priv {
 	int governor;
@@ -43,7 +38,6 @@ struct tz_priv {
 };
 spinlock_t tz_lock;
 
-#if 0
 /* FLOOR is 5msec to capture up to 3 re-draws
  * per frame for 60fps content.
  */
@@ -51,8 +45,6 @@ spinlock_t tz_lock;
 /* CEILING is 50msec, larger than any standard
  * frame length, but less than the idle timer.
  */
-#endif
-
 #define CEILING			50000
 #define TZ_RESET_ID		0x3
 #define TZ_UPDATE_ID		0x4
@@ -116,12 +108,6 @@ static ssize_t tz_governor_show(struct kgsl_device *device,
 		ret = snprintf(buf, 10, "ondemand\n");
 	else if (priv->governor == TZ_GOVERNOR_INTERACTIVE)
 		ret = snprintf(buf, 13, "interactive\n");
-#if 0
-#ifdef CONFIG_MSM_KGSL_SIMPLE_GOV
-	else if (priv->governor == TZ_GOVERNOR_SIMPLE)
-		ret = snprintf(buf, 8, "simple\n");
-#endif
-#endif
 	else
 		ret = snprintf(buf, 13, "performance\n");
 
@@ -132,22 +118,22 @@ static ssize_t tz_governor_store(struct kgsl_device *device,
 				struct kgsl_pwrscale *pwrscale,
 				 const char *buf, size_t count)
 {
+	char str[20];
 	struct tz_priv *priv = pwrscale->priv;
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
+	int ret;
+
+	ret = sscanf(buf, "%20s", str);
+	if (ret != 1)
+		return -EINVAL;
 
 	mutex_lock(&device->mutex);
 
-	if (!strncmp(buf, "ondemand", 8))
+	if (!strncmp(str, "ondemand", 8))
 		priv->governor = TZ_GOVERNOR_ONDEMAND;
-	else if (!strncmp(buf, "interactive", 11))
+	else if (!strncmp(str, "interactive", 11))
 		priv->governor = TZ_GOVERNOR_INTERACTIVE;
-#if 0
-#ifdef CONFIG_MSM_KGSL_SIMPLE_GOV
-	else if (!strncmp(buf, "simple", 6))
-		priv->governor = TZ_GOVERNOR_SIMPLE;
-#endif
-#endif
-	else if (!strncmp(buf, "performance", 11))
+	else if (!strncmp(str, "performance", 11))
 		priv->governor = TZ_GOVERNOR_PERFORMANCE;
 
 	if (priv->governor == TZ_GOVERNOR_PERFORMANCE) {
@@ -177,51 +163,6 @@ static void tz_wake(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 	return;
 }
 
-#if 0
-#ifdef CONFIG_MSM_KGSL_SIMPLE_GOV
-/* KGSL Simple GPU Governor */
-/* Copyright (c) 2011-2013, Paul Reioux (Faux123). All rights reserved. */
-static int default_laziness = 5;
-module_param_named(simple_laziness, default_laziness, int, 0664);
-
-static int ramp_up_threshold = 6000;
-module_param_named(simple_ramp_threshold, ramp_up_threshold, int, 0664);
-
-static int laziness;
-
-static int simple_governor(struct kgsl_device *device, int idle_stat)
-{
-	int val = 0;
-	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
-
-	/* it's currently busy */
-	if (idle_stat < ramp_up_threshold) {
-		if (pwr->active_pwrlevel == 0)
-			val = 0; /* already maxed, so do nothing */
-		else if ((pwr->active_pwrlevel > 0) &&
-			(pwr->active_pwrlevel <= (pwr->num_pwrlevels - 1)))
-			val = -1; /* bump up to next pwrlevel */
-	/* idle case */
-	} else {
-		if ((pwr->active_pwrlevel >= 0) &&
-			(pwr->active_pwrlevel < (pwr->num_pwrlevels - 1)))
-			if (laziness > 0) {
-				/* hold off for a while */
-				laziness--;
-				val = 0; /* don't change anything yet */
-			} else {
-				val = 1; /* above min, lower it */
-				/* reset laziness count */
-				laziness = default_laziness;
-			}
-		else if (pwr->active_pwrlevel == (pwr->num_pwrlevels - 1))
-			val = 0; /* already @ min, so do nothing */
-	}
-	return val;
-}
-#endif
-#endif
-
 static void tz_idle(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 {
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
@@ -237,16 +178,6 @@ static void tz_idle(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 	priv->bin.total_time += stats.total_time;
 	priv->bin.busy_time += stats.busy_time;
 
-#if 0
-	/* Do not waste CPU cycles running this algorithm if
-	 * the GPU just started, or if less than FLOOR time
-	 * has passed since the last run.
-	 */
-	if ((stats.total_time == 0) ||
-		(priv->bin.total_time < FLOOR))
-		return;
-#endif
-
 	if (time_is_after_jiffies(window_time + msecs_to_jiffies(sample_time_ms)))
 		return;
 
@@ -260,7 +191,7 @@ static void tz_idle(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 	if (debug)
 	{ 
 		pr_info("GPU current load: %ld\n", gpu_stats.busy_time_ms);
-	pr_info("GPU total time load: %ld\n", gpu_stats.total_time_ms);
+		pr_info("GPU total time load: %ld\n", gpu_stats.total_time_ms);
 		pr_info("GPU frequency: %d\n", 
 								pwr->pwrlevels[pwr->active_pwrlevel].gpu_freq);
 	}

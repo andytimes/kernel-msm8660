@@ -79,11 +79,11 @@ struct qfprom_blow_data {
 	u32 msb_data;
 };
 
-static u32 fusing_flag=0;
-static u32 qfprom_address=0;
-static u32 qfprom_lsb_value=0;
-static u32 qfprom_msb_value=0;
-static u32 enable=0;
+static u32 fusing_flag = 0;
+static u32 qfprom_address = 0;
+static u32 qfprom_lsb_value = 0;
+static u32 qfprom_msb_value = 0;
+static u32 enable = 0;
 
 u32 qfprom_secondary_hwkey_status(void);
 int qfprom_blow_secondary_hwkey_region(void);

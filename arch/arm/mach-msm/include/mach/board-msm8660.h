@@ -38,4 +38,8 @@ extern struct msm_camera_board_info msm8x60_camera_board_info;
 void msm8x60_init_cam(void);
 #endif
 
+#ifdef CONFIG_LGE_QFPROM_INTERFACE
+void __init lge_add_qfprom_devices(void);
+#endif
+
 #endif

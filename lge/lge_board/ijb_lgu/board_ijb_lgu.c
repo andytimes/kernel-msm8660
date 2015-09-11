@@ -2769,6 +2769,18 @@ static struct msm_thermal_data msm_thermal_pdata = {
 #endif
 };
 
+#ifdef CONFIG_LGE_QFPROM_INTERFACE
+static struct platform_device qfprom_device = {
+	.name = "lge-msm8660-qfprom",
+	.id = -1,
+};
+
+void __init lge_add_qfprom_devices(void)
+{
+	platform_device_register(&qfprom_device);
+}
+#endif
+
 #ifdef CONFIG_SENSORS_MSM_ADC
 static struct adc_access_fn xoadc_fn = {
 	pm8058_xoadc_select_chan_and_start_conv,
@@ -7412,6 +7424,9 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 	msm_tsens_early_init(&lge_tsens_pdata);
 #endif
 	msm_thermal_init(&msm_thermal_pdata);
+#ifdef CONFIG_LGE_QFPROM_INTERFACE
+	lge_add_qfprom_devices();
+#endif
 
 	/*
 	 * Initialize RPM first as other drivers and devices may need
