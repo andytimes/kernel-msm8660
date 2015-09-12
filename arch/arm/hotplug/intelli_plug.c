@@ -55,7 +55,7 @@ static struct workqueue_struct *intelliplug_boost_wq;
 static unsigned int intelli_plug_active = 1;
 module_param(intelli_plug_active, uint, 0664);
 
-static unsigned int touch_boost_active = 1;
+static unsigned int touch_boost_active = 0;
 module_param(touch_boost_active, uint, 0664);
 
 static unsigned int nr_run_profile_sel = 0;
@@ -90,7 +90,7 @@ defined(CONFIG_ARCH_MSM8974)
 defined (CONFIG_ARCH_MSM8610) || defined (CONFIG_ARCH_MSM8228)
 #define THREAD_CAPACITY (190 - CAPACITY_RESERVE)
 #else
-#define THREAD_CAPACITY	(289 - CAPACITY_RESERVE)
+#define THREAD_CAPACITY	(300 - CAPACITY_RESERVE)
 #endif
 
 #define MULT_FACTOR	4

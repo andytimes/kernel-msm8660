@@ -2722,10 +2722,10 @@ static struct platform_device *early_devices[] __initdata = {
 };
 
 static struct tsens_platform_data lge_tsens_pdata  = {
-		.slope			= {702},
+		.slope			= {702, 702, 702, 702, 702, 702},
 		.tsens_factor		= 1000,
 		.hw_type		= MSM_8660,
-		.tsens_num_sensor	= 1,	//There are 6, but only 1 could be used
+		.tsens_num_sensor	= 6,
 };
 
 static struct platform_device msm_tsens_device = {
@@ -2736,20 +2736,12 @@ static struct platform_device msm_tsens_device = {
 static struct msm_thermal_data msm_thermal_pdata = {
 	.sensor_id = 0,
 	.poll_ms = 500,
-#ifdef CONFIG_CPU_OC
 	.limit_temp_degC = 70,
-#else
-	.limit_temp_degC = 60,
-#endif
 	.temp_hysteresis_degC = 10,
 	.freq_step = 2,
 #ifdef CONFIG_INTELLI_THERMAL
 	.freq_control_mask = 0xf,
-#ifdef CONFIG_CPU_OC
-	.core_limit_temp_degC = 90,
-#else
 	.core_limit_temp_degC = 80,
-#endif
 	.core_temp_hysteresis_degC = 10,
 	.core_control_mask = 0xe,
 #endif
