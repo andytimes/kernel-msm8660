@@ -2733,23 +2733,21 @@ static struct platform_device *early_devices[] __initdata = {
 	&msm_device_dmov_adm1,
 };
 
-#ifdef CONFIG_THERMAL_TSENS8X60
 static struct tsens_platform_data lge_tsens_pdata  = {
-		.slope			= {702, 702, 702, 702, 702},
+		.slope			= 702,
 		.tsens_factor		= 1000,
 		.hw_type		= MSM_8660,
-		.tsens_num_sensor	= 6,
+		.tsens_num_sensor	= 1,	//There are 6, but only 1 could be used
 };
-#else
+
 static struct platform_device msm_tsens_device = {
-	.name   = "tsens-tm",
+	.name   = "tsens8660-tm",
 	.id = -1,
 };
-#endif
 
 static struct msm_thermal_data msm_thermal_pdata = {
 	.sensor_id = 0,
-	.poll_ms = 250,
+	.poll_ms = 500,
 #ifdef CONFIG_CPU_OC
 	.limit_temp_degC = 70,
 #else
@@ -3459,10 +3457,7 @@ static struct platform_device *surf_devices[] __initdata = {
 #ifdef CONFIG_HW_RANDOM_MSM
 	&msm_device_rng,
 #endif
-
-#ifndef CONFIG_THERMAL_TSENS8X60
 	&msm_tsens_device,
-#endif
 
 #if 0 /*                                                       */
 	&msm_rpm_device,
@@ -7420,9 +7415,7 @@ static void __init msm8x60_init(struct msm_board_data *board_data)
 #endif
 	pmic_reset_irq = PM8058_IRQ_BASE + PM8058_RESOUT_IRQ;
 
-#ifdef CONFIG_THERMAL_TSENS8X60
 	msm_tsens_early_init(&lge_tsens_pdata);
-#endif
 	msm_thermal_init(&msm_thermal_pdata);
 #ifdef CONFIG_LGE_QFPROM_INTERFACE
 	lge_add_qfprom_devices();
