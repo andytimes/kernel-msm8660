@@ -2051,6 +2051,9 @@ wl_cfgp2p_get_p2p_noa(struct wl_priv *wl, struct net_device *ndev, char* buf, in
 	}
 	return len * 2;
 }
+
+extern bool wifi_pm;
+
 s32
 wl_cfgp2p_set_p2p_ps(struct wl_priv *wl, struct net_device *ndev, char* buf, int len)
 {
@@ -2077,10 +2080,8 @@ wl_cfgp2p_set_p2p_ps(struct wl_priv *wl, struct net_device *ndev, char* buf, int
 		}
 
 		if ((legacy_ps != -1) && ((legacy_ps == PM_MAX) || (legacy_ps == PM_OFF))) {
-#if !defined(SUPPORT_PM2_ONLY)
-			if (legacy_ps == PM_MAX)
+			if (legacy_ps == PM_MAX && wifi_pm)
 				legacy_ps = PM_FAST;
-#endif /* SUPPORT_PM2_ONLY */
 
 			ret = wldev_ioctl(wl_to_p2p_bss_ndev(wl, P2PAPI_BSSCFG_CONNECTION),
 				WLC_SET_PM, &legacy_ps, sizeof(legacy_ps), true);

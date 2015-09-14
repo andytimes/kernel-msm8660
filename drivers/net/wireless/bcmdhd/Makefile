@@ -51,6 +51,8 @@ DHDCFLAGS += -DPASS_ALL_MCAST_PKTS
 # Early suspend
 #DHDCFLAGS += -DDHD_USE_EARLYSUSPEND 
 
+# Use PM_MAX & PM_FAST for better WIFI & battery performance.
+# So, Let's undef SUPPORT_PM2_ONLY
 #DHDCFLAGS += -DSUPPORT_PM2_ONLY
 
 # For Scan result patch

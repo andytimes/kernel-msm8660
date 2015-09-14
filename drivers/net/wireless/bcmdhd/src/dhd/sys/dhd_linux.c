@@ -663,9 +663,6 @@ EXPORT_SYMBOL(wifi_pm);
 
 static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 {
-#ifndef SUPPORT_PM2_ONLY
-	int power_mode = PM_MAX;
-#endif
 	/* wl_pkt_filter_enable_t	enable_parm; */
 	char iovbuf[32];
 	int bcn_li_dtim = 0; /* Default bcn_li_dtim in resume mode is 0 */
@@ -681,16 +678,18 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 	uint i;
 #endif /* PASS_ALL_MCAST_PKTS */
 
+	int power_mode = PM_MAX;
+	if (wifi_pm)
+		power_mode = PM_FAST;
+
+	if (!dhd)
+		return -ENODEV;
+
 	DHD_TRACE(("%s: enter, value = %d in_suspend=%d\n",
 		__FUNCTION__, value, dhd->in_suspend));
 
-	if (wifi_pm) {
-		power_mode = PM_FAST;
-		pr_info("%p Wi-Fi Power Management policy changed to PM_FAST.", __func__);
-	}
-
 	dhd_suspend_lock(dhd);
-	if (dhd && dhd->up) {
+	if (dhd->up) {
 		if (value && dhd->in_suspend) {
 #ifdef PKT_FILTER_SUPPORT
 				dhd->early_suspended = 1;
@@ -698,10 +697,10 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 				/* Kernel suspended */
 				DHD_ERROR(("%s: force extra Suspend setting\n", __FUNCTION__));
 
-#ifndef SUPPORT_PM2_ONLY
+			if (!wifi_pm) {
 				dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
-				                 sizeof(power_mode), TRUE, 0);
-#endif
+			                 	sizeof(power_mode), TRUE, 0);
+			}
 
 				/* Enable packet filter, only allow unicast packet to send up */
 				dhd_enable_packet_filter(1, dhd);
@@ -746,11 +745,11 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 				/* Kernel resumed  */
 				DHD_ERROR(("%s: Remove extra suspend setting\n", __FUNCTION__));
 
-#ifndef SUPPORT_PM2_ONLY
+			if (!wifi_pm) {
 				power_mode = PM_FAST;
 				dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
 				                 sizeof(power_mode), TRUE, 0);
-#endif
+			}
 
 				/* disable pkt filter */
 				dhd_enable_packet_filter(0, dhd);
