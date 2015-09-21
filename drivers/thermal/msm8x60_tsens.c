@@ -107,6 +107,9 @@ enum tsens_trip_type {
 #define TSENS_SENSOR0_SHIFT				3
 #define TSENS_MASK1					1
 
+#define TSENS_8660_SENSOR5_EN				BIT(8)
+#define TSENS_8660_SENSORS_EN			(SENSORS_EN | \
+						TSENS_8660_SENSOR5_EN)
 #define TSENS_8660_QFPROM_ADDR			(MSM_QFPROM_BASE + 0x000000bc)
 #define TSENS_8660_QFPROM_RED_TEMP_SENSOR0_SHIFT	24
 #define TSENS_8660_QFPROM_TEMP_SENSOR0_SHIFT		16
@@ -646,6 +649,9 @@ static void tsens_scheduler_fn(struct work_struct *work)
 	if (tmdev->hw_type == APQ_8064) {
 		reg = readl_relaxed(TSENS_8064_STATUS_CNTL);
 		sensor &= (uint32_t) TSENS_8064_SENSORS_EN;
+	} else if (tmdev->hw_type == MSM_8660) {
+		reg = sensor;
+		sensor &= (uint32_t) SENSORS_EN;
 	} else {
 		reg = sensor;
 		sensor &= (uint32_t) SENSORS_EN;
@@ -695,7 +701,7 @@ static void tsens8960_sensor_mode_init(void)
 
 	reg_cntl = readl_relaxed(TSENS_CNTL_ADDR);
 	if (tmdev->hw_type == MSM_8960 || tmdev->hw_type == MDM_9615 ||
-		tmdev->hw_type == APQ_8064) {
+		tmdev->hw_type == APQ_8064 || tmdev->hw_type == MSM_8660) {
 		writel_relaxed(reg_cntl &
 				~((((1 << tmdev->tsens_num_sensor) - 1) >> 1)
 				<< (TSENS_SENSOR0_SHIFT + 1)), TSENS_CNTL_ADDR);
@@ -759,6 +765,12 @@ static int tsens_resume(struct device *dev)
 			TSENS_MIN_STATUS_MASK | TSENS_MAX_STATUS_MASK |
 			SENSORS_EN;
 		writel_relaxed(reg_cntl, TSENS_CNTL_ADDR);
+	} else if (tmdev->hw_type == MSM_8660) {
+		reg_cntl |= TSENS_8660_SLP_CLK_ENA |
+			(TSENS_MEASURE_PERIOD << 18) |
+			TSENS_MIN_STATUS_MASK | TSENS_MAX_STATUS_MASK |
+			SENSORS_EN;
+		writel_relaxed(reg_cntl, TSENS_CNTL_ADDR);
 	} else if (tmdev->hw_type == APQ_8064) {
 		reg_cntl |= TSENS_8960_SLP_CLK_ENA |
 			(TSENS_MEASURE_PERIOD << 18) |
@@ -772,8 +784,8 @@ static int tsens_resume(struct device *dev)
 	}
 
 	reg_cfg = readl_relaxed(TSENS_8960_CONFIG_ADDR);
-	reg_cfg = (reg_cfg & ~TSENS_8960_CONFIG_MASK) |
-		(TSENS_8960_CONFIG << TSENS_8960_CONFIG_SHIFT);
+	reg_cfg = (reg_cfg & ~TSENS_8660_CONFIG_MASK) |
+		(TSENS_8660_CONFIG << TSENS_8660_CONFIG_SHIFT);
 	writel_relaxed(reg_cfg, TSENS_8960_CONFIG_ADDR);
 
 	writel_relaxed((tmdev->pm_tsens_cntl & TSENS_CNTL_RESUME_MASK),
@@ -781,10 +793,11 @@ static int tsens_resume(struct device *dev)
 	reg_cntl = readl_relaxed(TSENS_CNTL_ADDR);
 	writel_relaxed(tmdev->pm_tsens_thr_data, TSENS_THRESHOLD_ADDR);
 	reg_thr_data = readl_relaxed(TSENS_THRESHOLD_ADDR);
-	if (tmdev->hw_type == MSM_8960 || tmdev->hw_type == MDM_9615)
+	if (tmdev->hw_type == MSM_8960 || tmdev->hw_type == MDM_9615 ||
+		tmdev->hw_type == MSM_8660)
 		reg_sensor_mask = ((reg_cntl & TSENS_8960_SENSOR_MASK)
 				>> TSENS_SENSOR0_SHIFT);
-	else {
+	else if (tmdev->hw_type == APQ_8064) {
 		reg_sensor_mask = ((reg_cntl & TSENS_8064_SENSOR_MASK)
 				>> TSENS_SENSOR0_SHIFT);
 	}
@@ -843,8 +856,8 @@ static void tsens_hw_init(void)
 		writel_relaxed(reg_cntl, TSENS_CNTL_ADDR);
 
 		reg_cfg = readl_relaxed(TSENS_8960_CONFIG_ADDR);
-		reg_cfg = (reg_cfg & ~TSENS_8960_CONFIG_MASK) |
-			(TSENS_8960_CONFIG << TSENS_8960_CONFIG_SHIFT);
+		reg_cfg = (reg_cfg & ~TSENS_8660_CONFIG_MASK) |
+			(TSENS_8660_CONFIG << TSENS_8660_CONFIG_SHIFT);
 		writel_relaxed(reg_cfg, TSENS_8960_CONFIG_ADDR);
 	} else if (tmdev->hw_type == MSM_8660) {
 		reg_cntl |= TSENS_8660_SLP_CLK_ENA | TSENS_EN |
@@ -876,8 +889,8 @@ static void tsens_hw_init(void)
 		writel_relaxed(reg_cntl, TSENS_CNTL_ADDR);
 
 		reg_cfg = readl_relaxed(TSENS_8960_CONFIG_ADDR);
-		reg_cfg = (reg_cfg & ~TSENS_8960_CONFIG_MASK) |
-			(TSENS_8960_CONFIG << TSENS_8960_CONFIG_SHIFT);
+		reg_cfg = (reg_cfg & ~TSENS_8660_CONFIG_MASK) |
+			(TSENS_8660_CONFIG << TSENS_8660_CONFIG_SHIFT);
 		writel_relaxed(reg_cfg, TSENS_8960_CONFIG_ADDR);
 	}
 

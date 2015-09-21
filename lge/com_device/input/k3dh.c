@@ -1519,7 +1519,7 @@ static int k3dh_acc_probe(struct i2c_client *client,const struct i2c_device_id *
     goto err_mutexunlockfreedata;
   }
 
-  memcpy(acc->pdata, client->dev.platform_data, sizeof(*acc->pdata));
+  memcpy(acc->pdata, client->dev.platform_data, sizeof(*(acc->pdata)));
 
   err = k3dh_acc_validate_pdata(acc);
   if (err < 0) 

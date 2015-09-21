@@ -147,7 +147,7 @@ static unsigned int *nr_run_profiles[] = {
 #define NR_RUN_HYSTERESIS_QUAD	8
 #define NR_RUN_HYSTERESIS_DUAL	4
 
-#define CPU_NR_THRESHOLD	((THREAD_CAPACITY << 1) + (THREAD_CAPACITY / 2))
+#define CPU_NR_THRESHOLD	((THREAD_CAPACITY << 1) + (THREAD_CAPACITY >> 1))
 
 static unsigned int nr_possible_cores;
 module_param(nr_possible_cores, uint, 0644);
