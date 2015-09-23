@@ -2588,7 +2588,7 @@ void msm_charger_vbus_draw(unsigned int mA)
 		usb_chg_current = mA;
 }
 
-static int __init determine_initial_batt_status(void)
+static int determine_initial_batt_status(void)
 {
 	/*                  */
 	int rc;
