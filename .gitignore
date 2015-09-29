@@ -100,7 +100,7 @@ mk
 #
 # Update patch
 #
-patch-3.4.108
+patch-*
 
 *.orig
 *.rej
@@ -110,3 +110,12 @@ patch-3.4.108
 .config
 .config.old
 \#*#
+
+#
+# Don't upload
+#
+scripts/bin2c
+scripts/conmakehash
+scripts/kallsyms
+usr/gen_init_cpio
+usr/initramfs_data.cpio
