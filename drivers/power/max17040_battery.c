@@ -114,7 +114,7 @@ struct max17040_chip {
 	/* battery voltage */
 	int vcell;
 	/* battery capacity */
-	int soc = 0;
+	int soc;
 	/* State Of Charge */
 	int status;
 };
