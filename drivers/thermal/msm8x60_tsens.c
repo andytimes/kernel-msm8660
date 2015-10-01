@@ -312,7 +312,7 @@ static int tsens_tz_set_mode(struct thermal_zone_device *thermal,
 						TSENS_8960_SLP_CLK_ENA |
 						TSENS_EN);
 				else
-					reg &= ~(SENSORS_EN |
+					reg &= ~(TSENS_8660_SENSORS_EN |
 						TSENS_8660_SLP_CLK_ENA |
 						TSENS_EN);
 
@@ -651,7 +651,7 @@ static void tsens_scheduler_fn(struct work_struct *work)
 		sensor &= (uint32_t) TSENS_8064_SENSORS_EN;
 	} else if (tmdev->hw_type == MSM_8660) {
 		reg = sensor;
-		sensor &= (uint32_t) SENSORS_EN;
+		sensor &= (uint32_t) TSENS_8660_SENSORS_EN;
 	} else {
 		reg = sensor;
 		sensor &= (uint32_t) SENSORS_EN;

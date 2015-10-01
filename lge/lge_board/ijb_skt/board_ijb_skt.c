@@ -2722,10 +2722,10 @@ static struct platform_device *early_devices[] __initdata = {
 };
 
 static struct tsens_platform_data lge_tsens_pdata  = {
-		.slope			= {702, 702, 702, 702, 702},
+		.slope			= {702, 702, 702, 702, 702, 702},
 		.tsens_factor		= 1000,
 		.hw_type		= MSM_8660,
-		.tsens_num_sensor	= 5,
+		.tsens_num_sensor	= 6,
 };
 
 static struct platform_device msm_tsens_device = {
