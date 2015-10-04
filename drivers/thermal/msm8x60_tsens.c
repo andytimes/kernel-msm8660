@@ -769,7 +769,7 @@ static int tsens_resume(struct device *dev)
 		reg_cntl |= TSENS_8660_SLP_CLK_ENA |
 			(TSENS_MEASURE_PERIOD << 18) |
 			TSENS_MIN_STATUS_MASK | TSENS_MAX_STATUS_MASK |
-			SENSORS_EN;
+			TSENS_8660_SENSORS_EN;
 		writel_relaxed(reg_cntl, TSENS_CNTL_ADDR);
 	} else if (tmdev->hw_type == APQ_8064) {
 		reg_cntl |= TSENS_8960_SLP_CLK_ENA |
