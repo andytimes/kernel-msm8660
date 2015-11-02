@@ -484,7 +484,7 @@ static struct backlight_platform_data lm3530_data = {
 	0xBB = 26 mA full-scale current
 	0xBF= 29.5 mA full-scale current
 	*/
-	.min_brightness = 0x05, // 0x00, //0x09,
+	.min_brightness = 0x02, // 0x05, //0x09,
 	.max_brightness = 0x71,
 };
 	
