@@ -84,9 +84,9 @@ unsigned int down_threshold = 25;
 unsigned int up_differential = 10;
 bool debug = 0;
 
-module_param(sample_time_ms, long, 0664);
-module_param(up_threshold, int, 0664);
-module_param(down_threshold, int, 0664);
+module_param(sample_time_ms, ulong, 0664);
+module_param(up_threshold, uint, 0664);
+module_param(down_threshold, uint, 0664);
 module_param(debug, bool, 0664);
 
 struct clk_scaling_stats {
@@ -118,7 +118,7 @@ static ssize_t tz_governor_store(struct kgsl_device *device,
 				struct kgsl_pwrscale *pwrscale,
 				 const char *buf, size_t count)
 {
-	char str[20];
+	char str[] = "0";
 	struct tz_priv *priv = pwrscale->priv;
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 	int ret;
