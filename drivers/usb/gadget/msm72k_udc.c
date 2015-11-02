@@ -206,10 +206,8 @@ struct usb_info {
 	/* max power requested by selected configuration */
 	unsigned b_max_pow;
 	unsigned chg_current;
-#if 1 /*                                                          */
 	unsigned chg_type_retry_cnt;
 	bool proprietary_chg;
-#endif
 	struct delayed_work chg_det;
 	struct delayed_work chg_stop;
 	struct msm_hsusb_gadget_platform_data *pdata;
@@ -1440,7 +1438,6 @@ int usb_ept_queue_xfer(struct msm_endpoint *ept, struct usb_request *_req)
 
 	spin_lock_irqsave(&ui->lock, flags);
 
-#if 1 /*                                                          */
 	if (ept->num != 0 && ept->ep.desc == NULL) {
 		req->req.status = -EINVAL;
 		spin_unlock_irqrestore(&ui->lock, flags);
@@ -1448,7 +1445,6 @@ int usb_ept_queue_xfer(struct msm_endpoint *ept, struct usb_request *_req)
 				"%s: called for disabled endpoint\n", __func__);
 		return -EINVAL;
 	}
-#endif
 
 	if (req->busy) {
 		req->req.status = -EBUSY;
