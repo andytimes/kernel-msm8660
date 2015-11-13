@@ -34,21 +34,15 @@
  */
 
 #define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(10)
-#define DEF_FREQUENCY_UP_THRESHOLD		(80)
-#define DEF_SAMPLING_DOWN_FACTOR		(1)
+#define DEF_FREQUENCY_UP_THRESHOLD		(90)
+#define DEF_SAMPLING_DOWN_FACTOR		(4)
 #define MAX_SAMPLING_DOWN_FACTOR		(100000)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(3)
-#define MICRO_FREQUENCY_UP_THRESHOLD		(95)
-#define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(10000)
+#define MICRO_FREQUENCY_UP_THRESHOLD		(90)
+#define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(50000)
 #define MIN_FREQUENCY_UP_THRESHOLD		(11)
 #define MAX_FREQUENCY_UP_THRESHOLD		(100)
 #define MIN_FREQUENCY_DOWN_DIFFERENTIAL		(1)
-
-#define INIT_DELAYED_WORK_DEFERRABLE(_work, _func)			\
-	do {							\
-		INIT_WORK(&(_work)->work, (_func));		\
-		init_timer_deferrable(&(_work)->timer);		\
-	} while (0)
 
 /*
  * The polling frequency of this governor depends on the capability of
@@ -965,7 +959,7 @@ static inline void dbs_timer_init(struct cpu_dbs_info_s *dbs_info)
 		delay -= jiffies % delay;
 
 	dbs_info->sample_type = DBS_NORMAL_SAMPLE;
-	INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
+	INIT_DEFERRABLE_WORK(&dbs_info->work, do_dbs_timer);
 	queue_delayed_work_on(dbs_info->cpu, dbs_wq, &dbs_info->work, delay);
 }
 
@@ -1145,23 +1139,20 @@ static void dbs_input_event(struct input_handle *handle, unsigned int type,
 	int i;
 
 #ifdef CONFIG_LGE_PM_CURRENT_CONSUMPTION_FIX
-	if(!strcmp((char*)(handle->dev->name), "accelerometer") || !strcmp((char*)(handle->dev->name), "proximity")||
-	!strcmp((char*)(handle->dev->name), "magnetic_field") || !strcmp((char*)(handle->dev->name), "gyroscope")||
-	!strcmp((char*)(handle->dev->name), "light") || !strcmp((char*)(handle->dev->name), "synaptics_ts")
-	{
+	if(!strcmp((char*)(handle->dev->name), "accelerometer") || !strcmp((char*)(handle->dev->name), "proximity")
+	|| !strcmp((char*)(handle->dev->name), "magnetic_field") || !strcmp((char*)(handle->dev->name), "gyroscope")
+	|| !strcmp((char*)(handle->dev->name), "light") || !strcmp((char*)(handle->dev->name), "synaptics_ts")) {
 		//printk(KERN_INFO "Not Bumping up CPU for %s", handle->dev->name);
 		return;
-	}
-	else
-	{
-        if ((dbs_tuners_ins.powersave_bias == POWERSAVE_BIAS_MAXLEVEL) ||
-            (dbs_tuners_ins.powersave_bias == POWERSAVE_BIAS_MINLEVEL)) {
+	} else {
+        if ((dbs_tuners_ins.powersave_bias == POWERSAVE_BIAS_MAXLEVEL)
+		|| (dbs_tuners_ins.powersave_bias == POWERSAVE_BIAS_MINLEVEL)) {
                 /* nothing to do */
                 return;
         }
 
 		for_each_online_cpu(i)
-		queue_work_on(i, dbs_wq, &per_cpu(dbs_refresh_work, i).work);
+			queue_work_on(i, dbs_wq, &per_cpu(dbs_refresh_work, i).work);
 	}
 #else
 	if ((dbs_tuners_ins.powersave_bias == POWERSAVE_BIAS_MAXLEVEL) ||

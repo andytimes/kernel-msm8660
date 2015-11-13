@@ -86,10 +86,10 @@ static spinlock_t speedchange_cpumask_lock;
  * Tunables start
  */
 
-#define DEFAULT_TIMER_RATE (20 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_RATE (50 * USEC_PER_MSEC)
 static unsigned long timer_rate;
 
-#define DEFAULT_UP_THRESHOLD 95
+#define DEFAULT_UP_THRESHOLD 90
 static unsigned long up_threshold;
 
 #define DEFAULT_DOWN_DIFFERENTIAL 62
@@ -116,7 +116,7 @@ static unsigned long inter_staycycles;
 #define DEFAULT_STAYCYCLES_RESETFREQ 486000
 static u64 staycycles_resetfreq;
 
-#define DEFAULT_IO_IS_BUSY 2
+#define DEFAULT_IO_IS_BUSY 1
 static unsigned int io_is_busy;
 
 /*
