@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -47,6 +47,9 @@ static struct kgsl_pwrscale_policy *kgsl_pwrscale_policies[] = {
 #endif
 #ifdef CONFIG_MSM_SLEEP_STATS_DEVICE
 	&kgsl_pwrscale_policy_idlestats,
+#endif
+#ifdef CONFIG_MSM_DCVS
+	&kgsl_pwrscale_policy_msm,
 #endif
 	NULL
 };
@@ -234,9 +237,11 @@ EXPORT_SYMBOL(kgsl_pwrscale_wake);
 void kgsl_pwrscale_busy(struct kgsl_device *device)
 {
 	if (PWRSCALE_ACTIVE(device) && device->pwrscale.policy->busy)
-		if (device->requested_state != KGSL_STATE_SLUMBER)
+		if ((!device->pwrscale.gpu_busy) &&
+			(device->requested_state != KGSL_STATE_SLUMBER))
 			device->pwrscale.policy->busy(device,
 					&device->pwrscale);
+	device->pwrscale.gpu_busy = 1;
 }
 
 void kgsl_pwrscale_idle(struct kgsl_device *device)
@@ -246,6 +251,7 @@ void kgsl_pwrscale_idle(struct kgsl_device *device)
 			device->requested_state != KGSL_STATE_SLEEP)
 			device->pwrscale.policy->idle(device,
 					&device->pwrscale);
+	device->pwrscale.gpu_busy = 0;
 }
 EXPORT_SYMBOL(kgsl_pwrscale_idle);
 
@@ -296,16 +302,8 @@ static void _kgsl_pwrscale_detach_policy(struct kgsl_device *device)
 {
 	if (device->pwrscale.policy != NULL) {
 		device->pwrscale.policy->close(device, &device->pwrscale);
-
-		/*
-		 * Try to set max pwrlevel which will be limited to thermal by
-		 * kgsl_pwrctrl_pwrlevel_change if thermal is indeed lower
-		 */
-
 		kgsl_pwrctrl_pwrlevel_change(device,
-				device->pwrctrl.max_pwrlevel);
-		device->pwrctrl.default_pwrlevel =
-				device->pwrctrl.max_pwrlevel;
+				device->pwrctrl.thermal_pwrlevel);
 	}
 	device->pwrscale.policy = NULL;
 }
@@ -338,8 +336,6 @@ int kgsl_pwrscale_attach_policy(struct kgsl_device *device,
 
 	device->pwrscale.policy = policy;
 
-	device->pwrctrl.default_pwrlevel =
-			device->pwrctrl.init_pwrlevel;
 	/* Pwrscale is enabled by default at attach time */
 	kgsl_pwrscale_enable(device);
 
