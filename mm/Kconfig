@@ -418,10 +418,9 @@ config FRONTSWAP
 
 	  If unsure, say Y to enable frontswap.
 
-config ZSMALLOC
+config ZSMALLOC_NEW
 	tristate "Memory allocator for compressed pages"
-	depends on MMU
-	default n
+	default y
 	help
 	  zsmalloc is a slab-based memory allocator designed to store
 	  compressed RAM pages.  zsmalloc uses virtual memory mapping
@@ -463,6 +462,13 @@ config DISABLE_LUMPY_RECLAIM
 	bool "Disable lumpy reclaim"
 	default y
 	depends on ZSWAP
+
+config ZSWAP_ENABLE_WRITEBACK
+	bool "zswap writeback"
+	depends on ZSWAP
+	default y
+	help
+	  enable zswap writeback capabilities
 
 config DIRECT_RECLAIM_FILE_PAGES_ONLY
 	bool "Reclaim file pages only"
