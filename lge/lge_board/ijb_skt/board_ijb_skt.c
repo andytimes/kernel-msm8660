@@ -3437,7 +3437,6 @@ static struct platform_device *surf_devices[] __initdata = {
 	&ion_dev,
 #endif
 	&msm8660_device_watchdog,
-	&msm8660_cpu_slp_status,
 #if 1 /*                                                                  */
     //&msm_device_tz_log,
     &msm_rtb_device,

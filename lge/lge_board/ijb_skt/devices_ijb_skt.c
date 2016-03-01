@@ -39,7 +39,6 @@
 #include <mach/msm_bus.h>
 #include <mach/msm_bus_board.h>
 #include <mach/socinfo.h>
-#include "pm.h"
 #include <mach/msm_memtypes.h>
 #include <mach/msm_tsif.h>
 #include <mach/scm-io.h>
@@ -2241,19 +2240,6 @@ struct platform_device msm_device_tsif[2] = {
 struct platform_device msm_device_smd = {
 	.name           = "msm_smd",
 	.id             = -1,
-};
-
-static struct msm_pm_sleep_status_data msm_pm_slp_sts_data = {
-	.base_addr = MSM_ACC0_BASE + 0x08,
-	.cpu_offset = MSM_ACC1_BASE - MSM_ACC0_BASE,
-	.mask = 1UL << 13,
-};
-struct platform_device msm8660_cpu_slp_status = {
-	.name		= "cpu_slp_status",
-	.id		= -1,
-	.dev = {
-		.platform_data = &msm_pm_slp_sts_data,
-	},
 };
 
 static struct msm_watchdog_pdata msm_watchdog_pdata = {
