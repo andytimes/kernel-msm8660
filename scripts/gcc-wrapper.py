@@ -40,8 +40,7 @@ import subprocess
 # force LANG to be set to en_US.UTF-8 to get consistent warnings.
 
 allowed_warnings = set([
-    "workqueue.c:524",
-    "cgroup.c:2934",
+	"",
  ])
 
 # Capture the name of the object file, can find it.
