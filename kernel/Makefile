@@ -22,6 +22,11 @@ CFLAGS_REMOVE_cgroup-debug.o = -pg
 CFLAGS_REMOVE_irq_work.o = -pg
 endif
 
+# Do not use -O3 on workqueue.c
+CFLAGS_REMOVE_workqueue.o = -O3
+CFLAGS_workqueue.o += -O2
+
+
 obj-y += sched/
 obj-y += power/
 
