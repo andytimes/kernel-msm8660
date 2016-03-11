@@ -98,7 +98,7 @@ static struct sctp_transport *sctp_transport_init(struct sctp_transport *peer,
 		    sctp_generate_proto_unreach_event, (unsigned long)peer);
 
 	/* Initialize the 64-bit random nonce sent with heartbeat. */
-	get_random_bytes_arch(&peer->hb_nonce, sizeof(peer->hb_nonce));
+	get_random_bytes(&peer->hb_nonce, sizeof(peer->hb_nonce));
 
 	atomic_set(&peer->refcnt, 1);
 

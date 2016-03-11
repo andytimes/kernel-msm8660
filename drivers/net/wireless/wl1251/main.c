@@ -1425,7 +1425,7 @@ struct ieee80211_hw *wl1251_alloc_hw(void)
 	 * we use a random but Nokia MAC.
 	 */
 	memcpy(wl->mac_addr, nokia_oui, 3);
-	get_random_bytes_arch(wl->mac_addr + 3, 3);
+	get_random_bytes(wl->mac_addr + 3, 3);
 
 	wl->state = WL1251_STATE_OFF;
 	mutex_init(&wl->mutex);

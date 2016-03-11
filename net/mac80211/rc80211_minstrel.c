@@ -358,7 +358,7 @@ init_sample_table(struct minstrel_sta_info *mi)
 
 	for (col = 0; col < SAMPLE_COLUMNS; col++) {
 		for (i = 0; i < n_srates; i++) {
-			get_random_bytes_arch(rnd, sizeof(rnd));
+			get_random_bytes(rnd, sizeof(rnd));
 			new_idx = (i + rnd[i & 7]) % n_srates;
 
 			while (SAMPLE_TBL(mi, new_idx, col) != 0)

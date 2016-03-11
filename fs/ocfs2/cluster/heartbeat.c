@@ -1804,7 +1804,7 @@ static ssize_t o2hb_region_dev_write(struct o2hb_region *reg,
 
 	/* Generation of zero is invalid */
 	do {
-		get_random_bytes_arch(&reg->hr_generation,
+		get_random_bytes(&reg->hr_generation,
 				 sizeof(reg->hr_generation));
 	} while (reg->hr_generation == 0);
 

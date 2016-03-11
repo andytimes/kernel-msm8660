@@ -2455,7 +2455,7 @@ void ceph_messenger_init(struct ceph_messenger *msgr,
 
 	/* select a random nonce */
 	msgr->inst.addr.type = 0;
-	get_random_bytes_arch(&msgr->inst.addr.nonce, sizeof(msgr->inst.addr.nonce));
+	get_random_bytes(&msgr->inst.addr.nonce, sizeof(msgr->inst.addr.nonce));
 	encode_my_addr(msgr);
 	msgr->nocrc = nocrc;
 

@@ -705,7 +705,7 @@ static int __choose_mds(struct ceph_mds_client *mdsc,
 				u8 r;
 
 				/* choose a random replica */
-				get_random_bytes_arch(&r, 1);
+				get_random_bytes(&r, 1);
 				r %= frag.ndist;
 				mds = frag.dist[r];
 				dout("choose_mds %p %llx.%llx "

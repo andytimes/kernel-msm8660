@@ -318,7 +318,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par)
 	int ret = -EINVAL;
 
 	if (unlikely(!hash_rnd_inited)) {
-		get_random_bytes_arch(&hash_rnd, sizeof(hash_rnd));
+		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
 		hash_rnd_inited = true;
 	}
 	if (info->check_set & ~XT_RECENT_VALID_FLAGS) {

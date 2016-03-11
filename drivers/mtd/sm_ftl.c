@@ -863,7 +863,7 @@ static int sm_init_zone(struct sm_ftl *ftl, int zone_num)
 	}
 
 	/* Randomize first block we write to */
-	get_random_bytes_arch(&i, 2);
+	get_random_bytes(&i, 2);
 	i %= (kfifo_len(&zone->free_sectors) / 2);
 
 	while (i--) {

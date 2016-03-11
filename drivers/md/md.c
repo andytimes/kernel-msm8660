@@ -5900,7 +5900,7 @@ static int set_array_info(struct mddev * mddev, mdu_array_info_t *info)
 	/*
 	 * Generate a 128 bit UUID
 	 */
-	get_random_bytes_arch(mddev->uuid, 16);
+	get_random_bytes(mddev->uuid, 16);
 
 	mddev->new_level = mddev->level;
 	mddev->new_chunk_sectors = mddev->chunk_sectors;

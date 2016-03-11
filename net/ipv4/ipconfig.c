@@ -246,7 +246,7 @@ static int __init ic_open_devs(void)
 			d->flags = oflags;
 			d->able = able;
 			if (able & IC_BOOTP)
-				get_random_bytes_arch(&d->xid, sizeof(__be32));
+				get_random_bytes(&d->xid, sizeof(__be32));
 			else
 				d->xid = 0;
 			ic_proto_have_if |= able;
@@ -1197,7 +1197,7 @@ static int __init ic_dynamic(void)
 	start_jiffies = jiffies;
 	d = ic_first_dev;
 	retries = CONF_SEND_RETRIES;
-	get_random_bytes_arch(&timeout, sizeof(timeout));
+	get_random_bytes(&timeout, sizeof(timeout));
 	timeout = CONF_BASE_TIMEOUT + (timeout % (unsigned) CONF_TIMEOUT_RANDOM);
 	for (;;) {
 		/* Track the device we are configuring */

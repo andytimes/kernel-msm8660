@@ -136,7 +136,7 @@ static int __open_session(struct ceph_mon_client *monc)
 	int ret;
 
 	if (monc->cur_mon < 0) {
-		get_random_bytes_arch(&r, 1);
+		get_random_bytes(&r, 1);
 		monc->cur_mon = r % monc->monmap->num_mon;
 		dout("open_session num=%d r=%d -> mon%d\n",
 		     monc->monmap->num_mon, r, monc->cur_mon);

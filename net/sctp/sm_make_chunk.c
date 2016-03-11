@@ -64,7 +64,7 @@
 #include <net/sock.h>
 
 #include <linux/skbuff.h>
-#include <linux/random.h>	/* for get_random_bytes_arch */
+#include <linux/random.h>	/* for get_random_bytes */
 #include <net/sctp/sctp.h>
 #include <net/sctp/sm.h>
 
@@ -2663,7 +2663,7 @@ __u32 sctp_generate_tag(const struct sctp_endpoint *ep)
 	__u32 x;
 
 	do {
-		get_random_bytes_arch(&x, sizeof(__u32));
+		get_random_bytes(&x, sizeof(__u32));
 	} while (x == 0);
 
 	return x;
@@ -2674,7 +2674,7 @@ __u32 sctp_generate_tsn(const struct sctp_endpoint *ep)
 {
 	__u32 retval;
 
-	get_random_bytes_arch(&retval, sizeof(__u32));
+	get_random_bytes(&retval, sizeof(__u32));
 	return retval;
 }
 

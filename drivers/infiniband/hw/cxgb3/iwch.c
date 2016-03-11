@@ -244,7 +244,7 @@ static void iwch_event_handler(struct t3cdev *tdev, u32 evt, u32 port_id)
 		unsigned short r;
 
 		disable_dbs(rnicp);
-		get_random_bytes_arch(&r, 2);
+		get_random_bytes(&r, 2);
 		delay += r & 1023;
 
 		/*

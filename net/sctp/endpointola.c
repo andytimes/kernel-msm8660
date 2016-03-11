@@ -48,7 +48,7 @@
 #include <linux/types.h>
 #include <linux/slab.h>
 #include <linux/in.h>
-#include <linux/random.h>	/* get_random_bytes_arch() */
+#include <linux/random.h>	/* get_random_bytes() */
 #include <linux/crypto.h>
 #include <net/sock.h>
 #include <net/ipv6.h>
@@ -150,7 +150,7 @@ static struct sctp_endpoint *sctp_endpoint_init(struct sctp_endpoint *ep,
 	ep->rcvbuf_policy = sctp_rcvbuf_policy;
 
 	/* Initialize the secret key used with cookie. */
-	get_random_bytes_arch(&ep->secret_key[0], SCTP_SECRET_SIZE);
+	get_random_bytes(&ep->secret_key[0], SCTP_SECRET_SIZE);
 	ep->last_key = ep->current_key = 0;
 	ep->key_changed_at = jiffies;
 

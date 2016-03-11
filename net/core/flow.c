@@ -166,7 +166,7 @@ static void flow_cache_shrink(struct flow_cache *fc,
 static void flow_new_hash_rnd(struct flow_cache *fc,
 			      struct flow_cache_percpu *fcp)
 {
-	get_random_bytes_arch(&fcp->hash_rnd, sizeof(u32));
+	get_random_bytes(&fcp->hash_rnd, sizeof(u32));
 	fcp->hash_rnd_recalc = 0;
 	__flow_cache_shrink(fc, fcp, 0);
 }

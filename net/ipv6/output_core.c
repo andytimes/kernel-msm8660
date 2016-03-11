@@ -26,7 +26,7 @@ void ipv6_proxy_select_ident(struct sk_buff *skb)
 
 	if (unlikely(!hashrnd_initialized)) {
 		hashrnd_initialized = true;
-		get_random_bytes_arch(&ip6_proxy_idents_hashrnd,
+		get_random_bytes(&ip6_proxy_idents_hashrnd,
 				 sizeof(ip6_proxy_idents_hashrnd));
 	}
 	hash = __ipv6_addr_jhash(&addrs[1], ip6_proxy_idents_hashrnd);

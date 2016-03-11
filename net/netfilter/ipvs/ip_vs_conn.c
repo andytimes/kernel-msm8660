@@ -1313,7 +1313,7 @@ int __init ip_vs_conn_init(void)
 	}
 
 	/* calculate the random value for connection hash */
-	get_random_bytes_arch(&ip_vs_conn_rnd, sizeof(ip_vs_conn_rnd));
+	get_random_bytes(&ip_vs_conn_rnd, sizeof(ip_vs_conn_rnd));
 
 	return 0;
 }

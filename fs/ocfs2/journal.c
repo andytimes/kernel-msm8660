@@ -1801,7 +1801,7 @@ static inline unsigned long ocfs2_orphan_scan_timeout(void)
 {
 	unsigned long time;
 
-	get_random_bytes_arch(&time, sizeof(time));
+	get_random_bytes(&time, sizeof(time));
 	time = ORPHAN_SCAN_SCHEDULE_TIMEOUT + (time % 5000);
 	return msecs_to_jiffies(time);
 }

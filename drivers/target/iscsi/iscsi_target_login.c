@@ -205,7 +205,7 @@ static void iscsi_login_set_conn_values(
 	 * Generate a random Status sequence number (statsn) for the new
 	 * iSCSI connection.
 	 */
-	get_random_bytes_arch(&conn->stat_sn, sizeof(u32));
+	get_random_bytes(&conn->stat_sn, sizeof(u32));
 
 	mutex_lock(&auth_id_lock);
 	conn->auth_id		= iscsit_global->auth_id++;

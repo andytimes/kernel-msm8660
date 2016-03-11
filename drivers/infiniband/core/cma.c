@@ -435,7 +435,7 @@ struct rdma_cm_id *rdma_create_id(rdma_cm_event_handler event_handler,
 	mutex_init(&id_priv->handler_mutex);
 	INIT_LIST_HEAD(&id_priv->listen_list);
 	INIT_LIST_HEAD(&id_priv->mc_list);
-	get_random_bytes_arch(&id_priv->seq_num, sizeof id_priv->seq_num);
+	get_random_bytes(&id_priv->seq_num, sizeof id_priv->seq_num);
 
 	return &id_priv->id;
 }

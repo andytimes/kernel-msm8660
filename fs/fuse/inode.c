@@ -557,7 +557,7 @@ void fuse_conn_init(struct fuse_conn *fc)
 	fc->reqctr = 0;
 	fc->blocked = 1;
 	fc->attr_version = 1;
-	get_random_bytes_arch(&fc->scramble_key, sizeof(fc->scramble_key));
+	get_random_bytes(&fc->scramble_key, sizeof(fc->scramble_key));
 }
 EXPORT_SYMBOL_GPL(fuse_conn_init);
 

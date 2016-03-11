@@ -1455,7 +1455,7 @@ static int efx_probe_nic(struct efx_nic *efx)
 	efx->type->dimension_resources(efx);
 
 	if (efx->n_channels > 1)
-		get_random_bytes_arch(&efx->rx_hash_key, sizeof(efx->rx_hash_key));
+		get_random_bytes(&efx->rx_hash_key, sizeof(efx->rx_hash_key));
 	for (i = 0; i < ARRAY_SIZE(efx->rx_indir_table); i++)
 		efx->rx_indir_table[i] =
 			ethtool_rxfh_indir_default(i, efx->rss_spread);

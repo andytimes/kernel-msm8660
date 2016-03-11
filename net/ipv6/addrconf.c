@@ -1596,7 +1596,7 @@ static int ipv6_generate_eui64(u8 *eui, struct net_device *dev)
 		struct in6_addr lladdr;
 
 		if (ipv6_get_lladdr(dev, &lladdr, IFA_F_TENTATIVE))
-			get_random_bytes_arch(eui, 8);
+			get_random_bytes(eui, 8);
 		else
 			memcpy(eui, lladdr.s6_addr + 8, 8);
 
@@ -1628,7 +1628,7 @@ static int ipv6_inherit_eui64(u8 *eui, struct inet6_dev *idev)
 static int __ipv6_regen_rndid(struct inet6_dev *idev)
 {
 regen:
-	get_random_bytes_arch(idev->rndid, sizeof(idev->rndid));
+	get_random_bytes(idev->rndid, sizeof(idev->rndid));
 	idev->rndid[0] &= ~0x02;
 
 	/*

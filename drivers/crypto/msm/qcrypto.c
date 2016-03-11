@@ -406,7 +406,7 @@ static int _qcrypto_cipher_cra_init(struct crypto_tfm *tfm)
 	ctx->cp = q_alg->cp;
 
 	/* random first IV */
-	get_random_bytes_arch(ctx->iv, QCRYPTO_MAX_IV_LENGTH);
+	get_random_bytes(ctx->iv, QCRYPTO_MAX_IV_LENGTH);
 	if (ctx->cp->platform_support.bus_scale_table != NULL)
 		qcrypto_ce_high_bw_req(ctx->cp, true);
 

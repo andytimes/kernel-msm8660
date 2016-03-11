@@ -1048,7 +1048,7 @@ int i2400m_read_mac_addr(struct i2400m *i2400m)
 		ack_buf.ack_pl[0] = 0x00;
 		ack_buf.ack_pl[1] = 0x16;
 		ack_buf.ack_pl[2] = 0xd3;
-		get_random_bytes_arch(&ack_buf.ack_pl[3], 3);
+		get_random_bytes(&ack_buf.ack_pl[3], 3);
 		dev_err(dev, "BM is MAC addr impaired, faking MAC addr to "
 			"mac addr is %pM\n", ack_buf.ack_pl);
 		result = 0;

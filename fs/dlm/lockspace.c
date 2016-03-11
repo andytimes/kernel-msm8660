@@ -535,7 +535,7 @@ static int new_lockspace(const char *name, const char *cluster,
 	mutex_init(&ls->ls_recoverd_active);
 	spin_lock_init(&ls->ls_recover_lock);
 	spin_lock_init(&ls->ls_rcom_spin);
-	get_random_bytes_arch(&ls->ls_rcom_seq, sizeof(uint64_t));
+	get_random_bytes(&ls->ls_rcom_seq, sizeof(uint64_t));
 	ls->ls_recover_status = 0;
 	ls->ls_recover_seq = 0;
 	ls->ls_recover_args = NULL;

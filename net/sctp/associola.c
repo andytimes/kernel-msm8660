@@ -339,7 +339,7 @@ static struct sctp_association *sctp_association_init(struct sctp_association *a
 	p = (sctp_paramhdr_t *)asoc->c.auth_random;
 	p->type = SCTP_PARAM_RANDOM;
 	p->length = htons(sizeof(sctp_paramhdr_t) + SCTP_AUTH_RANDOM_LENGTH);
-	get_random_bytes_arch(p+1, SCTP_AUTH_RANDOM_LENGTH);
+	get_random_bytes(p+1, SCTP_AUTH_RANDOM_LENGTH);
 
 	return asoc;
 

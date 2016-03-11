@@ -57,7 +57,7 @@ int reqsk_queue_alloc(struct request_sock_queue *queue,
 	     (1 << lopt->max_qlen_log) < nr_table_entries;
 	     lopt->max_qlen_log++);
 
-	get_random_bytes_arch(&lopt->hash_rnd, sizeof(lopt->hash_rnd));
+	get_random_bytes(&lopt->hash_rnd, sizeof(lopt->hash_rnd));
 	rwlock_init(&queue->syn_wait_lock);
 	queue->rskq_accept_head = NULL;
 	lopt->nr_table_entries = nr_table_entries;

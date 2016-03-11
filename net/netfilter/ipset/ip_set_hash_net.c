@@ -486,7 +486,7 @@ hash_net_create(struct ip_set *set, struct nlattr *tb[], u32 flags)
 		return -ENOMEM;
 
 	h->maxelem = maxelem;
-	get_random_bytes_arch(&h->initval, sizeof(h->initval));
+	get_random_bytes(&h->initval, sizeof(h->initval));
 	h->timeout = IPSET_NO_TIMEOUT;
 
 	hbits = htable_bits(hashsize);

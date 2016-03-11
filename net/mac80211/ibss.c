@@ -683,7 +683,7 @@ static void ieee80211_sta_create_ibss(struct ieee80211_sub_if_data *sdata)
 		/* Generate random, not broadcast, locally administered BSSID. Mix in
 		 * own MAC address to make sure that devices that do not have proper
 		 * random number generator get different BSSID. */
-		get_random_bytes_arch(bssid, ETH_ALEN);
+		get_random_bytes(bssid, ETH_ALEN);
 		for (i = 0; i < ETH_ALEN; i++)
 			bssid[i] ^= sdata->vif.addr[i];
 		bssid[0] &= ~0x01;

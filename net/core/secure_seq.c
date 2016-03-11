@@ -14,7 +14,7 @@ static u32 net_secret[MD5_MESSAGE_BYTES / 4] ____cacheline_aligned;
 
 static int __init net_secret_init(void)
 {
-	get_random_bytes_arch(net_secret, sizeof(net_secret));
+	get_random_bytes(net_secret, sizeof(net_secret));
 	return 0;
 }
 late_initcall(net_secret_init);

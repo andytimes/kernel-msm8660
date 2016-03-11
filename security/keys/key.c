@@ -149,7 +149,7 @@ static inline void key_alloc_serial(struct key *key)
 	/* propose a random serial number and look for a hole for it in the
 	 * serial number tree */
 	do {
-		get_random_bytes_arch(&key->serial, sizeof(key->serial));
+		get_random_bytes(&key->serial, sizeof(key->serial));
 
 		key->serial >>= 1; /* negative numbers are not permitted */
 	} while (key->serial < 3);

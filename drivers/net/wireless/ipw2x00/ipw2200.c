@@ -2458,7 +2458,7 @@ static int ipw_set_random_seed(struct ipw_priv *priv)
 		return -1;
 	}
 
-	get_random_bytes_arch(&val, sizeof(val));
+	get_random_bytes(&val, sizeof(val));
 
 	return ipw_send_cmd_pdu(priv, IPW_CMD_SEED_NUMBER, sizeof(val), &val);
 }
@@ -3898,7 +3898,7 @@ static void ipw_create_bssid(struct ipw_priv *priv, u8 * bssid)
 	bssid[2] = priv->mac_addr[2];
 
 	/* Last bytes are random */
-	get_random_bytes_arch(&bssid[3], ETH_ALEN - 3);
+	get_random_bytes(&bssid[3], ETH_ALEN - 3);
 
 	bssid[0] &= 0xfe;	/* clear multicast bit */
 	bssid[0] |= 0x02;	/* set local assignment bit (IEEE802) */

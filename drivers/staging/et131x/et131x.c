@@ -3958,7 +3958,7 @@ static void et131x_hwaddr_init(struct et131x_adapter *adapter)
 		 * decrease our chances of setting the mac address to
 		 * same as another one of our cards in the system
 		 */
-		get_random_bytes_arch(&adapter->addr[5], 1);
+		get_random_bytes(&adapter->addr[5], 1);
 		/*
 		 * We have the default value in the register we are
 		 * working with so we need to copy the current

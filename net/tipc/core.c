@@ -142,7 +142,7 @@ static int tipc_core_start(void)
 {
 	int res;
 
-	get_random_bytes_arch(&tipc_random, sizeof(tipc_random));
+	get_random_bytes(&tipc_random, sizeof(tipc_random));
 
 	res = tipc_handler_start();
 	if (!res)

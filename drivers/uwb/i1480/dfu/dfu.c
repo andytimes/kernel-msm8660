@@ -102,7 +102,7 @@ ssize_t i1480_cmd(struct i1480 *i1480, const char *cmd_name, size_t cmd_size,
 	init_completion(&i1480->evt_complete);
 	i1480->evt_result = -EINPROGRESS;
 	do {
-		get_random_bytes_arch(&context, 1);
+		get_random_bytes(&context, 1);
 	} while (context == 0x00 || context == 0xff);
 	cmd->bCommandContext = context;
 	result = i1480->cmd(i1480, cmd_name, cmd_size);

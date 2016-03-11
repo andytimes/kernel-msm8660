@@ -72,7 +72,7 @@ static void prng_seed(int nbytes)
 	int i = 0;
 
 	BUG_ON(nbytes > 16);
-	get_random_bytes_arch(buf, nbytes);
+	get_random_bytes(buf, nbytes);
 
 	/* Add the entropy */
 	while (nbytes >= 8) {

@@ -508,7 +508,7 @@ static u64 oops_id;
 static int init_oops_id(void)
 {
 	if (!oops_id)
-		get_random_bytes_arch(&oops_id, sizeof(oops_id));
+		get_random_bytes(&oops_id, sizeof(oops_id));
 	else
 		oops_id++;
 

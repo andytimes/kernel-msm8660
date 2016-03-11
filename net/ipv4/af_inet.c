@@ -252,11 +252,11 @@ void build_ehash_secret(void)
 	u32 rnd;
 
 	do {
-		get_random_bytes_arch(&rnd, sizeof(rnd));
+		get_random_bytes(&rnd, sizeof(rnd));
 	} while (rnd == 0);
 
 	if (cmpxchg(&inet_ehash_secret, 0, rnd) == 0)
-		get_random_bytes_arch(&ipv6_hash_secret, sizeof(ipv6_hash_secret));
+		get_random_bytes(&ipv6_hash_secret, sizeof(ipv6_hash_secret));
 }
 EXPORT_SYMBOL(build_ehash_secret);
 

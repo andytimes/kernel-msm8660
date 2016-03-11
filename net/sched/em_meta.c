@@ -109,7 +109,7 @@ static inline int meta_type(struct meta_value *v)
 
 META_COLLECTOR(int_random)
 {
-	get_random_bytes_arch(&dst->value, sizeof(dst->value));
+	get_random_bytes(&dst->value, sizeof(dst->value));
 }
 
 static inline unsigned long fixed_loadavg(int load)

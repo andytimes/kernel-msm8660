@@ -75,9 +75,9 @@ static void crypto4xx_hw_init(struct crypto4xx_device *dev)
 	writel(dev->pdr_pa, dev->ce_base + CRYPTO4XX_PDR_BASE);
 	writel(dev->pdr_pa, dev->ce_base + CRYPTO4XX_RDR_BASE);
 	writel(PPC4XX_PRNG_CTRL_AUTO_EN, dev->ce_base + CRYPTO4XX_PRNG_CTRL);
-	get_random_bytes_arch(&rand_num, sizeof(rand_num));
+	get_random_bytes(&rand_num, sizeof(rand_num));
 	writel(rand_num, dev->ce_base + CRYPTO4XX_PRNG_SEED_L);
-	get_random_bytes_arch(&rand_num, sizeof(rand_num));
+	get_random_bytes(&rand_num, sizeof(rand_num));
 	writel(rand_num, dev->ce_base + CRYPTO4XX_PRNG_SEED_H);
 	ring_size.w = 0;
 	ring_size.bf.ring_offset = PPC4XX_PD_SIZE;

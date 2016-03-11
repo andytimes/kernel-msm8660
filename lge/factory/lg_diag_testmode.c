@@ -2606,8 +2606,8 @@ void* LGF_TestOTPBlowCommand(test_mode_req_type * pReq, DIAG_TEST_MODE_F_rsp_typ
                 secondary_key_region_value_lsb = 0;
                 secondary_key_region_value_msb = 0;
 
-                get_random_bytes_arch(&secondary_key_region_value_lsb, 4);
-                get_random_bytes_arch(&secondary_key_region_value_msb, 4);
+                get_random_bytes(&secondary_key_region_value_lsb, 4);
+                get_random_bytes(&secondary_key_region_value_msb, 4);
                 //printk(KERN_ERR "generate secondary H/W key : LSB[0x%X] MSB[0x%X]  \n", secondary_key_region_value_lsb, secondary_key_region_value_msb);
 
                 /* blow command */

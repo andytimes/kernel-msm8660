@@ -2068,7 +2068,7 @@ static void nv_legacybackoff_reseed(struct net_device *dev)
 	int tx_status = 0;
 
 	reg = readl(base + NvRegSlotTime) & ~NVREG_SLOTTIME_MASK;
-	get_random_bytes_arch(&low, sizeof(low));
+	get_random_bytes(&low, sizeof(low));
 	reg |= low & NVREG_SLOTTIME_MASK;
 
 	/* Need to stop tx before change takes effect.
@@ -2119,12 +2119,12 @@ static void nv_gear_backoff_reseed(struct net_device *dev)
 	/* Setup seed for free running LFSR */
 	/* We are going to read the time stamp counter 3 times
 	   and swizzle bits around to increase randomness */
-	get_random_bytes_arch(&miniseed1, sizeof(miniseed1));
+	get_random_bytes(&miniseed1, sizeof(miniseed1));
 	miniseed1 &= 0x0fff;
 	if (miniseed1 == 0)
 		miniseed1 = 0xabc;
 
-	get_random_bytes_arch(&miniseed2, sizeof(miniseed2));
+	get_random_bytes(&miniseed2, sizeof(miniseed2));
 	miniseed2 &= 0x0fff;
 	if (miniseed2 == 0)
 		miniseed2 = 0xabc;
@@ -2133,7 +2133,7 @@ static void nv_gear_backoff_reseed(struct net_device *dev)
 		 (miniseed2 & 0x0F0) |
 		 ((miniseed2 & 0x00F) << 8);
 
-	get_random_bytes_arch(&miniseed3, sizeof(miniseed3));
+	get_random_bytes(&miniseed3, sizeof(miniseed3));
 	miniseed3 &= 0x0fff;
 	if (miniseed3 == 0)
 		miniseed3 = 0xabc;
@@ -2158,7 +2158,7 @@ static void nv_gear_backoff_reseed(struct net_device *dev)
 	writel(temp, base + NvRegBackOffControl);
 
 	/* Setup seeds for all gear LFSRs. */
-	get_random_bytes_arch(&seedset, sizeof(seedset));
+	get_random_bytes(&seedset, sizeof(seedset));
 	seedset = seedset % BACKOFF_SEEDSET_ROWS;
 	for (i = 1; i <= BACKOFF_SEEDSET_LFSRS; i++) {
 		temp = NVREG_BKOFFCTRL_DEFAULT | (i << NVREG_BKOFFCTRL_SELECT);
@@ -5336,7 +5336,7 @@ static int nv_open(struct net_device *dev)
 
 	writel(readl(base + NvRegReceiverStatus), base + NvRegReceiverStatus);
 
-	get_random_bytes_arch(&low, sizeof(low));
+	get_random_bytes(&low, sizeof(low));
 	low &= NVREG_SLOTTIME_MASK;
 	if (np->desc_ver == DESC_VER_1) {
 		writel(low|NVREG_SLOTTIME_DEFAULT, base + NvRegSlotTime);
