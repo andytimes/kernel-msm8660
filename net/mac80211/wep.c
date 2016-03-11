@@ -28,7 +28,7 @@
 int ieee80211_wep_init(struct ieee80211_local *local)
 {
 	/* start WEP IV from a random value */
-	get_random_bytes(&local->wep_iv, WEP_IV_LEN);
+	get_random_bytes_arch(&local->wep_iv, WEP_IV_LEN);
 
 	local->wep_tx_tfm = crypto_alloc_cipher("arc4", 0, CRYPTO_ALG_ASYNC);
 	if (IS_ERR(local->wep_tx_tfm)) {

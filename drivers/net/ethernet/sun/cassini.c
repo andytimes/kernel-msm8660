@@ -3365,7 +3365,7 @@ use_random_mac_addr:
 	dev_addr[0] = 0x08;
 	dev_addr[1] = 0x00;
 	dev_addr[2] = 0x20;
-	get_random_bytes(dev_addr + 3, 3);
+	get_random_bytes_arch(dev_addr + 3, 3);
 
 done:
 	writel(0, cp->regs + REG_BIM_LOCAL_DEV_EN);

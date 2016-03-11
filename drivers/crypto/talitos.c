@@ -2524,7 +2524,7 @@ static int talitos_cra_init_aead(struct crypto_tfm *tfm)
 	talitos_cra_init(tfm);
 
 	/* random first IV */
-	get_random_bytes(ctx->iv, TALITOS_MAX_IV_LENGTH);
+	get_random_bytes_arch(ctx->iv, TALITOS_MAX_IV_LENGTH);
 
 	return 0;
 }

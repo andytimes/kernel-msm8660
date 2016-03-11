@@ -4031,7 +4031,7 @@ static int drbd_do_auth(struct drbd_conf *mdev)
 		goto fail;
 	}
 
-	get_random_bytes(my_challenge, CHALLENGE_LEN);
+	get_random_bytes_arch(my_challenge, CHALLENGE_LEN);
 
 	rv = drbd_send_cmd2(mdev, P_AUTH_CHALLENGE, my_challenge, CHALLENGE_LEN);
 	if (!rv)

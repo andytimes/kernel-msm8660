@@ -55,17 +55,17 @@ static void chap_set_random(char *data, int length)
 	unsigned n;
 
 	while (length > 0) {
-		get_random_bytes(&r, sizeof(long));
+		get_random_bytes_arch(&r, sizeof(long));
 		r = r ^ (r >> 8);
 		r = r ^ (r >> 4);
 		n = r & 0x7;
 
-		get_random_bytes(&r, sizeof(long));
+		get_random_bytes_arch(&r, sizeof(long));
 		r = r ^ (r >> 8);
 		r = r ^ (r >> 5);
 		n = (n << 3) | (r & 0x7);
 
-		get_random_bytes(&r, sizeof(long));
+		get_random_bytes_arch(&r, sizeof(long));
 		r = r ^ (r >> 8);
 		r = r ^ (r >> 5);
 		n = (n << 2) | (r & 0x3);

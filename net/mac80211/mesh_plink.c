@@ -354,7 +354,7 @@ static void mesh_plink_timer(unsigned long data)
 			mpl_dbg("Mesh plink for %pM (retry, timeout): %d %d\n",
 				sta->sta.addr, sta->plink_retries,
 				sta->plink_timeout);
-			get_random_bytes(&rand, sizeof(u32));
+			get_random_bytes_arch(&rand, sizeof(u32));
 			sta->plink_timeout = sta->plink_timeout +
 					     rand % sta->plink_timeout;
 			++sta->plink_retries;
@@ -422,7 +422,7 @@ int mesh_plink_open(struct sta_info *sta)
 		return -EPERM;
 
 	spin_lock_bh(&sta->lock);
-	get_random_bytes(&llid, 2);
+	get_random_bytes_arch(&llid, 2);
 	sta->llid = llid;
 	if (sta->plink_state != NL80211_PLINK_LISTEN) {
 		spin_unlock_bh(&sta->lock);
@@ -666,7 +666,7 @@ void mesh_rx_plink_frame(struct ieee80211_sub_if_data *sdata, struct ieee80211_m
 		case OPN_ACPT:
 			sta->plink_state = NL80211_PLINK_OPN_RCVD;
 			sta->plid = plid;
-			get_random_bytes(&llid, 2);
+			get_random_bytes_arch(&llid, 2);
 			sta->llid = llid;
 			mesh_plink_timer_set(sta, dot11MeshRetryTimeout(sdata));
 			spin_unlock_bh(&sta->lock);

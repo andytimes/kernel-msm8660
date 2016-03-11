@@ -1127,7 +1127,7 @@ static int check_what_we_have(struct ubi_device *ubi, struct ubi_scan_info *si)
 		if (si->maybe_bad_peb_count <= 2) {
 			si->is_empty = 1;
 			ubi_msg("empty MTD device detected");
-			get_random_bytes(&ubi->image_seq,
+			get_random_bytes_arch(&ubi->image_seq,
 					 sizeof(ubi->image_seq));
 		} else {
 			ubi_err("MTD device is not UBI-formatted and possibly "

@@ -42,7 +42,7 @@ int __init br_fdb_init(void)
 	if (!br_fdb_cache)
 		return -ENOMEM;
 
-	get_random_bytes(&fdb_salt, sizeof(fdb_salt));
+	get_random_bytes_arch(&fdb_salt, sizeof(fdb_salt));
 	return 0;
 }
 

@@ -311,7 +311,7 @@ void platform_random_ether_addr(u8 addr[ETH_ALEN])
 		addr[0] = non_sciatl_oui_bits | mac_addr_locally_managed;
 
 		/* Get some bytes of random address information */
-		get_random_bytes(&addr[1], num_random_bytes);
+		get_random_bytes_arch(&addr[1], num_random_bytes);
 
 		/* Copy over the NIC-specific bits of the RF MAC address */
 		for (i = 1 + num_random_bytes; i < ETH_ALEN; i++)

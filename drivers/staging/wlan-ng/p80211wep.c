@@ -247,9 +247,9 @@ int wep_encrypt(wlandevice_t *wlandev, u8 *buf, u8 *dst, u32 len, int keynum,
 		return -3;
 
 	/* use a random IV.  And skip known weak ones. */
-	get_random_bytes(iv, 3);
+	get_random_bytes_arch(iv, 3);
 	while ((iv[1] == 0xff) && (iv[0] >= 3) && (iv[0] < keylen))
-		get_random_bytes(iv, 3);
+		get_random_bytes_arch(iv, 3);
 
 	iv[3] = (keynum & 0x03) << 6;
 

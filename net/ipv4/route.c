@@ -938,7 +938,7 @@ static void rt_cache_invalidate(struct net *net)
 {
 	unsigned char shuffle;
 
-	get_random_bytes(&shuffle, sizeof(shuffle));
+	get_random_bytes_arch(&shuffle, sizeof(shuffle));
 	atomic_add(shuffle + 1U, &net->ipv4.rt_genid);
 	inetpeer_invalidate_tree(AF_INET);
 }
@@ -1405,7 +1405,7 @@ void __ip_select_ident(struct iphdr *iph, int segs)
 
 	if (unlikely(!hashrnd_initialized)) {
 		hashrnd_initialized = true;
-		get_random_bytes(&ip_idents_hashrnd, sizeof(ip_idents_hashrnd));
+		get_random_bytes_arch(&ip_idents_hashrnd, sizeof(ip_idents_hashrnd));
 	}
 
 	hash = jhash_3words((__force u32)iph->daddr,
@@ -3452,9 +3452,9 @@ static __net_initdata struct pernet_operations sysctl_route_ops = {
 
 static __net_init int rt_genid_init(struct net *net)
 {
-	get_random_bytes(&net->ipv4.rt_genid,
+	get_random_bytes_arch(&net->ipv4.rt_genid,
 			 sizeof(net->ipv4.rt_genid));
-	get_random_bytes(&net->ipv4.dev_addr_genid,
+	get_random_bytes_arch(&net->ipv4.dev_addr_genid,
 			 sizeof(net->ipv4.dev_addr_genid));
 	return 0;
 }
@@ -3486,7 +3486,7 @@ int __init ip_rt_init(void)
 	if (!ip_idents)
 		panic("IP: failed to allocate ip_idents\n");
 
-	get_random_bytes(ip_idents, IP_IDENTS_SZ * sizeof(*ip_idents));
+	get_random_bytes_arch(ip_idents, IP_IDENTS_SZ * sizeof(*ip_idents));
 
 #ifdef CONFIG_IP_ROUTE_CLASSID
 	ip_rt_acct = __alloc_percpu(256 * sizeof(struct ip_rt_acct), __alignof__(struct ip_rt_acct));

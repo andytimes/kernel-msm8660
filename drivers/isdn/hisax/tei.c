@@ -80,7 +80,7 @@ random_ri(void)
 {
 	unsigned int x;
 
-	get_random_bytes(&x, sizeof(x));
+	get_random_bytes_arch(&x, sizeof(x));
 	return (x & 0xffff);
 }
 

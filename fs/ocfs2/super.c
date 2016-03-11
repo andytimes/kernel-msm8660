@@ -2239,7 +2239,7 @@ static int ocfs2_initialize_super(struct super_block *sb,
 		osb->osb_cluster_stack[0] = '\0';
 	}
 
-	get_random_bytes(&osb->s_next_generation, sizeof(u32));
+	get_random_bytes_arch(&osb->s_next_generation, sizeof(u32));
 
 	/* FIXME
 	 * This should be done in ocfs2_journal_init(), but unknown

@@ -29,7 +29,7 @@ static int nand_ecc_test(const size_t size)
 
 	sprintf(testname, "nand-ecc-%zu", size);
 
-	get_random_bytes(data, size);
+	get_random_bytes_arch(data, size);
 
 	memcpy(error_data, data, size);
 	inject_single_bit_error(error_data, size);

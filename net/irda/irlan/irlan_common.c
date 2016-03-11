@@ -229,8 +229,8 @@ static struct irlan_cb *irlan_open(__u32 saddr, __u32 daddr)
 		dev->dev_addr[1] = 0x00;
 		dev->dev_addr[2] = 0x00;
 		dev->dev_addr[3] = 0x00;
-		get_random_bytes(dev->dev_addr+4, 1);
-		get_random_bytes(dev->dev_addr+5, 1);
+		get_random_bytes_arch(dev->dev_addr+4, 1);
+		get_random_bytes_arch(dev->dev_addr+5, 1);
 	}
 
 	self->media = MEDIA_802_3;

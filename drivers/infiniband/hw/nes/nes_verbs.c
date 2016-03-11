@@ -71,7 +71,7 @@ static struct ib_mw *nes_alloc_mw(struct ib_pd *ibpd) {
 	u32 driver_key = 0;
 	u8 stag_key = 0;
 
-	get_random_bytes(&next_stag_index, sizeof(next_stag_index));
+	get_random_bytes_arch(&next_stag_index, sizeof(next_stag_index));
 	stag_key = (u8)next_stag_index;
 
 	driver_key = 0;
@@ -397,7 +397,7 @@ static struct ib_mr *nes_alloc_fast_reg_mr(struct ib_pd *ibpd, int max_page_list
 	if (max_page_list_len > (NES_4K_PBL_CHUNK_SIZE / sizeof(u64)))
 		return ERR_PTR(-E2BIG);
 
-	get_random_bytes(&next_stag_index, sizeof(next_stag_index));
+	get_random_bytes_arch(&next_stag_index, sizeof(next_stag_index));
 	stag_key = (u8)next_stag_index;
 	next_stag_index >>= 8;
 	next_stag_index %= nesadapter->max_mr;
@@ -2116,7 +2116,7 @@ static struct ib_mr *nes_reg_phys_mr(struct ib_pd *ib_pd,
 	root_vpbl.pbl_vbase = NULL;
 	root_vpbl.pbl_pbase = 0;
 
-	get_random_bytes(&next_stag_index, sizeof(next_stag_index));
+	get_random_bytes_arch(&next_stag_index, sizeof(next_stag_index));
 	stag_key = (u8)next_stag_index;
 
 	driver_key = 0;
@@ -2353,7 +2353,7 @@ static struct ib_mr *nes_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
 			root_vpbl.pbl_vbase = NULL;
 			root_vpbl.pbl_pbase = 0;
 
-			get_random_bytes(&next_stag_index, sizeof(next_stag_index));
+			get_random_bytes_arch(&next_stag_index, sizeof(next_stag_index));
 			stag_key = (u8)next_stag_index;
 
 			driver_key = next_stag_index & 0x70000000;

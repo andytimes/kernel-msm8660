@@ -650,7 +650,7 @@ static unsigned tcp_syn_options(struct sock *sk, struct sk_buff *skb,
 				 * assuming these are completely unpredictable
 				 * by hostile users of the same system.
 				 */
-				get_random_bytes(&cvp->cookie_pair[0],
+				get_random_bytes_arch(&cvp->cookie_pair[0],
 						 cookie_size);
 				cvp->cookie_pair_size = cookie_size;
 			}

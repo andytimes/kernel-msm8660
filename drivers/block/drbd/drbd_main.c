@@ -3861,7 +3861,7 @@ void drbd_uuid_new_current(struct drbd_conf *mdev) __must_hold(local)
 
 	mdev->ldev->md.uuid[UI_BITMAP] = mdev->ldev->md.uuid[UI_CURRENT];
 
-	get_random_bytes(&val, sizeof(u64));
+	get_random_bytes_arch(&val, sizeof(u64));
 	_drbd_uuid_set(mdev, UI_CURRENT, val);
 	drbd_print_uuids(mdev, "new current UUID");
 	/* get it to stable storage _now_ */
@@ -4119,7 +4119,7 @@ struct fault_random_state {
 
 /*
  * Crude but fast random-number generator.  Uses a linear congruential
- * generator, with occasional help from get_random_bytes().
+ * generator, with occasional help from get_random_bytes_arch().
  */
 static unsigned long
 _drbd_fault_random(struct fault_random_state *rsp)
@@ -4127,7 +4127,7 @@ _drbd_fault_random(struct fault_random_state *rsp)
 	long refresh;
 
 	if (!rsp->count--) {
-		get_random_bytes(&refresh, sizeof(refresh));
+		get_random_bytes_arch(&refresh, sizeof(refresh));
 		rsp->state += refresh;
 		rsp->count = FAULT_RANDOM_REFRESH;
 	}

@@ -615,7 +615,7 @@ int init_nilfs(struct the_nilfs *nilfs, struct super_block *sb, char *data)
 	nilfs->ns_blocksize_bits = sb->s_blocksize_bits;
 	nilfs->ns_blocksize = blocksize;
 
-	get_random_bytes(&nilfs->ns_next_generation,
+	get_random_bytes_arch(&nilfs->ns_next_generation,
 			 sizeof(nilfs->ns_next_generation));
 
 	err = nilfs_store_disk_layout(nilfs, sbp);

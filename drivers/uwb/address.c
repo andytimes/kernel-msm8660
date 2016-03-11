@@ -279,7 +279,7 @@ int uwb_rc_dev_addr_assign(struct uwb_rc *rc)
 	struct uwb_dev_addr new_addr;
 
 	do {
-		get_random_bytes(new_addr.data, sizeof(new_addr.data));
+		get_random_bytes_arch(new_addr.data, sizeof(new_addr.data));
 	} while (new_addr.data[0] == 0x00 || new_addr.data[0] == 0xff
 		 || __uwb_dev_addr_assigned(rc, &new_addr));
 

@@ -331,7 +331,7 @@ static int ceph_x_build_authorizer(struct ceph_auth_client *ac,
 	p += ticket_blob_len;
 	end = au->buf->vec.iov_base + au->buf->vec.iov_len;
 
-	get_random_bytes(&au->nonce, sizeof(au->nonce));
+	get_random_bytes_arch(&au->nonce, sizeof(au->nonce));
 	msg_b.struct_v = 1;
 	msg_b.nonce = cpu_to_le64(au->nonce);
 	ret = ceph_x_encrypt(&th->session_key, &msg_b, sizeof(msg_b),
@@ -436,7 +436,7 @@ static int ceph_x_build_request(struct ceph_auth_client *ac,
 		head->op = cpu_to_le16(CEPHX_GET_AUTH_SESSION_KEY);
 
 		/* encrypt and hash */
-		get_random_bytes(&auth->client_challenge, sizeof(u64));
+		get_random_bytes_arch(&auth->client_challenge, sizeof(u64));
 		tmp.client_challenge = auth->client_challenge;
 		tmp.server_challenge = cpu_to_le64(xi->server_challenge);
 		ret = ceph_x_encrypt(&xi->secret, &tmp, sizeof(tmp),

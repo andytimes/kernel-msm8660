@@ -170,7 +170,7 @@ int uwb_rc_mac_addr_setup(struct uwb_rc *rc)
 
 	if (uwb_mac_addr_unset(&addr) || uwb_mac_addr_bcast(&addr)) {
 		addr.data[0] = 0x02; /* locally administered and unicast */
-		get_random_bytes(&addr.data[1], sizeof(addr.data)-1);
+		get_random_bytes_arch(&addr.data[1], sizeof(addr.data)-1);
 
 		result = uwb_rc_mac_addr_set(rc, &addr);
 		if (result < 0) {

@@ -30,7 +30,7 @@ int ceph_mdsmap_get_random_mds(struct ceph_mdsmap *m)
 		return -1;
 
 	/* pick */
-	get_random_bytes(&r, 1);
+	get_random_bytes_arch(&r, 1);
 	n = r % n;
 	i = 0;
 	for (i = 0; n > 0; i++, n--)

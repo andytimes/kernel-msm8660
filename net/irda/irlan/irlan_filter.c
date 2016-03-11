@@ -57,8 +57,8 @@ void irlan_filter_request(struct irlan_cb *self, struct sk_buff *skb)
 				(self->provider.send_arb_val >> 8) & 0xff;
 		} else {
 			/* Just generate something for now */
-			get_random_bytes(self->provider.mac_address+4, 1);
-			get_random_bytes(self->provider.mac_address+5, 1);
+			get_random_bytes_arch(self->provider.mac_address+4, 1);
+			get_random_bytes_arch(self->provider.mac_address+5, 1);
 		}
 
 		skb->data[0] = 0x00; /* Success */

@@ -1139,7 +1139,7 @@ static int disassociate(struct usbnet *usbdev, bool reset_ssid)
 		set_infra_mode(usbdev, NDIS_80211_INFRA_INFRA);
 
 		ssid.length = cpu_to_le32(sizeof(ssid.essid));
-		get_random_bytes(&ssid.essid[2], sizeof(ssid.essid)-2);
+		get_random_bytes_arch(&ssid.essid[2], sizeof(ssid.essid)-2);
 		ssid.essid[0] = 0x1;
 		ssid.essid[1] = 0xff;
 		for (i = 2; i < sizeof(ssid.essid); i++)

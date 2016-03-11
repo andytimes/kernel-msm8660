@@ -1212,7 +1212,7 @@ static int aead_givencrypt(struct aead_givcrypt_request *req)
 
 	/* copied from eseqiv.c */
 	if (!ctx->salted) {
-		get_random_bytes(ctx->salt, ivsize);
+		get_random_bytes_arch(ctx->salt, ivsize);
 		ctx->salted = 1;
 	}
 	memcpy(req->areq.iv, ctx->salt, ivsize);

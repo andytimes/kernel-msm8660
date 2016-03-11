@@ -386,7 +386,7 @@ static int lg_probe(struct hid_device *hdev, const struct hid_device_id *id)
 
 			/* Select random Address */
 			buf[1] = 0xB2;
-			get_random_bytes(&buf[2], 2);
+			get_random_bytes_arch(&buf[2], 2);
 
 			ret = hdev->hid_output_raw_report(hdev, buf, sizeof(buf), HID_FEATURE_REPORT);
 		}

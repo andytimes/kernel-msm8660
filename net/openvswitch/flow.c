@@ -283,7 +283,7 @@ struct flow_table *ovs_flow_tbl_alloc(int new_size)
 	table->count = 0;
 	table->node_ver = 0;
 	table->keep_flows = false;
-	get_random_bytes(&table->hash_seed, sizeof(u32));
+	get_random_bytes_arch(&table->hash_seed, sizeof(u32));
 
 	return table;
 }

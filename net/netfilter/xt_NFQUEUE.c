@@ -100,7 +100,7 @@ static int nfqueue_tg_check(const struct xt_tgchk_param *par)
 	u32 maxid;
 
 	if (unlikely(!rnd_inited)) {
-		get_random_bytes(&jhash_initval, sizeof(jhash_initval));
+		get_random_bytes_arch(&jhash_initval, sizeof(jhash_initval));
 		rnd_inited = true;
 	}
 	if (info->queues_total == 0) {

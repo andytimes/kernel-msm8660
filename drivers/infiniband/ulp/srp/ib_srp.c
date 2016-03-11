@@ -362,7 +362,7 @@ static int srp_send_req(struct srp_target_port *target)
 	req->param.private_data_len 	      = sizeof req->priv;
 	req->param.flow_control 	      = 1;
 
-	get_random_bytes(&req->param.starting_psn, 4);
+	get_random_bytes_arch(&req->param.starting_psn, 4);
 	req->param.starting_psn 	     &= 0xffffff;
 
 	/*

@@ -544,7 +544,7 @@ int iwm_read_mac(struct iwm_priv *iwm, u8 *mac)
 	else {
 		IWM_ERR(iwm, "Invalid EEPROM MAC\n");
 		memcpy(mac, iwm->conf.mac_addr, ETH_ALEN);
-		get_random_bytes(&mac[3], 3);
+		get_random_bytes_arch(&mac[3], 3);
 	}
 
 	return 0;

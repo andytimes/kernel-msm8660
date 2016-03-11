@@ -227,7 +227,7 @@ int prism2mgmt_scan(wlandevice_t *wlandev, void *msgp)
 		 * DesiredSSID
 		 */
 		wordbuf[0] = cpu_to_le16(WLAN_SSID_MAXLEN);
-		get_random_bytes(&wordbuf[1], WLAN_SSID_MAXLEN);
+		get_random_bytes_arch(&wordbuf[1], WLAN_SSID_MAXLEN);
 		result = hfa384x_drvr_setconfig(hw, HFA384x_RID_CNFOWNSSID,
 						wordbuf,
 						HFA384x_RID_CNFOWNSSID_LEN);

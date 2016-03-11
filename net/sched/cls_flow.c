@@ -327,7 +327,7 @@ static void flow_perturbation(unsigned long arg)
 {
 	struct flow_filter *f = (struct flow_filter *)arg;
 
-	get_random_bytes(&f->hashrnd, 4);
+	get_random_bytes_arch(&f->hashrnd, 4);
 	if (f->perturb_period)
 		mod_timer(&f->perturb_timer, jiffies + f->perturb_period);
 }
@@ -447,7 +447,7 @@ static int flow_change(struct tcf_proto *tp, unsigned long base,
 		f->handle = handle;
 		f->mask	  = ~0U;
 
-		get_random_bytes(&f->hashrnd, 4);
+		get_random_bytes_arch(&f->hashrnd, 4);
 		f->perturb_timer.function = flow_perturbation;
 		f->perturb_timer.data = (unsigned long)f;
 		init_timer_deferrable(&f->perturb_timer);

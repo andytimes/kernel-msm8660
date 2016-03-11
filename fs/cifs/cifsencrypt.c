@@ -584,7 +584,7 @@ setup_ntlmv2_rsp(struct cifs_ses *ses, const struct nls_table *nls_cp)
 	buf->blob_signature = cpu_to_le32(0x00000101);
 	buf->reserved = 0;
 	buf->time = cpu_to_le64(cifs_UnixTimeToNT(CURRENT_TIME));
-	get_random_bytes(&buf->client_chal, sizeof(buf->client_chal));
+	get_random_bytes_arch(&buf->client_chal, sizeof(buf->client_chal));
 	buf->reserved2 = 0;
 
 	memcpy(ses->auth_key.response + baselen, tiblob, tilen);
@@ -645,7 +645,7 @@ calc_seckey(struct cifs_ses *ses)
 	struct blkcipher_desc desc;
 	unsigned char sec_key[CIFS_SESS_KEY_SIZE]; /* a nonce */
 
-	get_random_bytes(sec_key, CIFS_SESS_KEY_SIZE);
+	get_random_bytes_arch(sec_key, CIFS_SESS_KEY_SIZE);
 
 	tfm_arc4 = crypto_alloc_blkcipher("ecb(arc4)", 0, CRYPTO_ALG_ASYNC);
 	if (IS_ERR(tfm_arc4)) {

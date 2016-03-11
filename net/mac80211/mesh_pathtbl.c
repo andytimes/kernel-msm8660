@@ -108,7 +108,7 @@ static struct mesh_table *mesh_table_alloc(int size_order)
 	newtbl->size_order = size_order;
 	newtbl->hash_mask = (1 << size_order) - 1;
 	atomic_set(&newtbl->entries,  0);
-	get_random_bytes(&newtbl->hash_rnd,
+	get_random_bytes_arch(&newtbl->hash_rnd,
 			sizeof(newtbl->hash_rnd));
 	for (i = 0; i <= newtbl->hash_mask; i++)
 		spin_lock_init(&newtbl->hashwlock[i]);

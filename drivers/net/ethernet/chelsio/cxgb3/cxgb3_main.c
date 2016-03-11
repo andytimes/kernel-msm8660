@@ -2789,7 +2789,7 @@ static void db_drop_task(struct work_struct *work)
 	 * Sleep a while before ringing the driver qset dbs.
 	 * The delay is between 1000-2023 usecs.
 	 */
-	get_random_bytes(&r, 2);
+	get_random_bytes_arch(&r, 2);
 	delay += r & 1023;
 	set_current_state(TASK_UNINTERRUPTIBLE);
 	schedule_timeout(usecs_to_jiffies(delay));

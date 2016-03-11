@@ -69,7 +69,7 @@ static __always_inline void boot_init_stack_canary(void)
 	 * there it already has some randomness on most systems. Later
 	 * on during the bootup the random pool has true entropy too.
 	 */
-	get_random_bytes(&canary, sizeof(canary));
+	get_random_bytes_arch(&canary, sizeof(canary));
 	tsc = __native_read_tsc();
 	canary += tsc + (tsc << 32UL);
 

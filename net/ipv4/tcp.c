@@ -3181,7 +3181,7 @@ int tcp_cookie_generator(u32 *bakery)
 			       COOKIE_WORKSPACE_WORDS);
 		} else {
 			/* still needs refreshing */
-			get_random_bytes(bakery, COOKIE_WORKSPACE_WORDS);
+			get_random_bytes_arch(bakery, COOKIE_WORKSPACE_WORDS);
 
 			/* The first time, paranoia assumes that the
 			 * randomization function isn't as strong.  But,

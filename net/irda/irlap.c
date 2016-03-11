@@ -148,7 +148,7 @@ struct irlap_cb *irlap_open(struct net_device *dev, struct qos_info *qos,
 	 * address already in use (otherwise connect won't be able
 	 * to select the proper link). - Jean II */
 	do {
-		get_random_bytes(&self->saddr, sizeof(self->saddr));
+		get_random_bytes_arch(&self->saddr, sizeof(self->saddr));
 	} while ((self->saddr == 0x0) || (self->saddr == BROADCAST) ||
 		 (hashbin_lock_find(irlap, self->saddr, NULL)) );
 	/* Copy to the driver */
@@ -964,7 +964,7 @@ void irlap_apply_default_connection_parameters(struct irlap_cb *self)
 	 * be 7 bits wide and different from 0x00 and 0xfe
 	 */
 	while ((self->caddr == 0x00) || (self->caddr == 0xfe)) {
-		get_random_bytes(&self->caddr, sizeof(self->caddr));
+		get_random_bytes_arch(&self->caddr, sizeof(self->caddr));
 		self->caddr &= 0xfe;
 	}
 

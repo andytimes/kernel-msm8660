@@ -57,7 +57,7 @@ static int __init afs_get_client_UUID(void)
 	afs_uuid.time_hi_and_version = (uuidtime >> 48) & AFS_UUID_TIMEHI_MASK;
 	afs_uuid.time_hi_and_version = AFS_UUID_VERSION_TIME;
 
-	get_random_bytes(&clockseq, 2);
+	get_random_bytes_arch(&clockseq, 2);
 	afs_uuid.clock_seq_low = clockseq;
 	afs_uuid.clock_seq_hi_and_reserved =
 		(clockseq >> 8) & AFS_UUID_CLOCKHI_MASK;

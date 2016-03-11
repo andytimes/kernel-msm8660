@@ -126,7 +126,7 @@ void rds_queue_reconnect(struct rds_connection *conn)
 		return;
 	}
 
-	get_random_bytes(&rand, sizeof(rand));
+	get_random_bytes_arch(&rand, sizeof(rand));
 	rdsdebug("%lu delay %lu ceil conn %p for %pI4 -> %pI4\n",
 		 rand % conn->c_reconnect_jiffies, conn->c_reconnect_jiffies,
 		 conn, &conn->c_laddr, &conn->c_faddr);

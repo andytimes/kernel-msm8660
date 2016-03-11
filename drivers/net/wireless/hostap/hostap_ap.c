@@ -1214,7 +1214,7 @@ static void ap_crypt_init(struct ap_data *ap)
 				ap->crypt = NULL;
 			else {
 				u8 key[WEP_KEY_LEN];
-				get_random_bytes(key, WEP_KEY_LEN);
+				get_random_bytes_arch(key, WEP_KEY_LEN);
 				ap->crypt->set_key(key, WEP_KEY_LEN, NULL,
 						   ap->crypt_priv);
 			}

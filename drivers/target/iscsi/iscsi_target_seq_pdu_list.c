@@ -108,7 +108,7 @@ static void iscsit_create_random_array(u32 *array, u32 count)
 
 	for (i = 0; i < count; i++) {
 redo:
-		get_random_bytes(&j, sizeof(u32));
+		get_random_bytes_arch(&j, sizeof(u32));
 		j = (1 + (int) (9999 + 1) - j) % count;
 		for (k = 0; k < i + 1; k++) {
 			j |= 0x80000000;

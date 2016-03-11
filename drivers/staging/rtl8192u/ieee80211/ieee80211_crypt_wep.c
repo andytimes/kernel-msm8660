@@ -63,7 +63,7 @@ static void * prism2_wep_init(int keyidx)
 	}
 
 	/* start WEP IV from a random value */
-	get_random_bytes(&priv->iv, 4);
+	get_random_bytes_arch(&priv->iv, 4);
 
 	return priv;
 

@@ -663,7 +663,7 @@ void init_nf_conntrack_hash_rnd(void)
 	 * and we initialize it as late as possible.
 	 */
 	do {
-		get_random_bytes(&rand, sizeof(rand));
+		get_random_bytes_arch(&rand, sizeof(rand));
 	} while (!rand);
 	cmpxchg(&nf_conntrack_hash_rnd, 0, rand);
 }

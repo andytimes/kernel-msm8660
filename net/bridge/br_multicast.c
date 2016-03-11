@@ -325,7 +325,7 @@ static int br_mdb_rehash(struct net_bridge_mdb_htable __rcu **mdbp, int max,
 	mdb->ver = old ? old->ver ^ 1 : 0;
 
 	if (!old || elasticity)
-		get_random_bytes(&mdb->secret, sizeof(mdb->secret));
+		get_random_bytes_arch(&mdb->secret, sizeof(mdb->secret));
 	else
 		mdb->secret = old->secret;
 

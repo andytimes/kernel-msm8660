@@ -415,7 +415,7 @@ random_ri(void)
 {
 	u16 x;
 
-	get_random_bytes(&x, sizeof(x));
+	get_random_bytes_arch(&x, sizeof(x));
 	return x;
 }
 

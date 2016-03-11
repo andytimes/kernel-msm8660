@@ -2286,7 +2286,7 @@ void ieee80211_stop_queue(struct ieee80211_device *ieee)
 inline void ieee80211_randomize_cell(struct ieee80211_device *ieee)
 {
 
-	get_random_bytes(ieee->current_network.bssid, ETH_ALEN);
+	get_random_bytes_arch(ieee->current_network.bssid, ETH_ALEN);
 
 	/* an IBSS cell address must have the two less significant
 	 * bits of the first byte = 2

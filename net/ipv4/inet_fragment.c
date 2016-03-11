@@ -31,7 +31,7 @@ static void inet_frag_secret_rebuild(unsigned long dummy)
 	int i;
 
 	write_lock(&f->lock);
-	get_random_bytes(&f->rnd, sizeof(u32));
+	get_random_bytes_arch(&f->rnd, sizeof(u32));
 	for (i = 0; i < INETFRAGS_HASHSZ; i++) {
 		struct inet_frag_queue *q;
 		struct hlist_node *p, *n;

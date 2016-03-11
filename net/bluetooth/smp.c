@@ -156,7 +156,7 @@ static int smp_s1(struct crypto_blkcipher *tfm, u8 k[16],
 
 static int smp_rand(u8 *buf)
 {
-	get_random_bytes(buf, 16);
+	get_random_bytes_arch(buf, 16);
 
 	return 0;
 }
@@ -357,7 +357,7 @@ static int tk_request(struct l2cap_conn *conn, u8 remote_oob, u8 auth,
 		 * confirmed.
 		 */
 		memset(key, 0, sizeof(key));
-		get_random_bytes(&passkey, sizeof(passkey));
+		get_random_bytes_arch(&passkey, sizeof(passkey));
 		passkey %= 1000000;
 		put_unaligned_le32(passkey, key);
 		swap128(key, hcon->tk);
@@ -968,9 +968,9 @@ static int smp_distribute_keys(struct l2cap_conn *conn, __u8 force)
 		struct smp_cmd_master_ident ident;
 		__le16 ediv;
 
-		get_random_bytes(enc.ltk, sizeof(enc.ltk));
-		get_random_bytes(&ediv, sizeof(ediv));
-		get_random_bytes(ident.rand, sizeof(ident.rand));
+		get_random_bytes_arch(enc.ltk, sizeof(enc.ltk));
+		get_random_bytes_arch(&ediv, sizeof(ediv));
+		get_random_bytes_arch(ident.rand, sizeof(ident.rand));
 
 		smp_send_cmd(conn, SMP_CMD_ENCRYPT_INFO, sizeof(enc), &enc);
 
@@ -990,7 +990,7 @@ static int smp_distribute_keys(struct l2cap_conn *conn, __u8 force)
 		struct smp_cmd_ident_info idinfo;
 
 		/* Send a dummy key */
-		get_random_bytes(idinfo.irk, sizeof(idinfo.irk));
+		get_random_bytes_arch(idinfo.irk, sizeof(idinfo.irk));
 
 		smp_send_cmd(conn, SMP_CMD_IDENT_INFO, sizeof(idinfo), &idinfo);
 
@@ -1008,7 +1008,7 @@ static int smp_distribute_keys(struct l2cap_conn *conn, __u8 force)
 		struct smp_cmd_sign_info sign;
 
 		/* Send a dummy key */
-		get_random_bytes(sign.csrk, sizeof(sign.csrk));
+		get_random_bytes_arch(sign.csrk, sizeof(sign.csrk));
 
 		smp_send_cmd(conn, SMP_CMD_SIGN_INFO, sizeof(sign), &sign);
 

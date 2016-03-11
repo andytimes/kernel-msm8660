@@ -39,7 +39,7 @@ static int rngapi_reset(struct crypto_rng *tfm, u8 *seed, unsigned int slen)
 		if (!buf)
 			return -ENOMEM;
 
-		get_random_bytes(buf, slen);
+		get_random_bytes_arch(buf, slen);
 		seed = buf;
 	}
 

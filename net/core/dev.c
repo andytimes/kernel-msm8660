@@ -6584,7 +6584,7 @@ subsys_initcall(net_dev_init);
 
 static int __init initialize_hashrnd(void)
 {
-	get_random_bytes(&hashrnd, sizeof(hashrnd));
+	get_random_bytes_arch(&hashrnd, sizeof(hashrnd));
 	return 0;
 }
 

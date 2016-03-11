@@ -283,7 +283,7 @@ static int hfsplus_link(struct dentry *src_dentry, struct inode *dst_dir,
 	mutex_lock(&sbi->vh_mutex);
 	if (inode->i_ino == (u32)(unsigned long)src_dentry->d_fsdata) {
 		for (;;) {
-			get_random_bytes(&id, sizeof(cnid));
+			get_random_bytes_arch(&id, sizeof(cnid));
 			id &= 0x3fffffff;
 			str.name = name;
 			str.len = sprintf(name, "iNode%d", id);

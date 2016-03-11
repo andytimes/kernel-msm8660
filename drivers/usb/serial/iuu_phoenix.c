@@ -406,7 +406,7 @@ static void iuu_led_activity_on(struct urb *urb)
 	char *buf_ptr = port->write_urb->transfer_buffer;
 	*buf_ptr++ = IUU_SET_LED;
 	if (xmas == 1) {
-		get_random_bytes(buf_ptr, 6);
+		get_random_bytes_arch(buf_ptr, 6);
 		*(buf_ptr+7) = 1;
 	} else {
 		iuu_rgbf_fill_buffer(buf_ptr, 255, 255, 0, 0, 0, 0, 255);

@@ -30,7 +30,7 @@ EXPORT_SYMBOL(syncookie_secret);
 
 static __init int init_syncookies(void)
 {
-	get_random_bytes(syncookie_secret, sizeof(syncookie_secret));
+	get_random_bytes_arch(syncookie_secret, sizeof(syncookie_secret));
 	return 0;
 }
 __initcall(init_syncookies);

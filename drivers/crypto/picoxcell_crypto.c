@@ -804,7 +804,7 @@ static int spacc_aead_cra_init(struct crypto_tfm *tfm)
 	ctx->generic.key_offs = spacc_alg->key_offs;
 	ctx->generic.iv_offs = spacc_alg->iv_offs;
 
-	get_random_bytes(ctx->salt, sizeof(ctx->salt));
+	get_random_bytes_arch(ctx->salt, sizeof(ctx->salt));
 
 	tfm->crt_aead.reqsize = sizeof(struct spacc_req);
 

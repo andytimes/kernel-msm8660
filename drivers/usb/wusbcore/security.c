@@ -94,7 +94,7 @@ static void wusbhc_generate_gtk(struct wusbhc *wusbhc)
 	wusbhc->gtk.descr.tTKID[1] = (tkid >>  8) & 0xff;
 	wusbhc->gtk.descr.tTKID[2] = (tkid >> 16) & 0xff;
 
-	get_random_bytes(wusbhc->gtk.descr.bKeyData, key_size);
+	get_random_bytes_arch(wusbhc->gtk.descr.bKeyData, key_size);
 }
 
 /**
@@ -374,7 +374,7 @@ int wusb_dev_4way_handshake(struct wusbhc *wusbhc, struct wusb_dev *wusb_dev,
 	memcpy(hs[0].tTKID, &tkid_le, sizeof(hs[0].tTKID));
 	hs[0].bReserved = 0;
 	memcpy(hs[0].CDID, &wusb_dev->cdid, sizeof(hs[0].CDID));
-	get_random_bytes(&hs[0].nonce, sizeof(hs[0].nonce));
+	get_random_bytes_arch(&hs[0].nonce, sizeof(hs[0].nonce));
 	memset(hs[0].MIC, 0, sizeof(hs[0].MIC));	/* Per WUSB1.0[T7-22] */
 
 	result = usb_control_msg(

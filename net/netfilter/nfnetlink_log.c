@@ -960,7 +960,7 @@ static int __init nfnetlink_log_init(void)
 	/* it's not really all that important to have a random value, so
 	 * we can do this from the init function, even if there hasn't
 	 * been that much entropy yet */
-	get_random_bytes(&hash_init, sizeof(hash_init));
+	get_random_bytes_arch(&hash_init, sizeof(hash_init));
 
 	netlink_register_notifier(&nfulnl_rtnl_notifier);
 	status = nfnetlink_subsys_register(&nfulnl_subsys);

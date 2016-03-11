@@ -579,7 +579,7 @@ static int rxkad_issue_challenge(struct rxrpc_connection *conn)
 	if (ret < 0)
 		return ret;
 
-	get_random_bytes(&conn->security_nonce, sizeof(conn->security_nonce));
+	get_random_bytes_arch(&conn->security_nonce, sizeof(conn->security_nonce));
 
 	challenge.version	= htonl(2);
 	challenge.nonce		= htonl(conn->security_nonce);

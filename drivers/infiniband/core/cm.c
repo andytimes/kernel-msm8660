@@ -3843,7 +3843,7 @@ static int __init ib_cm_init(void)
 	cm.remote_qp_table = RB_ROOT;
 	cm.remote_sidr_table = RB_ROOT;
 	idr_init(&cm.local_id_table);
-	get_random_bytes(&cm.random_id_operand, sizeof cm.random_id_operand);
+	get_random_bytes_arch(&cm.random_id_operand, sizeof cm.random_id_operand);
 	idr_pre_get(&cm.local_id_table, GFP_KERNEL);
 	INIT_LIST_HEAD(&cm.timewait_list);
 

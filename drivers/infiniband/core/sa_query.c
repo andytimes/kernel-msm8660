@@ -1097,7 +1097,7 @@ static int __init ib_sa_init(void)
 {
 	int ret;
 
-	get_random_bytes(&tid, sizeof tid);
+	get_random_bytes_arch(&tid, sizeof tid);
 
 	ret = ib_register_client(&sa_client);
 	if (ret) {
