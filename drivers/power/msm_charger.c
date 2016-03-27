@@ -26,7 +26,7 @@
 #include <linux/wakelock.h>
 #ifdef CONFIG_LGE_PM_BATTERY_ALARM
 #include <linux/pmic8058-charger.h>
-#include <linux/mfd/pm8xxx/batt-alarm.h> 
+#include <linux/mfd/pm8xxx/batt-alarm.h>
 #endif
 
 #include <asm/atomic.h>
@@ -41,14 +41,10 @@
 #include <linux/android_alarm.h>
 #endif
 
-
 #define MSM_CHG_MAX_EVENTS		16
 #define CHARGING_TEOC_MS		9000000
-#ifdef CONFIG_MACH_LGE_120_BOARD //                                                 
-#define UPDATE_TIME_MS			30000
-#else
 #define UPDATE_TIME_MS			60000
-#endif
+
 #define RESUME_CHECK_PERIOD_MS		60000
 
 #define DEFAULT_BATT_MAX_V		4200
@@ -91,8 +87,6 @@ enum msm_battery_status {
 	BATT_STATUS_TEMPERATURE_OUT_OF_RANGE,
 };
 
-
-/*                                     */
 #ifdef CONFIG_LGE_PM_TEMPERATURE_MONITOR
 /* When we're awake or running on wall power, sample the battery
  * gauge every FAST_POLL seconds.  If we're asleep and on battery
@@ -105,13 +99,10 @@ enum msm_battery_status {
 #define TIME_POLL_60_MINUTE (60 * 60)
 #define TIME_POLL_90_MINUTE (90 * 60)
 #endif
-/*                                     */
 
-#if defined(CONFIG_MACH_LGE_120_BOARD) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
-//                                                                         
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
 #define FAKE_BATT_ENABLED 1
 #define FAKE_BATT_DISABLED 0
-//                                                                                                                                                
 #define FAKE_BATT_DISABLE_TEMP 68
 #endif
 
@@ -134,9 +125,7 @@ extern int threshold_mv;
 #endif
 
 #ifdef CONFIG_LGE_BACKLIGHT_LM3530
-//                                                                           
 extern int lm3530_backlight_status(void);
-//                                                                           
 #endif
 
 struct msm_hardware_charger_priv {
@@ -163,20 +152,20 @@ struct msm_charger_mux {
 	unsigned int max_voltage;
 	unsigned int min_voltage;
 
-#if defined(CONFIG_MACH_LGE_120_BOARD) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
 // sujin.shin [TEMP_CONTROL]
 	u8 temp_control;
-#endif	
+#endif
 	int temperature;
 
 	unsigned int safety_time;
 	struct delayed_work teoc_work;
 
 	unsigned int update_time;
-	unsigned int processing_delay; /*                                   */
+	unsigned int processing_delay;
 	int stop_update;
 	struct delayed_work update_heartbeat_work;
-	struct delayed_work update_batt_remove_work;  /*                                   */
+	struct delayed_work update_batt_remove_work;
 
 	struct mutex status_lock;
 	enum msm_battery_status batt_status;
@@ -194,22 +183,17 @@ struct msm_charger_mux {
 	struct workqueue_struct *event_wq_thread;
 	struct wake_lock wl;
 
-/*                                     */
 #ifdef CONFIG_LGE_PM_TEMPERATURE_MONITOR
-  u8 slow_poll;
-  ktime_t last_poll;
+	u8 slow_poll;
+	ktime_t last_poll;
 
-  struct wake_lock temp_wake_lock;
+	struct wake_lock temp_wake_lock;
 	struct delayed_work monitor_work;
-  struct alarm alarm;
+	struct alarm alarm;
 #endif
-//                                         
 	int lcd_on_charge_curr_status;
 	int capacity;
 	int chg_current_set;
-//                                       
-
-/*                                     */
 };
 
 static struct msm_charger_mux msm_chg;
@@ -220,9 +204,11 @@ static struct msm_battery_gauge *msm_batt_gauge;
 static struct pseudo_batt_info_type pseudo_batt_info = {
 	.mode = 0,
 };
-#if defined(CONFIG_MACH_LGE_120_BOARD) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
+
+#ifdef CONFIG_LGE_FACTORY
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
 //sujin.shin [TEMP_CONTROL]
-	static struct pseudo_batt_info_type booting_set = {
+static struct pseudo_batt_info_type booting_set = {
 	.mode = 1,
 	.id = 1,
 	.therm = 1027,
@@ -230,18 +216,18 @@ static struct pseudo_batt_info_type pseudo_batt_info = {
 	.volt = 4100,
 	.capacity = 80,
 	.charging = 1,
-	};
+};
 #endif
-static int block_charging_state = 1; /* 1 : charging , 0: block charging */
+#endif // CONFIG_LGE_FACTORY
+static int block_charging_state = 1;	/* 1 : charging , 0: block charging */
 
-static int charging_flow_monitor_enable = 1; /* for debugging log */
-struct wake_lock uevent_wake_lock; 
+static int charging_flow_monitor_enable = 1;	/* for debugging log */
+struct wake_lock uevent_wake_lock;
 struct wake_lock adc_wake_lock;
 #endif
 
 #ifdef CONFIG_LGE_CHARGER_TEMP_SCENARIO
 static int last_stop_charging = 0;
-/*                                                                                                    */
 static int pseudo_ui_charging = 0;
 
 static int chg_batt_temp_state = CHG_BATT_NORMAL_STATE;
@@ -259,7 +245,7 @@ extern int pm_chg_auto_disable(int value);
 static bool b_is_testmode_cmd_on = false;
 extern int pm8058_start_charging_for_TESTMODE(void);
 extern int pm8058_stop_charging_for_TESTMODE(void);
-#endif /*                                                           */
+#endif
 
 #ifdef CONFIG_LGE_AT_COMMAND_ABOUT_POWER
 static bool b_is_at_cmd_on = false;
@@ -274,18 +260,18 @@ extern void bq24160_determine_the_collect_chg(int start);
 extern int bq24160_charger_get_status(void);
 #endif
 #ifdef ACC_ENABLE
-struct acc_data{
+struct acc_data {
 	bool charger_fixed;
-	u8	wait_cnt;
-	u8	charger_step;
-	u8	vchg_good_cnt;
+	u8 wait_cnt;
+	u8 charger_step;
+	u8 vchg_good_cnt;
 };
 
 typedef enum {
-    Step_1_charging_450mA = 1, /* Default USB charging Current */
-    Step_2_charging_535mA,
-    Step_3_charging_620mA,
-    Step_4_charging_700mA,
+	Step_1_charging_450mA = 1,	/* Default USB charging Current */
+	Step_2_charging_535mA,
+	Step_3_charging_620mA,
+	Step_4_charging_700mA,
 } Charger_Step;
 
 static struct acc_data f120_acc_data;
@@ -306,17 +292,18 @@ static int is_chg_capable_of_charging(struct msm_hardware_charger_priv *priv)
 static int is_batt_status_capable_of_charging(void)
 {
 #ifdef CONFIG_LGE_AT_COMMAND_ABOUT_POWER
-  if(b_is_at_cmd_on)
-    return 1;
-  else
-  {
-    if (msm_chg.batt_status == BATT_STATUS_ABSENT
-	    || msm_chg.batt_status == BATT_STATUS_TEMPERATURE_OUT_OF_RANGE
-	    || msm_chg.batt_status == BATT_STATUS_ID_INVALID
-	    || msm_chg.batt_status == BATT_STATUS_JUST_FINISHED_CHARGING)
-		  return 0;
-	  return 1;
-  }
+	if (b_is_at_cmd_on)
+		return 1;
+	else {
+		if (msm_chg.batt_status == BATT_STATUS_ABSENT
+		    || msm_chg.batt_status ==
+		    BATT_STATUS_TEMPERATURE_OUT_OF_RANGE
+		    || msm_chg.batt_status == BATT_STATUS_ID_INVALID
+		    || msm_chg.batt_status ==
+		    BATT_STATUS_JUST_FINISHED_CHARGING)
+			return 0;
+		return 1;
+	}
 #else
 	if (msm_chg.batt_status == BATT_STATUS_ABSENT
 	    || msm_chg.batt_status == BATT_STATUS_TEMPERATURE_OUT_OF_RANGE
@@ -338,23 +325,21 @@ static int is_batt_status_charging(void)
 static int is_battery_present(void)
 {
 #ifdef CONFIG_LGE_AT_COMMAND_ABOUT_POWER
-  if(b_is_at_cmd_on)
-    return 1;
-  else
-  {
+	if (b_is_at_cmd_on)
+		return 1;
+	else {
 #ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
-	/*                                                                   */
-	if((6 ==get_ext_cable_type_value())||(7 ==get_ext_cable_type_value())) /* 6,7 = LT cable*/
-	  return 1;
-	else
+		if ((6 == get_ext_cable_type_value()) || (7 == get_ext_cable_type_value()))	/* 6,7 = LT cable */
+			return 1;
+		else
 #endif
-    if (msm_batt_gauge && msm_batt_gauge->is_battery_present)
-		  return msm_batt_gauge->is_battery_present();
-	  else {
-		  pr_err("msm-charger: no batt gauge batt=absent\n");
-		  return 0;
-	  }
-  }
+		if (msm_batt_gauge && msm_batt_gauge->is_battery_present)
+			return msm_batt_gauge->is_battery_present();
+		else {
+			pr_err("msm-charger: no batt gauge batt=absent\n");
+			return 0;
+		}
+	}
 #else
 	if (msm_batt_gauge && msm_batt_gauge->is_battery_present)
 		return msm_batt_gauge->is_battery_present();
@@ -368,17 +353,18 @@ static int is_battery_present(void)
 static int is_battery_temp_within_range(void)
 {
 #ifdef CONFIG_LGE_AT_COMMAND_ABOUT_POWER
-  if(b_is_at_cmd_on)
-    return 1;
-  else
-  {
-    if (msm_batt_gauge && msm_batt_gauge->is_battery_temp_within_range)
-		  return msm_batt_gauge->is_battery_temp_within_range();
-	  else {
-		  pr_err("msm-charger no batt gauge batt=out_of_temperatur\n");
-		  return 0;
-	  }
-  }
+	if (b_is_at_cmd_on)
+		return 1;
+	else {
+		if (msm_batt_gauge
+		    && msm_batt_gauge->is_battery_temp_within_range)
+			return msm_batt_gauge->is_battery_temp_within_range();
+		else {
+			pr_err
+			    ("msm-charger no batt gauge batt=out_of_temperatur\n");
+			return 0;
+		}
+	}
 #else
 	if (msm_batt_gauge && msm_batt_gauge->is_battery_temp_within_range)
 		return msm_batt_gauge->is_battery_temp_within_range();
@@ -392,23 +378,21 @@ static int is_battery_temp_within_range(void)
 static int is_battery_id_valid(void)
 {
 #ifdef CONFIG_LGE_AT_COMMAND_ABOUT_POWER
-  if(b_is_at_cmd_on)
-    return 1;
-  else
-  {
-#ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
-	/*                                                                   */
-	if((6 ==get_ext_cable_type_value())||(7 ==get_ext_cable_type_value())) /* 6,7 = LT cable*/
+	if (b_is_at_cmd_on)
 		return 1;
-	else
+	else {
+#ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
+		if ((6 == get_ext_cable_type_value()) || (7 == get_ext_cable_type_value()))	/* 6,7 = LT cable */
+			return 1;
+		else
 #endif
-    if (msm_batt_gauge && msm_batt_gauge->is_battery_id_valid)
-		  return msm_batt_gauge->is_battery_id_valid();
-	  else {
-		  pr_err("msm-charger no batt gauge batt=id_invalid\n");
-		  return 0;
-	  }
-  }
+		if (msm_batt_gauge && msm_batt_gauge->is_battery_id_valid)
+			return msm_batt_gauge->is_battery_id_valid();
+		else {
+			pr_err("msm-charger no batt gauge batt=id_invalid\n");
+			return 0;
+		}
+	}
 #else
 	if (msm_batt_gauge && msm_batt_gauge->is_battery_id_valid)
 		return msm_batt_gauge->is_battery_id_valid();
@@ -432,7 +416,7 @@ static int get_prop_battery_mvolts(void)
 static int get_battery_temperature(void)
 {
 #ifdef CONFIG_LGE_CHARGER_TEMP_SCENARIO
-	if((6 ==get_ext_cable_type_value())||(7 ==get_ext_cable_type_value())) /* 6,7 = LT cable*/
+	if ((6 == get_ext_cable_type_value()) || (7 == get_ext_cable_type_value()))	/* 6,7 = LT cable */
 		return MSM_CHARGER_GAUGE_MISSING_TEMP;
 	else
 #endif
@@ -448,29 +432,28 @@ static int get_battery_temperature(void)
 #if !defined(CONFIG_MACH_LGE_I_BOARD_DCM)
 static int get_battery_temperature_adc(void)
 {
-	if((6 ==get_ext_cable_type_value())||(7 ==get_ext_cable_type_value())) /* 6,7 = LT cable*/
+	if ((6 == get_ext_cable_type_value()) || (7 == get_ext_cable_type_value()))	/* 6,7 = LT cable */
 		return 1000;
-	else
-        if (msm_batt_gauge && msm_batt_gauge->get_battery_temperature_adc)
-                return msm_batt_gauge->get_battery_temperature_adc();
-        else {
-                pr_err("msm-charger no batt gauge and no temp adc\n");
-                return 1000;
-        }
-}
-#else
-int get_battery_temperature_adc(void)
-{
-	if((6 ==get_ext_cable_type_value())||(7 ==get_ext_cable_type_value()) ||(11 ==get_ext_cable_type_value())) /* 6,7 = LT cable*/
-		return 1000;
-	else
-	if (msm_batt_gauge && msm_batt_gauge->get_battery_temperature_adc)
+	else if (msm_batt_gauge && msm_batt_gauge->get_battery_temperature_adc)
 		return msm_batt_gauge->get_battery_temperature_adc();
 	else {
 		pr_err("msm-charger no batt gauge and no temp adc\n");
 		return 1000;
 	}
 }
+#else
+int get_battery_temperature_adc(void)
+{
+	if ((6 == get_ext_cable_type_value()) || (7 == get_ext_cable_type_value()) || (11 == get_ext_cable_type_value()))	/* 6,7 = LT cable */
+		return 1000;
+	else if (msm_batt_gauge && msm_batt_gauge->get_battery_temperature_adc)
+		return msm_batt_gauge->get_battery_temperature_adc();
+	else {
+		pr_err("msm-charger no batt gauge and no temp adc\n");
+		return 1000;
+	}
+}
+
 EXPORT_SYMBOL(get_battery_temperature_adc);
 #endif
 #endif
@@ -478,51 +461,50 @@ EXPORT_SYMBOL(get_battery_temperature_adc);
 extern int is_chg_plugged_in(void);
 #endif
 
-/*                                                                                  */
 #if defined(CONFIG_MACH_LGE_I_BOARD_VZW) || defined(CONFIG_MACH_LGE_C1_BOARD_MPS)
 #ifdef CONFIG_LGE_CHARGER_TEMP_SCENARIO
 int is_temp_too_cold(void)
 {
-		int chg_batt_temp;
-		int rtnValue = 0;
-		int temp_adc;
-		temp_adc = get_battery_temperature_adc();
-	
-		printk("%s: START \n",__func__);
-		
-		if(temp_adc < adcmap_batttherm[THERM_55].x)
-		  chg_batt_temp = CHG_BATT_TEMP_OVER_55;
-		else if(temp_adc < adcmap_batttherm[THERM_45].x)
-		  chg_batt_temp = CHG_BATT_TEMP_46_55;
-		else if(temp_adc <= adcmap_batttherm[THERM_42].x)
-		  chg_batt_temp = CHG_BATT_TEMP_42_45;
-		else if(temp_adc < adcmap_batttherm[THERM_M5].x)
-		  chg_batt_temp = CHG_BATT_TEMP_M4_41;
-		else if(temp_adc <= adcmap_batttherm[THERM_M10].x)
-		  chg_batt_temp = CHG_BATT_TEMP_M10_M5;
-		else
-		  chg_batt_temp = CHG_BATT_TEMP_UNDER_M10;
-#ifdef CONFIG_LGE_PM_TA_COMPENSATION
-		if (is_chg_plugged_in())
-		{
-			if(temp_adc < adcmap_batttherm_ta[THERM_55].x)
-			  chg_batt_temp = CHG_BATT_TEMP_OVER_55;
-			else if(temp_adc < adcmap_batttherm_ta[THERM_45].x)
-			  chg_batt_temp = CHG_BATT_TEMP_46_55;
-			else if(temp_adc <= adcmap_batttherm_ta[THERM_42].x)
-			  chg_batt_temp = CHG_BATT_TEMP_42_45;
-			else if(temp_adc < adcmap_batttherm_ta[THERM_M5].x)
-			  chg_batt_temp = CHG_BATT_TEMP_M4_41;
-			else if(temp_adc <= adcmap_batttherm_ta[THERM_M10].x)
-			  chg_batt_temp = CHG_BATT_TEMP_M10_M5;
-			else
-			  chg_batt_temp = CHG_BATT_TEMP_UNDER_M10;
-		}	
-#endif
-		if(chg_batt_temp == CHG_BATT_TEMP_M10_M5 || chg_batt_temp == CHG_BATT_TEMP_UNDER_M10)
-			rtnValue = 1;
+	int chg_batt_temp;
+	int rtnValue = 0;
+	int temp_adc;
+	temp_adc = get_battery_temperature_adc();
 
-		return rtnValue;	
+	printk("%s: START \n", __func__);
+
+	if (temp_adc < adcmap_batttherm[THERM_55].x)
+		chg_batt_temp = CHG_BATT_TEMP_OVER_55;
+	else if (temp_adc < adcmap_batttherm[THERM_45].x)
+		chg_batt_temp = CHG_BATT_TEMP_46_55;
+	else if (temp_adc <= adcmap_batttherm[THERM_42].x)
+		chg_batt_temp = CHG_BATT_TEMP_42_45;
+	else if (temp_adc < adcmap_batttherm[THERM_M5].x)
+		chg_batt_temp = CHG_BATT_TEMP_M4_41;
+	else if (temp_adc <= adcmap_batttherm[THERM_M10].x)
+		chg_batt_temp = CHG_BATT_TEMP_M10_M5;
+	else
+		chg_batt_temp = CHG_BATT_TEMP_UNDER_M10;
+#ifdef CONFIG_LGE_PM_TA_COMPENSATION
+	if (is_chg_plugged_in()) {
+		if (temp_adc < adcmap_batttherm_ta[THERM_55].x)
+			chg_batt_temp = CHG_BATT_TEMP_OVER_55;
+		else if (temp_adc < adcmap_batttherm_ta[THERM_45].x)
+			chg_batt_temp = CHG_BATT_TEMP_46_55;
+		else if (temp_adc <= adcmap_batttherm_ta[THERM_42].x)
+			chg_batt_temp = CHG_BATT_TEMP_42_45;
+		else if (temp_adc < adcmap_batttherm_ta[THERM_M5].x)
+			chg_batt_temp = CHG_BATT_TEMP_M4_41;
+		else if (temp_adc <= adcmap_batttherm_ta[THERM_M10].x)
+			chg_batt_temp = CHG_BATT_TEMP_M10_M5;
+		else
+			chg_batt_temp = CHG_BATT_TEMP_UNDER_M10;
+	}
+#endif
+	if (chg_batt_temp == CHG_BATT_TEMP_M10_M5
+	    || chg_batt_temp == CHG_BATT_TEMP_UNDER_M10)
+		rtnValue = 1;
+
+	return rtnValue;
 }
 #endif
 #endif
@@ -544,7 +526,7 @@ static int get_prop_batt_capacity(void)
 
 int is_batt_lvl_present(void)
 {
-	return(get_prop_batt_capacity());   
+	return (get_prop_batt_capacity());
 }
 
 static int get_prop_batt_health(void)
@@ -581,15 +563,15 @@ static int get_prop_batt_status(void)
 	if (msm_batt_gauge && msm_batt_gauge->get_battery_status) {
 		status = msm_batt_gauge->get_battery_status();
 		if (status == POWER_SUPPLY_STATUS_CHARGING ||
-			status == POWER_SUPPLY_STATUS_FULL ||
-			status == POWER_SUPPLY_STATUS_DISCHARGING)
+		    status == POWER_SUPPLY_STATUS_FULL ||
+		    status == POWER_SUPPLY_STATUS_DISCHARGING)
 			return status;
 	}
 
 	if (is_batt_status_charging())
 #ifdef CONFIG_LGE_FUEL_GAUGE
 	{
-		if(get_prop_batt_capacity() >= 100)
+		if (get_prop_batt_capacity() >= 100)
 			status = POWER_SUPPLY_STATUS_FULL;
 		else
 			status = POWER_SUPPLY_STATUS_CHARGING;
@@ -599,11 +581,11 @@ static int get_prop_batt_status(void)
 #endif
 	else if (msm_chg.batt_status ==
 		 BATT_STATUS_JUST_FINISHED_CHARGING
-			 && msm_chg.current_chg_priv != NULL
-			 &&(get_prop_batt_capacity() >= 95))
+		 && msm_chg.current_chg_priv != NULL
+		 && (get_prop_batt_capacity() >= 95))
 		status = POWER_SUPPLY_STATUS_FULL;
 #ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
-	/* in case of booting with TA without battery, the battery icon set'*/
+	/* in case of booting with TA without battery, the battery icon set' */
 	else if (msm_chg.batt_status == BATT_STATUS_ABSENT)
 		status = POWER_SUPPLY_STATUS_UNKNOWN;
 #endif
@@ -620,13 +602,12 @@ static void update_batt_status(void)
 	if (is_battery_present()) {
 		if (is_battery_id_valid()) {
 			if (msm_chg.batt_status == BATT_STATUS_ABSENT
-				|| msm_chg.batt_status
-					== BATT_STATUS_ID_INVALID) {
+			    || msm_chg.batt_status == BATT_STATUS_ID_INVALID) {
 				msm_chg.batt_status = BATT_STATUS_DISCHARGING;
 			}
 		} else
 			msm_chg.batt_status = BATT_STATUS_ID_INVALID;
-	 } else
+	} else
 		msm_chg.batt_status = BATT_STATUS_ABSENT;
 }
 
@@ -653,44 +634,38 @@ static int msm_power_get_property(struct power_supply *psy,
 	switch (psp) {
 	case POWER_SUPPLY_PROP_ONLINE:
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-    {
-      int bq24160_driver = -1;
-      
-      bq24160_driver = bq24160_charger_get_status();
+		{
+			int bq24160_driver = -1;
 
-      if(bq24160_driver == POWER_SUPPLY_STATUS_CHARGING || bq24160_driver == POWER_SUPPLY_STATUS_FULL)
-      {
-        if(usb_chg_type != 0)
-        {
-          prev_cable_type = usb_chg_type;
-        }
-      }
-      else
-      {
-        prev_cable_type = usb_chg_type;
-      }
+			bq24160_driver = bq24160_charger_get_status();
 
-      if(get_ext_cable_type_value() == 0)
-      {
-        val->intval = 0;
-      }
-      else
-      {
-        if (psy->type == POWER_SUPPLY_TYPE_MAINS)
-			    val->intval = (prev_cable_type == 2); /* not fixed */
-		    if (psy->type == POWER_SUPPLY_TYPE_USB)
-			    val->intval = (prev_cable_type == 3); /* not fixed */
-      }
-    }
+			if (bq24160_driver == POWER_SUPPLY_STATUS_CHARGING
+			    || bq24160_driver == POWER_SUPPLY_STATUS_FULL) {
+				if (usb_chg_type != 0) {
+					prev_cable_type = usb_chg_type;
+				}
+			} else {
+				prev_cable_type = usb_chg_type;
+			}
+
+			if (get_ext_cable_type_value() == 0) {
+				val->intval = 0;
+			} else {
+				if (psy->type == POWER_SUPPLY_TYPE_MAINS)
+					val->intval = (prev_cable_type == 2);	/* not fixed */
+				if (psy->type == POWER_SUPPLY_TYPE_USB)
+					val->intval = (prev_cable_type == 3);	/* not fixed */
+			}
+		}
 #else
 		if (psy->type == POWER_SUPPLY_TYPE_MAINS)
-			val->intval = (usb_chg_type_for_FG == 2); /* not fixed */
+			val->intval = (usb_chg_type_for_FG == 2);	/* not fixed */
 		if (psy->type == POWER_SUPPLY_TYPE_USB)
-			val->intval = (usb_chg_type_for_FG == 3); /* not fixed */
+			val->intval = (usb_chg_type_for_FG == 3);	/* not fixed */
 #endif
 		break;
 	default:
-			return -EINVAL;
+		return -EINVAL;
 	}
 	return 0;
 #else
@@ -703,7 +678,7 @@ static int msm_power_get_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_ONLINE:
 		val->intval = (priv->hw_chg_state == CHG_READY_STATE)
-			|| (priv->hw_chg_state == CHG_CHARGING_STATE);
+		    || (priv->hw_chg_state == CHG_CHARGING_STATE);
 		break;
 	default:
 		return -EINVAL;
@@ -733,15 +708,12 @@ static enum power_supply_property msm_batt_power_props[] = {
 #endif
 #ifdef CONFIG_LGE_PM
 	POWER_SUPPLY_PROP_PSEUDO_BATT,
-	POWER_SUPPLY_PROP_BLOCK_CHARGING,	
-	POWER_SUPPLY_PROP_EXT_PWR_CHECK, // for auto run, it will check just cable is usb or not.
-        POWER_SUPPLY_PROP_FACTORY_MODE,
-	POWER_SUPPLY_PROP_CHARGING_CURRENT_SET, //                                   
-        
-        POWER_SUPPLY_PROP_SMPL_MODE,
-#if 0	
-	POWER_SUPPLY_PROP_WLC_STATUS,
-#endif	
+	POWER_SUPPLY_PROP_BLOCK_CHARGING,
+	POWER_SUPPLY_PROP_EXT_PWR_CHECK,	// for auto run, it will check just cable is usb or not.
+	POWER_SUPPLY_PROP_FACTORY_MODE,
+	POWER_SUPPLY_PROP_CHARGING_CURRENT_SET,
+
+	POWER_SUPPLY_PROP_SMPL_MODE,
 #endif
 };
 
@@ -763,84 +735,91 @@ extern bool bq24160_chg_done_once;
 extern int now_chg_state;
 #endif
 
-#if defined(CONFIG_MACH_LGE_120_BOARD) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
+#ifdef CONFIG_LGE_FACTORY
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
 extern int set_status_power(int val);
 extern int get_status_power(void);
 #endif
+#endif // CONFIG_LGE_FACTORY
+
 static int msm_batt_power_property_is_writeable(struct power_supply *psy,
-				     enum power_supply_property psp)
+						enum power_supply_property psp)
 {
-	//printk("%s, \n", __func__);
 	switch (psp) {
-#if defined(CONFIG_MACH_LGE_120_BOARD) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
 	case POWER_SUPPLY_PROP_PSEUDO_BATT:
 		return 1;
 #endif
-#ifdef CONFIG_LGE_PM	
-	//                                         
+#ifdef CONFIG_LGE_PM
 	case POWER_SUPPLY_PROP_CHARGING_CURRENT_SET:
 		return 1;
-	//                                       
-#endif	
+#endif
 	default:
 		break;
 	}
 
 	return 0;
 }
+
 EXPORT_SYMBOL(msm_batt_power_property_is_writeable);
 
 static int msm_batt_power_set_property(struct power_supply *psy,
-			    enum power_supply_property psp,
-			    const union power_supply_propval *val)
+				       enum power_supply_property psp,
+				       const union power_supply_propval *val)
 {
-#if defined(CONFIG_MACH_LGE_120_BOARD) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
+#ifdef CONFIG_LGE_FACTORY
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
 	char set_val;
 	int retval = 0;
 #endif
-	
-	switch (psp) {		
-#if defined(CONFIG_MACH_LGE_120_BOARD) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
+#endif // CONFIG_LGE_FACTORY
+
+	switch (psp) {
+#ifdef CONFIG_LGE_FACTORY
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
 	case POWER_SUPPLY_PROP_PSEUDO_BATT:
 		printk("!!!!%s, PSEUDO_BATT = %d\n", __func__, val->intval);
-		if(val->intval == 1){
+		if (val->intval == 1) {
 			msm_chg.temp_control = val->intval;
 			set_val = (char)msm_chg.temp_control;
 			retval = set_status_power(set_val);
 			if (retval != 0)
-				printk("!!!!!%s, set_status_power is failed!!\n", __func__);
-			}
-		else if (val->intval == 0){
+				printk
+				    ("!!!!!%s, set_status_power is failed!!\n",
+				     __func__);
+		} else if (val->intval == 0) {
 			msm_chg.temp_control = val->intval;
 			set_val = (char)msm_chg.temp_control;
 			retval = set_status_power(set_val);
 			if (retval != 0)
-				printk("!!!!!%s, set_status_power is failed!!\n", __func__);
-			}
+				printk
+				    ("!!!!!%s, set_status_power is failed!!\n",
+				     __func__);
+		}
 		break;
-#endif	
-#ifdef CONFIG_LGE_PM			
-//                                         
+#endif // IJB
+#endif // CONFIG_LGE_FACTORY
+
+#ifdef CONFIG_LGE_PM
 	case POWER_SUPPLY_PROP_CHARGING_CURRENT_SET:
-		printk("!!!!%s, CHARGING_CURRENT_SET = %d\n", __func__, val->intval);
-		if (val->intval == 1){
+		printk("!!!!%s, CHARGING_CURRENT_SET = %d\n", __func__,
+		       val->intval);
+		if (val->intval == 1) {
 			msm_chg.chg_current_set = val->intval;
 			printk("Set OVERHEAT fake Charging mode...\n");
-		}
-		else if(val->intval == 0) { 
+		} else if (val->intval == 0) {
 			msm_chg.chg_current_set = val->intval;
 			printk("Set NORMAL Charging mode...\n");
-		}			
+		}
 		break;
-//                                       
-#endif		
+#endif
 	default:
 		return -EINVAL;
 	}
 	return 0;
 }
-EXPORT_SYMBOL(msm_batt_power_set_property);
 
+EXPORT_SYMBOL(msm_batt_power_set_property);
 
 static int msm_batt_power_get_property(struct power_supply *psy,
 				       enum power_supply_property psp,
@@ -852,25 +831,19 @@ static int msm_batt_power_get_property(struct power_supply *psy,
 	switch (psp) {
 	case POWER_SUPPLY_PROP_STATUS:
 #ifdef CONFIG_LGE_PM
-/* we comment out below */
-/*		if(pseudo_batt_info.mode == 1)
-  			val->intval = pseudo_batt_info.charging;
-		else
-*/		
-		if(block_charging_state == 0) // in hidden menu, charging stop. we show animation stop.
+		if (block_charging_state == 0)	// in hidden menu, charging stop. we show animation stop.
 			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
 		else
 #endif
 
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-    if(get_ext_cable_type_value() == 0)
-    {
-      now_chg_state = 0;
-    }
-    
-    val->intval = bq24160_charger_get_status();
+		if (get_ext_cable_type_value() == 0) {
+			now_chg_state = 0;
+		}
+
+		val->intval = bq24160_charger_get_status();
 #else
-		val->intval = get_prop_batt_status();
+			val->intval = get_prop_batt_status();
 #endif
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
@@ -881,21 +854,21 @@ static int msm_batt_power_get_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_PRESENT:
 #ifdef CONFIG_LGE_PM
-		if(pseudo_batt_info.mode == 1)
-		{
-			if(pseudo_batt_info.id == 1 || pseudo_batt_info.therm != 0)
+		if (pseudo_batt_info.mode == 1) {
+			if (pseudo_batt_info.id == 1
+			    || pseudo_batt_info.therm != 0)
 				val->intval = 1;
 			else
 				val->intval = 0;
-		}
-		else
+		} else
 #endif
-		val->intval = !(msm_chg.batt_status == BATT_STATUS_ABSENT);
+			val->intval =
+			    !(msm_chg.batt_status == BATT_STATUS_ABSENT);
 		break;
 	case POWER_SUPPLY_PROP_TECHNOLOGY:
 #ifdef CONFIG_LGE_PM
 		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
-#else		
+#else
 		val->intval = POWER_SUPPLY_TECHNOLOGY_NiMH;
 #endif
 		break;
@@ -906,157 +879,120 @@ static int msm_batt_power_get_property(struct power_supply *psy,
 		val->intval = msm_chg.min_voltage * 1000;
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-#ifdef CONFIG_LGE_PM		
-/* we comment out below */
-/*
-		if(pseudo_batt_info.mode == 1)
-		  val->intval = pseudo_batt_info.volt;
-		else
-*/		
-#endif		
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-    batt_volt = get_prop_battery_mvolts();
+		batt_volt = get_prop_battery_mvolts();
 #endif
-		val->intval = get_prop_battery_mvolts() * 1000; /*                                                                     */ 
+		val->intval = get_prop_battery_mvolts() * 1000;
 		break;
 	case POWER_SUPPLY_PROP_CAPACITY:
 #ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-  if((0 == battery_info_get()) ||(6 ==get_ext_cable_type_value())||(7 ==get_ext_cable_type_value()) ||(11 ==get_ext_cable_type_value())) /* 6,7 = LT cable*/
-		val->intval = 70;//for test only
-	else if((batt_volt > 4250) && (bq24160_chg_done_once))
-	  val->intval = 100;
-	else
-  {
-    bq24160_chg_done_once = false;
-	val->intval = get_prop_batt_capacity();
-  }
+		if ((0 == battery_info_get()) || (6 == get_ext_cable_type_value()) || (7 == get_ext_cable_type_value()) || (11 == get_ext_cable_type_value()))	/* 6,7 = LT cable */
+			val->intval = 70;	//for test only
+		else if ((batt_volt > 4250) && (bq24160_chg_done_once))
+			val->intval = 100;
+		else {
+			bq24160_chg_done_once = false;
+			val->intval = get_prop_batt_capacity();
+		}
 #else
 
-#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT) || defined(CONFIG_MACH_LGE_120_BOARD)
-	if(pseudo_batt_info.mode == 1)
-	  val->intval = pseudo_batt_info.capacity; //80
-	else
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
+		if (pseudo_batt_info.mode == 1)
+			val->intval = pseudo_batt_info.capacity;	//80
+		else
 #endif
-	if((0 == battery_info_get()) && ((6 ==get_ext_cable_type_value())||(7 ==get_ext_cable_type_value()))) /* 6,7 = LT cable*/
-		val->intval = 70;//for test only
-	else if (msm_chg.batt_status ==
-		 BATT_STATUS_JUST_FINISHED_CHARGING
+		if ((0 == battery_info_get()) && ((6 == get_ext_cable_type_value()) || (7 == get_ext_cable_type_value())))	/* 6,7 = LT cable */
+			val->intval = 70;	//for test only
+		else if (msm_chg.batt_status ==
+			 BATT_STATUS_JUST_FINISHED_CHARGING
 			 && msm_chg.current_chg_priv != NULL
-			 &&(get_prop_batt_capacity() >= 95))
-		val->intval = 100;
-	else
-		val->intval = get_prop_batt_capacity();
+			 && (get_prop_batt_capacity() >= 95))
+			val->intval = 100;
+		else
+			val->intval = get_prop_batt_capacity();
 #endif
-#endif       
+#endif
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-   fuel_percent = val->intval;
+		fuel_percent = val->intval;
 #endif
 		break;
 #ifdef CONFIG_LGE_PM
 	case POWER_SUPPLY_PROP_BATTERY_ID_CHECK:
-		if(pseudo_batt_info.mode == 1)
-		  val->intval = pseudo_batt_info.id;
-		else if((6 ==get_ext_cable_type_value()) || (7 ==get_ext_cable_type_value()))
-		  val->intval = 1; /* 6 = LT cable*/
+		if (pseudo_batt_info.mode == 1)
+			val->intval = pseudo_batt_info.id;
+		else if ((6 == get_ext_cable_type_value())
+			 || (7 == get_ext_cable_type_value()))
+			val->intval = 1;	/* 6 = LT cable */
 		else
-		val->intval = is_battery_id_valid();
-	break;
+			val->intval = is_battery_id_valid();
+		break;
 
 #endif
 
 #ifdef CONFIG_LGE_CHARGER_TEMP_SCENARIO
-	case POWER_SUPPLY_PROP_TEMP: // temp?? ?¥ì? ?? 
-#ifdef CONFIG_MACH_LGE_120_BOARD  
-	  if((pseudo_batt_info.mode == 1)&& (msm_chg.temperature >= FAKE_BATT_DISABLE_TEMP))
-		val->intval = get_battery_temperature()*10;
-	  else if ((pseudo_batt_info.mode == 1)&& (msm_chg.temperature < FAKE_BATT_DISABLE_TEMP))
-		val->intval = pseudo_batt_info.temp*10;	  
-	  else if((6 ==get_ext_cable_type_value()) || (7 ==get_ext_cable_type_value()))
-	  	val->intval = 35*10;
-	  else
-		val->intval = get_battery_temperature()*10;
-#else
-	  if(pseudo_batt_info.mode == 1)
-		val->intval = pseudo_batt_info.temp*10;	  
-	  else if((6 ==get_ext_cable_type_value()) || (7 ==get_ext_cable_type_value()))
-	  	val->intval = 35*10;
-	  else
-		val->intval = get_battery_temperature()*10;
-#endif
-	  break;
+	case POWER_SUPPLY_PROP_TEMP:
+		if (pseudo_batt_info.mode == 1)
+			val->intval = pseudo_batt_info.temp * 10;
+		else if ((6 == get_ext_cable_type_value())
+			 || (7 == get_ext_cable_type_value()))
+			val->intval = 35 * 10;
+		else
+			val->intval = get_battery_temperature() * 10;
+		break;
 
-	case POWER_SUPPLY_PROP_BATTERY_TEMP_ADC: // ?¥ì? ADC ??. 
-#ifdef CONFIG_MACH_LGE_120_BOARD
-    if((pseudo_batt_info.mode == 1)&& (msm_chg.temperature >= FAKE_BATT_DISABLE_TEMP))
-      val->intval = get_battery_temperature_adc();
-	else if ((pseudo_batt_info.mode == 1)&& (msm_chg.temperature < FAKE_BATT_DISABLE_TEMP))
-      val->intval = pseudo_batt_info.therm;
-    else
-      val->intval = get_battery_temperature_adc();
-#else
-    if(pseudo_batt_info.mode == 1)
-      val->intval = pseudo_batt_info.therm;
-    else
-      val->intval = get_battery_temperature_adc();
-#endif
+	case POWER_SUPPLY_PROP_BATTERY_TEMP_ADC:
+		if (pseudo_batt_info.mode == 1)
+			val->intval = pseudo_batt_info.therm;
+		else
+			val->intval = get_battery_temperature_adc();
 
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-    batt_temp = val->intval;
+		batt_temp = val->intval;
 #endif
-    break;
+		break;
 #endif
 
 #ifdef CONFIG_LGE_PM
-  case POWER_SUPPLY_PROP_PSEUDO_BATT:
-    val->intval = pseudo_batt_info.mode;
-    break;
+	case POWER_SUPPLY_PROP_PSEUDO_BATT:
+		val->intval = pseudo_batt_info.mode;
+		break;
 
-  case POWER_SUPPLY_PROP_BLOCK_CHARGING:
-    val->intval = block_charging_state;
-    break;
-    case POWER_SUPPLY_PROP_EXT_PWR_CHECK:
+	case POWER_SUPPLY_PROP_BLOCK_CHARGING:
+		val->intval = block_charging_state;
+		break;
+	case POWER_SUPPLY_PROP_EXT_PWR_CHECK:
 #ifdef CONFIG_MACH_LGE_I_BOARD_SKT
 		ext_cable_type = get_ext_cable_type_value();
-		if ((ext_cable_type == 10)&&(usb_pc_connection == 0)){
+		if ((ext_cable_type == 10) && (usb_pc_connection == 0)) {
 			val->intval = TA_CABLE_NOT_AUTH_700MA;
-			}
-		else
-			val->intval = ext_cable_type; // 8  :USB_CABLE_400MA, 9: USB_CABLE_DTC_500MA, 10:ABNORMAL_USB_CABLE_400MA
+		} else
+			val->intval = ext_cable_type;	// 8  :USB_CABLE_400MA, 9: USB_CABLE_DTC_500MA, 10:ABNORMAL_USB_CABLE_400MA
 #else
-  	    val->intval = get_ext_cable_type_value(); // 8  :USB_CABLE_400MA, 9: USB_CABLE_DTC_500MA, 10:ABNORMAL_USB_CABLE_400MA
+		val->intval = get_ext_cable_type_value();	// 8  :USB_CABLE_400MA, 9: USB_CABLE_DTC_500MA, 10:ABNORMAL_USB_CABLE_400MA
 #endif
-  	    break;
-#if 0		
-    case POWER_SUPPLY_PROP_WLC_STATUS:
-	    val->intval = msm_batt_info.wlc_status;
-	    break;
-#endif
+		break;
 #ifdef CONFIG_LGE_PM_FACTORY_CURRENT_DOWN
-    case POWER_SUPPLY_PROP_FACTORY_MODE:
-      if((0 == battery_info_get())&&((usb_cable_info == 6) ||(usb_cable_info == 7)||(usb_cable_info == 11)))
-	  {
-	   // printk(KERN_DEBUG "############ Factory Mode #####################\n");
-	    val->intval = 1;
-      }
-      else
-      {
-	  //  printk(KERN_DEBUG "############ Normal Mode #####################\n");
-        val->intval = 0;
-      }
+	case POWER_SUPPLY_PROP_FACTORY_MODE:
+		if ((0 == battery_info_get())
+		    && ((usb_cable_info == 6) || (usb_cable_info == 7)
+			|| (usb_cable_info == 11))) {
+			// printk(KERN_DEBUG "############ Factory Mode #####################\n");
+			val->intval = 1;
+		} else {
+			//  printk(KERN_DEBUG "############ Normal Mode #####################\n");
+			val->intval = 0;
+		}
 
-    break;
+		break;
 
 #endif
-
- //                                         
-    case POWER_SUPPLY_PROP_CHARGING_CURRENT_SET:
-	 val->intval = msm_chg.chg_current_set;
-	  break;	
-//                                       
-  case POWER_SUPPLY_PROP_SMPL_MODE:
-    val->intval = smpl_on;
-    break;
+	case POWER_SUPPLY_PROP_CHARGING_CURRENT_SET:
+		val->intval = msm_chg.chg_current_set;
+		break;
+	case POWER_SUPPLY_PROP_SMPL_MODE:
+		val->intval = smpl_on;
+		break;
 #endif
 	default:
 		return -EINVAL;
@@ -1070,8 +1006,8 @@ static struct power_supply msm_psy_batt = {
 	.properties = msm_batt_power_props,
 	.num_properties = ARRAY_SIZE(msm_batt_power_props),
 	.get_property = msm_batt_power_get_property,
-	.set_property = msm_batt_power_set_property, //                        
-	.property_is_writeable = msm_batt_power_property_is_writeable, //                        
+	.set_property = msm_batt_power_set_property,
+	.property_is_writeable = msm_batt_power_property_is_writeable,
 };
 
 #ifdef CONFIG_LGE_FUEL_GAUGE
@@ -1099,7 +1035,7 @@ static struct power_supply msm_psy_usb = {
 #endif
 
 #ifdef CONFIG_LGE_PM
-int pseudo_batt_set(struct pseudo_batt_info_type* info)
+int pseudo_batt_set(struct pseudo_batt_info_type *info)
 {
 	pseudo_batt_info.mode = info->mode;
 	pseudo_batt_info.id = info->id;
@@ -1112,35 +1048,35 @@ int pseudo_batt_set(struct pseudo_batt_info_type* info)
 	power_supply_changed(&msm_psy_batt);
 	return 0;
 }
+
 EXPORT_SYMBOL(pseudo_batt_set);
 
 void block_charging_set(int block)
 {
-    if(block)
-    {
+	if (block) {
 		pm_chg_auto_disable(0);
-    }
-    else
-    {
-    	pm_chg_auto_disable(1);
-    }
+	} else {
+		pm_chg_auto_disable(1);
+	}
 
 }
+
 void batt_block_charging_set(int block)
 {
 	block_charging_state = block;
 	block_charging_set(block);
 	power_supply_changed(&msm_psy_batt);
 }
+
 EXPORT_SYMBOL(batt_block_charging_set);
 #endif
 static int usb_chg_current;
 static struct msm_hardware_charger_priv *usb_hw_chg_priv;
-static void (*notify_vbus_state_func_ptr)(int);
+static void (*notify_vbus_state_func_ptr) (int);
 static int usb_notified_of_insertion;
 
 /* this is passed to the hsusb via platform_data msm_otg_pdata */
-int msm_charger_register_vbus_sn(void (*callback)(int))
+int msm_charger_register_vbus_sn(void (*callback) (int))
 {
 	pr_debug(KERN_INFO "%s\n", __func__);
 	notify_vbus_state_func_ptr = callback;
@@ -1148,7 +1084,7 @@ int msm_charger_register_vbus_sn(void (*callback)(int))
 }
 
 /* this is passed to the hsusb via platform_data msm_otg_pdata */
-void msm_charger_unregister_vbus_sn(void (*callback)(int))
+void msm_charger_unregister_vbus_sn(void (*callback) (int))
 {
 	pr_debug(KERN_INFO "%s\n", __func__);
 	notify_vbus_state_func_ptr = NULL;
@@ -1157,7 +1093,7 @@ void msm_charger_unregister_vbus_sn(void (*callback)(int))
 static void notify_usb_of_the_plugin_event(struct msm_hardware_charger_priv
 					   *hw_chg, int plugin)
 {
-	plugin = !!plugin;
+	plugin = ! !plugin;
 	if (plugin == 1 && usb_notified_of_insertion == 0) {
 		usb_notified_of_insertion = 1;
 		if (notify_vbus_state_func_ptr) {
@@ -1191,18 +1127,14 @@ static unsigned int msm_chg_get_batt_capacity_percent(void)
 #ifdef CONFIG_LGE_FUEL_GAUGE
 	int soc = max17040_get_battery_capacity_percent();
 
-	if (!is_chg_plugged_in()) 
-  {
-		if (old_soc < soc) 
-      return old_soc;
-		else 
-    {
+	if (!is_chg_plugged_in()) {
+		if (old_soc < soc)
+			return old_soc;
+		else {
 			old_soc = soc;
 			return soc;
 		}
-	}
-	else 
-  {
+	} else {
 		old_soc = soc;
 		return soc;
 	}
@@ -1229,7 +1161,6 @@ static unsigned int msm_chg_get_batt_capacity_percent(void)
 }
 #endif
 
-
 #ifdef DEBUG
 static inline void debug_print(const char *func,
 			       struct msm_hardware_charger_priv *hw_chg_priv)
@@ -1237,13 +1168,12 @@ static inline void debug_print(const char *func,
 	dev_dbg(msm_chg.dev,
 		"%s current=(%s)(s=%d)(r=%d) new=(%s)(s=%d)(r=%d) batt=%d En\n",
 		func,
+		msm_chg.current_chg_priv ? msm_chg.current_chg_priv->hw_chg->
+		name : "none",
 		msm_chg.current_chg_priv ? msm_chg.current_chg_priv->
-		hw_chg->name : "none",
-		msm_chg.current_chg_priv ? msm_chg.
-		current_chg_priv->hw_chg_state : -1,
-		msm_chg.current_chg_priv ? msm_chg.current_chg_priv->
-		hw_chg->rating : -1,
-		hw_chg_priv ? hw_chg_priv->hw_chg->name : "none",
+		hw_chg_state : -1,
+		msm_chg.current_chg_priv ? msm_chg.current_chg_priv->hw_chg->
+		rating : -1, hw_chg_priv ? hw_chg_priv->hw_chg->name : "none",
 		hw_chg_priv ? hw_chg_priv->hw_chg_state : -1,
 		hw_chg_priv ? hw_chg_priv->hw_chg->rating : -1,
 		msm_chg.batt_status);
@@ -1299,7 +1229,7 @@ static void msm_enable_system_current(struct msm_hardware_charger_priv *priv)
 {
 	if (priv->hw_chg->start_system_current)
 		priv->hw_chg->start_system_current(priv->hw_chg,
-					 priv->max_source_current);
+						   priv->max_source_current);
 }
 
 static void msm_disable_system_current(struct msm_hardware_charger_priv *priv)
@@ -1317,7 +1247,7 @@ static int msm_start_charging(void)
 	priv = msm_chg.current_chg_priv;
 	wake_lock(&msm_chg.wl);
 	ret = priv->hw_chg->start_charging(priv->hw_chg, msm_chg.max_voltage,
-					 priv->max_source_current);
+					   priv->max_source_current);
 	if (ret) {
 		wake_unlock(&msm_chg.wl);
 		dev_err(msm_chg.dev, "%s couldnt start chg error = %d\n",
@@ -1341,14 +1271,15 @@ static void handle_charging_done(struct msm_hardware_charger_priv *priv)
 
 		msm_chg.batt_status = BATT_STATUS_JUST_FINISHED_CHARGING;
 		dev_info(msm_chg.dev, "%s: stopping safety timer work\n",
-				__func__);
+			 __func__);
 		cancel_delayed_work(&msm_chg.teoc_work);
 
 		if (msm_batt_gauge && msm_batt_gauge->monitor_for_recharging)
 			msm_batt_gauge->monitor_for_recharging();
 		else
 			dev_err(msm_chg.dev,
-			      "%s: no batt gauge recharge monitor\n", __func__);
+				"%s: no batt gauge recharge monitor\n",
+				__func__);
 	}
 }
 
@@ -1356,8 +1287,8 @@ static void teoc(struct work_struct *work)
 {
 #ifdef CONFIG_LGE_PM
 /* 2011-08-16, when the battery fake mode is on, we don't use safety time for AT&T,MTBF and someting else */
-  if(pseudo_batt_info.mode == 1)
-    return;
+	if (pseudo_batt_info.mode == 1)
+		return;
 #endif
 
 	/* we have been charging too long - stop charging */
@@ -1385,12 +1316,11 @@ static void handle_battery_inserted(void)
 		msm_chg.batt_status = BATT_STATUS_TRKL_CHARGING;
 
 		dev_info(msm_chg.dev, "%s: starting safety timer work\n",
-				__func__);
+			 __func__);
 		queue_delayed_work(msm_chg.event_wq_thread,
-					&msm_chg.teoc_work,
-				      round_jiffies_relative(msecs_to_jiffies
-							     (msm_chg.
-							      safety_time)));
+				   &msm_chg.teoc_work,
+				   round_jiffies_relative(msecs_to_jiffies
+							  (msm_chg.safety_time)));
 	}
 }
 
@@ -1406,75 +1336,75 @@ static void handle_battery_removed(void)
 		msm_chg.current_chg_priv->hw_chg_state = CHG_READY_STATE;
 
 		dev_info(msm_chg.dev, "%s: stopping safety timer work\n",
-				__func__);
+			 __func__);
 		cancel_delayed_work(&msm_chg.teoc_work);
 	}
 }
+
 #ifdef ACC_ENABLE
 extern int vchg_read_adc(int channel, int *mv_reading);
-#define VCHG_ADC_MIN 4660 //mV
+#define VCHG_ADC_MIN 4660	//mV
 
-static int acc_charge_control (void)
+static int acc_charge_control(void)
 {
 	int vchg_adc_result;
 
-	if (usb_pc_connection == 1){
+	if (usb_pc_connection == 1) {
 		f120_acc_data.charger_step = Step_1_charging_450mA;
-		
-		return f120_acc_data.charger_step;
-		}
 
-	if (f120_acc_data.charger_step == 4){
+		return f120_acc_data.charger_step;
+	}
+
+	if (f120_acc_data.charger_step == 4) {
 		vchg_adc_result = (int)vchg_read_adc(CHANNEL_ADC_VCHG, NULL);
 
-		if (vchg_adc_result < VCHG_ADC_MIN){
+		if (vchg_adc_result < VCHG_ADC_MIN) {
 			f120_acc_data.charger_step--;
 			f120_acc_data.charger_fixed = TRUE;
-			f120_acc_data.vchg_good_cnt++; //Check!!!!!
-			}
+			f120_acc_data.vchg_good_cnt++;	//Check!!!!!
+		}
 
 		return f120_acc_data.charger_step;
-		}
+	}
 
 	if (f120_acc_data.wait_cnt == 1) {
 		vchg_adc_result = (int)vchg_read_adc(CHANNEL_ADC_VCHG, NULL);
-		if (vchg_adc_result >= VCHG_ADC_MIN){
+		if (vchg_adc_result >= VCHG_ADC_MIN) {
 			f120_acc_data.charger_step++;
-			}
-		else { // vchg_adc_result < VCHG_ADC_MIN
+		} else {	// vchg_adc_result < VCHG_ADC_MIN
 			f120_acc_data.charger_step--;
 			f120_acc_data.charger_fixed = TRUE;
-			f120_acc_data.vchg_good_cnt++; //Check!!!!!
+			f120_acc_data.vchg_good_cnt++;	//Check!!!!!
 
 			if (f120_acc_data.charger_step == 0) {
-				f120_acc_data.charger_step = Step_1_charging_450mA;
-				}
+				f120_acc_data.charger_step =
+				    Step_1_charging_450mA;
 			}
+		}
 		f120_acc_data.wait_cnt = 0;
 
 		return f120_acc_data.charger_step;
-		}
+	}
 
-	if (f120_acc_data.charger_fixed == TRUE){
-		
-		if(f120_acc_data.vchg_good_cnt == 4) {
+	if (f120_acc_data.charger_fixed == TRUE) {
+
+		if (f120_acc_data.vchg_good_cnt == 4) {
 			f120_acc_data.charger_fixed = FALSE;
 			f120_acc_data.vchg_good_cnt = 0;
-			f120_acc_data.wait_cnt++; //Check!!!!!
+			f120_acc_data.wait_cnt++;	//Check!!!!!
 
 			return f120_acc_data.charger_step;
-			}
-		else {
+		} else {
 			f120_acc_data.vchg_good_cnt++;
 
 			return f120_acc_data.charger_step;
-			}
-		}	
+		}
+	}
 
 	f120_acc_data.wait_cnt++;
 
 	return f120_acc_data.charger_step;
-	
+
 }
 
 static int acc_current(void)
@@ -1482,450 +1412,448 @@ static int acc_current(void)
 	int acc_curr = 450;
 
 	switch (acc_charge_control()) {
-		case Step_1_charging_450mA:
-			acc_curr = 450;
-			break;
+	case Step_1_charging_450mA:
+		acc_curr = 450;
+		break;
 
-		case Step_2_charging_535mA:
-			acc_curr = 535;
-			break;
+	case Step_2_charging_535mA:
+		acc_curr = 535;
+		break;
 
-		case Step_3_charging_620mA:
-			acc_curr = 620;
-			break;
+	case Step_3_charging_620mA:
+		acc_curr = 620;
+		break;
 
-		case Step_4_charging_700mA:
-			acc_curr = 700;
-			break;
+	case Step_4_charging_700mA:
+		acc_curr = 700;
+		break;
 
-		}
+	}
 	printk("[%s] : acc_curr = %d \n", __func__, acc_curr);
 	return acc_curr;
-			
+
 }
 #endif
 
 #ifdef CONFIG_LGE_CHARGER_TEMP_SCENARIO
 int g_temp_adc = 1000;
-static int chg_is_battery_too_hot_or_too_cold(int temp_adc, int batt_level, int curr_set_status) //                                   
+static int chg_is_battery_too_hot_or_too_cold(int temp_adc, int batt_level,
+					      int curr_set_status)
 {
-    int chg_batt_temp;
-    int rtnValue = 0;
+	int chg_batt_temp;
+	int rtnValue = 0;
 #ifdef CONFIG_LGE_BACKLIGHT_LM3530
-	int curr = 0;  //                                   
+	int curr = 0;
 #endif
-/*                                                                                                    */
 	pseudo_ui_charging = 0;
-    if(temp_adc < adcmap_batttherm[THERM_55].x)
-      chg_batt_temp = CHG_BATT_TEMP_OVER_55;
-    else if(temp_adc < adcmap_batttherm[THERM_45].x)
-      chg_batt_temp = CHG_BATT_TEMP_46_55;
-    else if(temp_adc <= adcmap_batttherm[THERM_42].x)
-      chg_batt_temp = CHG_BATT_TEMP_42_45;
-    else if(temp_adc < adcmap_batttherm[THERM_M5].x)
-      chg_batt_temp = CHG_BATT_TEMP_M4_41;
-    else if(temp_adc <= adcmap_batttherm[THERM_M10].x)
-      chg_batt_temp = CHG_BATT_TEMP_M10_M5;
-    else
-      chg_batt_temp = CHG_BATT_TEMP_UNDER_M10;
+	if (temp_adc < adcmap_batttherm[THERM_55].x)
+		chg_batt_temp = CHG_BATT_TEMP_OVER_55;
+	else if (temp_adc < adcmap_batttherm[THERM_45].x)
+		chg_batt_temp = CHG_BATT_TEMP_46_55;
+	else if (temp_adc <= adcmap_batttherm[THERM_42].x)
+		chg_batt_temp = CHG_BATT_TEMP_42_45;
+	else if (temp_adc < adcmap_batttherm[THERM_M5].x)
+		chg_batt_temp = CHG_BATT_TEMP_M4_41;
+	else if (temp_adc <= adcmap_batttherm[THERM_M10].x)
+		chg_batt_temp = CHG_BATT_TEMP_M10_M5;
+	else
+		chg_batt_temp = CHG_BATT_TEMP_UNDER_M10;
 #ifdef CONFIG_LGE_PM_TA_COMPENSATION
 	if (is_chg_plugged_in()) {
-	    if(temp_adc < adcmap_batttherm_ta[THERM_55].x)
-	      chg_batt_temp = CHG_BATT_TEMP_OVER_55;
-	    else if(temp_adc < adcmap_batttherm_ta[THERM_45].x)
-	      chg_batt_temp = CHG_BATT_TEMP_46_55;
-	    else if(temp_adc <= adcmap_batttherm_ta[THERM_42].x)
-	      chg_batt_temp = CHG_BATT_TEMP_42_45;
-	    else if(temp_adc < adcmap_batttherm_ta[THERM_M5].x)
-	      chg_batt_temp = CHG_BATT_TEMP_M4_41;
-	    else if(temp_adc <= adcmap_batttherm_ta[THERM_M10].x)
-	      chg_batt_temp = CHG_BATT_TEMP_M10_M5;
-	    else
-    	  chg_batt_temp = CHG_BATT_TEMP_UNDER_M10;
+		if (temp_adc < adcmap_batttherm_ta[THERM_55].x)
+			chg_batt_temp = CHG_BATT_TEMP_OVER_55;
+		else if (temp_adc < adcmap_batttherm_ta[THERM_45].x)
+			chg_batt_temp = CHG_BATT_TEMP_46_55;
+		else if (temp_adc <= adcmap_batttherm_ta[THERM_42].x)
+			chg_batt_temp = CHG_BATT_TEMP_42_45;
+		else if (temp_adc < adcmap_batttherm_ta[THERM_M5].x)
+			chg_batt_temp = CHG_BATT_TEMP_M4_41;
+		else if (temp_adc <= adcmap_batttherm_ta[THERM_M10].x)
+			chg_batt_temp = CHG_BATT_TEMP_M10_M5;
+		else
+			chg_batt_temp = CHG_BATT_TEMP_UNDER_M10;
 	}
 #endif
 
-    switch(chg_batt_temp_state)
-    {
-      case CHG_BATT_NORMAL_STATE:
-          if(chg_batt_temp == CHG_BATT_TEMP_OVER_55 || 
-            chg_batt_temp == CHG_BATT_TEMP_UNDER_M10 ||
-            (chg_batt_temp == CHG_BATT_TEMP_46_55 && batt_level > 4000) /*4.0V*/)
-          {
-            chg_batt_temp_state = CHG_BATT_STOP_CHARGING_STATE;
-/*                                                                                                    */
-			if(chg_batt_temp == CHG_BATT_TEMP_UNDER_M10 ||(chg_batt_temp == CHG_BATT_TEMP_46_55 && batt_level > 4000))
-			{
-				pseudo_ui_charging = 1; // we must show charging image although charging is stopped.
+	switch (chg_batt_temp_state) {
+	case CHG_BATT_NORMAL_STATE:
+		if (chg_batt_temp == CHG_BATT_TEMP_OVER_55 ||
+		    chg_batt_temp == CHG_BATT_TEMP_UNDER_M10 ||
+		    (chg_batt_temp == CHG_BATT_TEMP_46_55
+		     && batt_level > 4000) /*4.0V */ ) {
+			chg_batt_temp_state = CHG_BATT_STOP_CHARGING_STATE;
+			if (chg_batt_temp == CHG_BATT_TEMP_UNDER_M10
+			    || (chg_batt_temp == CHG_BATT_TEMP_46_55
+				&& batt_level > 4000)) {
+				pseudo_ui_charging = 1;	// we must show charging image although charging is stopped.
 			}
-			if(charging_flow_monitor_enable == 1)
-			{
-				pr_err("%s: BATT TEMP OUT OF SPEC (STATE: %d) (thm: %d) (volt: %d)!.\n",
-							__func__,CHG_BATT_NORMAL_STATE,temp_adc,batt_level);
-            }
+			if (charging_flow_monitor_enable == 1) {
+				pr_err
+				    ("%s: BATT TEMP OUT OF SPEC (STATE: %d) (thm: %d) (volt: %d)!.\n",
+				     __func__, CHG_BATT_NORMAL_STATE, temp_adc,
+				     batt_level);
+			}
 			rtnValue = 1;
-          }
-          else if(chg_batt_temp == CHG_BATT_TEMP_46_55 && batt_level <= 4000)
-          {
-            chg_batt_temp_state = CHG_BATT_DC_CURRENT_STATE;
-			if(charging_flow_monitor_enable == 1)
-			{
-				pr_err("%s: BATT TEMP 46 ~ 55 (STATE: %d) (thm: %d) (volt: %d)!.\n",
-			  				__func__,CHG_BATT_NORMAL_STATE, temp_adc,batt_level);
-            }
-			
-			rtnValue = 0;					
-			if(get_ext_cable_type_value() == MHL_CABLE_500MA ||
-				get_ext_cable_type_value() == TA_CABLE_600MA ||
-				get_ext_cable_type_value() == TA_CABLE_800MA ||
-				get_ext_cable_type_value() == TA_CABLE_DTC_800MA || 				
-				get_ext_cable_type_value() == USB_CABLE_DTC_500MA ||
-				get_ext_cable_type_value() == TA_CABLE_FORGED_500MA
-				)
-				pm_chg_imaxsel_set(450);
-          }
-          else
-          {
-            chg_batt_temp_state = CHG_BATT_NORMAL_STATE;
-			if(charging_flow_monitor_enable == 1)
-			{
-				pr_err("%s: BATT TEMP NORMAL (STATE: %d) (thm: %d) (volt: %d)!.\n",
-			  				__func__,CHG_BATT_NORMAL_STATE, temp_adc,batt_level);
-            }
-			
-			rtnValue = 0;
-
-			if(get_ext_cable_type_value() == MHL_CABLE_500MA)
-				pm_chg_imaxsel_set(500);
-			else if(get_ext_cable_type_value() == TA_CABLE_600MA)
-				pm_chg_imaxsel_set(600);
-			else if(get_ext_cable_type_value() == TA_CABLE_800MA)
-			{
-#ifdef CONFIG_LGE_BACKLIGHT_LM3530
-			  //                                         
-			  printk("[%s] CHG_BATT_NORMAL_STATE, backlight=%d, curr_set_status = %d \n"
-			  ,__func__, lm3530_backlight_status(), curr_set_status);
-			  if ((msm_chg.chg_current_set == 1) && (lm3530_backlight_status() == 1)) //LCD ON, Overheat Fake mode
-			  {
-			    /*Default charging current is setted to 450mA while LCD is turned ON */
-			  	if (msm_chg.capacity <= 10)
-				{
-					curr = 800;
-					curr_set_status = 1; //It means charging current is 800mA while LCD is turned ON.
-			  	}
-				else if ((msm_chg.capacity > 10) && (msm_chg.capacity <= 20))//10<capacity<=20 
-				{
-					if (curr_set_status == 0)  //charging current is 450mA
-					{
-						curr = 450; /*Default Value */
-						curr_set_status = 0;
-					}
-					else if(curr_set_status == 1) // charging current is 800mA 
-					{
-						curr = 800;
-						curr_set_status = 1;
-					}
-				}
-				else //capacity > 20 
-				{
-					curr = 450; /*Default Value */
-					curr_set_status = 0;
-				}
-				  pm_chg_imaxsel_set(curr); 
-				  msm_chg.lcd_on_charge_curr_status = curr_set_status;
-				  printk("[%s] LCD ON: pm_chg_imaxsel_set(%d), curr_set_status = %d, capacity = %d \n",
-				  	__func__, curr, curr_set_status, msm_chg.capacity);
-			  }
-			  else //LCD OFF, NORMAL MODE
-			  {
-			  	  if (msm_chg.chg_current_set == 1) {
-				  	msm_chg.chg_current_set = 0;
-					msm_chg.lcd_on_charge_curr_status = 0;
-					printk("[%s] LCD OFF, so we need to set chg_current_set to 0!! \n",__func__);
-			  	  	}
-				  pm_chg_imaxsel_set(800);
-				  printk("[%s] LCD OFF or Normal Mode: pm_chg_imaxsel_set(800)\n",__func__);
-			  }
-			  //                                       
-#endif
-			}
-			else if(get_ext_cable_type_value() == TA_CABLE_DTC_800MA)
-				pm_chg_imaxsel_set(800);
-			else if(get_ext_cable_type_value() == TA_CABLE_FORGED_500MA)
-				pm_chg_imaxsel_set(500);			
-			else if(get_ext_cable_type_value() == LT_CABLE_56K)
-				pm_chg_imaxsel_set(1500);
-			else if(get_ext_cable_type_value() == LT_CABLE_130K)
-				pm_chg_imaxsel_set(1500);			
-			else if(get_ext_cable_type_value() == USB_CABLE_DTC_500MA)
-				pm_chg_imaxsel_set(500);
-			else
-#ifdef ACC_ENABLE
-					  pm_chg_imaxsel_set(acc_current());
-#else
-				pm_chg_imaxsel_set(450);
-#endif
-          }
-        break;
-
-      case CHG_BATT_DC_CURRENT_STATE:
-          if(chg_batt_temp == CHG_BATT_TEMP_OVER_55 || 
-              chg_batt_temp == CHG_BATT_TEMP_UNDER_M10 ||
-              (chg_batt_temp == CHG_BATT_TEMP_46_55 && batt_level > 4000) /*4.0V*/)
-          {
-            chg_batt_temp_state = CHG_BATT_STOP_CHARGING_STATE;
-/*                                                                                                    */
-			if(chg_batt_temp == CHG_BATT_TEMP_UNDER_M10 ||(chg_batt_temp == CHG_BATT_TEMP_46_55 && batt_level > 4000))
-			{
-				pseudo_ui_charging = 1; // we must show charging image although charging is stopped.
-			}
-			if(charging_flow_monitor_enable == 1)
-			{
-				pr_err("%s: BATT TEMP OUT OF SPEC (STATE: %d) (thm: %d) (volt: %d)!.\n",
-			 				__func__,CHG_BATT_DC_CURRENT_STATE, temp_adc,batt_level);
-			}
-			
-			rtnValue = 1;
-          }
-          else if(chg_batt_temp == CHG_BATT_TEMP_46_55 && batt_level <= 4000)
-          {
-            chg_batt_temp_state = CHG_BATT_DC_CURRENT_STATE;
-			if(charging_flow_monitor_enable == 1)
-			{
-				pr_err("%s: BATT TEMP 46 ~ 55 (STATE: %d) (thm: %d) (volt: %d)!.\n",
-							__func__,CHG_BATT_DC_CURRENT_STATE, temp_adc,batt_level);
-            }
-			rtnValue = 0;
-			if(get_ext_cable_type_value() == MHL_CABLE_500MA ||
-				get_ext_cable_type_value() == TA_CABLE_600MA ||
-				get_ext_cable_type_value() == TA_CABLE_800MA ||
-				get_ext_cable_type_value() == TA_CABLE_DTC_800MA ||				
-				get_ext_cable_type_value() == TA_CABLE_FORGED_500MA ||
-				get_ext_cable_type_value() == USB_CABLE_DTC_500MA
-				)
-				pm_chg_imaxsel_set(450);			
-          }
-		  
-          else if(chg_batt_temp == CHG_BATT_TEMP_M4_41 || chg_batt_temp == CHG_BATT_TEMP_M10_M5 || chg_batt_temp == CHG_BATT_TEMP_42_45)
-          {
-            chg_batt_temp_state = CHG_BATT_NORMAL_STATE;			
-			if(charging_flow_monitor_enable == 1)
-			{
-				pr_err("%s: BATT TEMP NORMAL (STATE: %d) (thm: %d) (volt: %d)!.\n",
-							__func__,CHG_BATT_DC_CURRENT_STATE, temp_adc,batt_level);
-            }
-			rtnValue = 0;	
-
-			if(get_ext_cable_type_value() == MHL_CABLE_500MA)
-				pm_chg_imaxsel_set(500);
-			else if(get_ext_cable_type_value() == TA_CABLE_600MA)
-				pm_chg_imaxsel_set(600);
-			else if(get_ext_cable_type_value() == TA_CABLE_800MA)
-			{
-			  //                                         
-#ifdef CONFIG_LGE_BACKLIGHT_LM3530
-			  printk("[%s] CHG_BATT_DC_CURRENT_STATE, backlight=%d, curr_set_status = %d \n"
-			  ,__func__, lm3530_backlight_status(), curr_set_status);
-			  if ((msm_chg.chg_current_set == 1) && (lm3530_backlight_status() == 1)) //LCD ON, Overheat Fake mode
-			  {
-			    /*Default charging current is setted to 450mA while LCD is turned ON */
-			  	if (msm_chg.capacity <= 10)
-				{
-					curr = 800;
-					curr_set_status = 1; //It means charging current is 800mA while LCD is turned ON.
-			  	}
-				else if ((msm_chg.capacity > 10) && (msm_chg.capacity <= 20))//10<capacity<=20 
-				{
-					if (curr_set_status == 0)  //charging current is 450mA
-					{
-						curr = 450; /*Default Value */
-						curr_set_status = 0;
-					}
-					else if(curr_set_status == 1) // charging current is 800mA 
-					{
-						curr = 800;
-						curr_set_status = 1;
-					}
-				}
-				else //capacity > 20 
-				{
-					curr = 450; /*Default Value */
-					curr_set_status = 0;
-				}
-				  pm_chg_imaxsel_set(curr); 
-				  msm_chg.lcd_on_charge_curr_status = curr_set_status;
-				  printk("[%s] LCD ON: pm_chg_imaxsel_set(%d), curr_set_status = %d, capacity = %d \n",
-				  	__func__, curr, curr_set_status, msm_chg.capacity);
-			  }
-			  else //LCD OFF, NORMAL MODE
-			  {
-			  	  if (msm_chg.chg_current_set == 1) {
-				  	msm_chg.chg_current_set = 0;
-					msm_chg.lcd_on_charge_curr_status = 0;
-					printk("[%s] LCD OFF, so we need to set chg_current_set to 0!! \n",__func__);
-			  	  	}
-				  pm_chg_imaxsel_set(800);
-					printk("[%s] LCD OFF or Normal Mode: pm_chg_imaxsel_set(800)\n",__func__);
-			  }
-			  //                                       
-#endif
-			}				
-			else if(get_ext_cable_type_value() == TA_CABLE_DTC_800MA)
-				pm_chg_imaxsel_set(800);
-			else if(get_ext_cable_type_value() == TA_CABLE_FORGED_500MA)
-				pm_chg_imaxsel_set(500);
-			else if(get_ext_cable_type_value() == LT_CABLE_56K)
-				pm_chg_imaxsel_set(1500);
-			else if(get_ext_cable_type_value() == LT_CABLE_130K)
-				pm_chg_imaxsel_set(1500);			
-			else if(get_ext_cable_type_value() == USB_CABLE_DTC_500MA)
-				pm_chg_imaxsel_set(500);
-			else
-#ifdef ACC_ENABLE
-					  pm_chg_imaxsel_set(acc_current());
-#else
-				pm_chg_imaxsel_set(450);
-#endif
-          }
-          else
-   		  {
+		} else if (chg_batt_temp == CHG_BATT_TEMP_46_55
+			   && batt_level <= 4000) {
 			chg_batt_temp_state = CHG_BATT_DC_CURRENT_STATE;
-			if(charging_flow_monitor_enable == 1)
-			{
-				pr_err("%s: BATT TEMP UNREAL (STATE: %d) (thm: %d) (volt: %d)!.\n",
-							__func__,CHG_BATT_DC_CURRENT_STATE, temp_adc,batt_level);
+			if (charging_flow_monitor_enable == 1) {
+				pr_err
+				    ("%s: BATT TEMP 46 ~ 55 (STATE: %d) (thm: %d) (volt: %d)!.\n",
+				     __func__, CHG_BATT_NORMAL_STATE, temp_adc,
+				     batt_level);
 			}
-			
-			rtnValue = 0; 				
-		  }       
-          break;
 
-      case CHG_BATT_STOP_CHARGING_STATE:
-        if(chg_batt_temp == CHG_BATT_TEMP_M4_41 /* #ifndef SKW_TEST || chg_batt_temp== CHG_BATT_TEMP_M10_M5*/)
-        {
+			rtnValue = 0;
+			if (get_ext_cable_type_value() == MHL_CABLE_500MA ||
+			    get_ext_cable_type_value() == TA_CABLE_600MA ||
+			    get_ext_cable_type_value() == TA_CABLE_800MA ||
+			    get_ext_cable_type_value() == TA_CABLE_DTC_800MA ||
+			    get_ext_cable_type_value() == USB_CABLE_DTC_500MA ||
+			    get_ext_cable_type_value() == TA_CABLE_FORGED_500MA)
+				pm_chg_imaxsel_set(450);
+		} else {
 			chg_batt_temp_state = CHG_BATT_NORMAL_STATE;
-			if(charging_flow_monitor_enable == 1)
-			{
-				pr_err("%s: BATT TEMP NORMAL (STATE: %d) (thm: %d) (volt: %d)!.\n",
-							__func__,CHG_BATT_STOP_CHARGING_STATE, temp_adc,batt_level);
-	        }
-			
-			rtnValue = 0;			
+			if (charging_flow_monitor_enable == 1) {
+				pr_err
+				    ("%s: BATT TEMP NORMAL (STATE: %d) (thm: %d) (volt: %d)!.\n",
+				     __func__, CHG_BATT_NORMAL_STATE, temp_adc,
+				     batt_level);
+			}
 
-			if(get_ext_cable_type_value() == MHL_CABLE_500MA)
+			rtnValue = 0;
+
+			if (get_ext_cable_type_value() == MHL_CABLE_500MA)
 				pm_chg_imaxsel_set(500);
-			else if(get_ext_cable_type_value() == TA_CABLE_600MA)
+			else if (get_ext_cable_type_value() == TA_CABLE_600MA)
 				pm_chg_imaxsel_set(600);
-			else if(get_ext_cable_type_value() == TA_CABLE_800MA)
-			{
+			else if (get_ext_cable_type_value() == TA_CABLE_800MA) {
 #ifdef CONFIG_LGE_BACKLIGHT_LM3530
-			  //                                         
-			  printk("[%s] CHG_BATT_STOP_CHARGING_STATE, backlight=%d, curr_set_status = %d \n"
-			  ,__func__, lm3530_backlight_status(), curr_set_status);
-			  if ((msm_chg.chg_current_set == 1) && (lm3530_backlight_status() == 1)) //LCD ON, Overheat Fake mode
-			  {
-				/*Default charging current is setted to 450mA while LCD is turned ON */
-				if (msm_chg.capacity <= 10)
+				printk
+				    ("[%s] CHG_BATT_NORMAL_STATE, backlight=%d, curr_set_status = %d \n",
+				     __func__, lm3530_backlight_status(),
+				     curr_set_status);
+				if ((msm_chg.chg_current_set == 1) && (lm3530_backlight_status() == 1))	//LCD ON, Overheat Fake mode
 				{
-					curr = 800;
-					curr_set_status = 1; //It means charging current is 800mA while LCD is turned ON.
-				}
-				else if ((msm_chg.capacity > 10) && (msm_chg.capacity <= 20))//10<capacity<=20 
-				{
-					if (curr_set_status == 0)  //charging current is 450mA
+					/*Default charging current is setted to 450mA while LCD is turned ON */
+					if (msm_chg.capacity <= 10) {
+						curr = 800;
+						curr_set_status = 1;	//It means charging current is 800mA while LCD is turned ON.
+					} else if ((msm_chg.capacity > 10) && (msm_chg.capacity <= 20))	//10<capacity<=20
 					{
-						curr = 450; /*Default Value */
+						if (curr_set_status == 0)	//charging current is 450mA
+						{
+							curr = 450;	/*Default Value */
+							curr_set_status = 0;
+						} else if (curr_set_status == 1)	// charging current is 800mA
+						{
+							curr = 800;
+							curr_set_status = 1;
+						}
+					} else	//capacity > 20
+					{
+						curr = 450;	/*Default Value */
 						curr_set_status = 0;
 					}
-					else if(curr_set_status == 1) // charging current is 800mA 
-					{
-						curr = 800;
-						curr_set_status = 1;
-					}
-				}
-				else //capacity > 20 
+					pm_chg_imaxsel_set(curr);
+					msm_chg.lcd_on_charge_curr_status =
+					    curr_set_status;
+					printk
+					    ("[%s] LCD ON: pm_chg_imaxsel_set(%d), curr_set_status = %d, capacity = %d \n",
+					     __func__, curr, curr_set_status,
+					     msm_chg.capacity);
+				} else	//LCD OFF, NORMAL MODE
 				{
-					curr = 450; /*Default Value */
-					curr_set_status = 0;
-				}
-				  pm_chg_imaxsel_set(curr); 
-				  msm_chg.lcd_on_charge_curr_status = curr_set_status;
-				  printk("[%s] LCD ON: pm_chg_imaxsel_set(%d), curr_set_status = %d, capacity = %d \n",
-					__func__, curr, curr_set_status, msm_chg.capacity);
-			  }
-			  else //LCD OFF, NORMAL MODE
-			  {
-				  if (msm_chg.chg_current_set == 1) {
-					msm_chg.chg_current_set = 0;
-					msm_chg.lcd_on_charge_curr_status = 0;
-					printk("[%s] LCD OFF, so we need to set chg_current_set to 0!! \n",__func__);
+					if (msm_chg.chg_current_set == 1) {
+						msm_chg.chg_current_set = 0;
+						msm_chg.
+						    lcd_on_charge_curr_status =
+						    0;
+						printk
+						    ("[%s] LCD OFF, so we need to set chg_current_set to 0!! \n",
+						     __func__);
 					}
-				  pm_chg_imaxsel_set(800);
-				  printk("[%s] LCD OFF or Normal Mode: pm_chg_imaxsel_set(800)\n",__func__);
-			  }
-			  //                                       
+					pm_chg_imaxsel_set(800);
+					printk
+					    ("[%s] LCD OFF or Normal Mode: pm_chg_imaxsel_set(800)\n",
+					     __func__);
+				}
 #endif
-			}				
-			else if(get_ext_cable_type_value() == TA_CABLE_DTC_800MA)
+			} else if (get_ext_cable_type_value() ==
+				   TA_CABLE_DTC_800MA)
 				pm_chg_imaxsel_set(800);
-			else if(get_ext_cable_type_value() == TA_CABLE_FORGED_500MA)
+			else if (get_ext_cable_type_value() ==
+				 TA_CABLE_FORGED_500MA)
 				pm_chg_imaxsel_set(500);
-			else if(get_ext_cable_type_value() == LT_CABLE_56K)
+			else if (get_ext_cable_type_value() == LT_CABLE_56K)
 				pm_chg_imaxsel_set(1500);
-			else if(get_ext_cable_type_value() == LT_CABLE_130K)
+			else if (get_ext_cable_type_value() == LT_CABLE_130K)
 				pm_chg_imaxsel_set(1500);
-			else if(get_ext_cable_type_value() == USB_CABLE_DTC_500MA)
-				pm_chg_imaxsel_set(500);			
+			else if (get_ext_cable_type_value() ==
+				 USB_CABLE_DTC_500MA)
+				pm_chg_imaxsel_set(500);
 			else
 #ifdef ACC_ENABLE
-					  pm_chg_imaxsel_set(acc_current());
+				pm_chg_imaxsel_set(acc_current());
 #else
 				pm_chg_imaxsel_set(450);
 #endif
 		}
-/*                                                                     
-                                                                                                               
-         
-                                                   
-                                        
-    
-                                                                      
-                                                                     
-    
-   
-                     
-                                                      
-                                                   
-                                                   
-                                                           
-                                                       
-     
-                            
-         
-*/        
-        else
-        {
+		break;
+
+	case CHG_BATT_DC_CURRENT_STATE:
+		if (chg_batt_temp == CHG_BATT_TEMP_OVER_55 ||
+		    chg_batt_temp == CHG_BATT_TEMP_UNDER_M10 ||
+		    (chg_batt_temp == CHG_BATT_TEMP_46_55
+		     && batt_level > 4000) /*4.0V */ ) {
 			chg_batt_temp_state = CHG_BATT_STOP_CHARGING_STATE;
-/*                                                                                                        */
-			if(chg_batt_temp == CHG_BATT_TEMP_UNDER_M10 ||(chg_batt_temp == CHG_BATT_TEMP_46_55 && batt_level > 4000))
-			{
-				pseudo_ui_charging = 1; // we must show charging image although charging is stopped.
+			if (chg_batt_temp == CHG_BATT_TEMP_UNDER_M10
+			    || (chg_batt_temp == CHG_BATT_TEMP_46_55
+				&& batt_level > 4000)) {
+				pseudo_ui_charging = 1;	// we must show charging image although charging is stopped.
 			}
-			
-			if(charging_flow_monitor_enable == 1)
-			{
-				pr_err("%s: BATT TEMP OUT OF SPEC (STATE: %d) (thm: %d) (volt: %d)!.\n",
-							__func__,CHG_BATT_STOP_CHARGING_STATE, temp_adc,batt_level);
+			if (charging_flow_monitor_enable == 1) {
+				pr_err
+				    ("%s: BATT TEMP OUT OF SPEC (STATE: %d) (thm: %d) (volt: %d)!.\n",
+				     __func__, CHG_BATT_DC_CURRENT_STATE,
+				     temp_adc, batt_level);
+			}
+
+			rtnValue = 1;
+		} else if (chg_batt_temp == CHG_BATT_TEMP_46_55
+			   && batt_level <= 4000) {
+			chg_batt_temp_state = CHG_BATT_DC_CURRENT_STATE;
+			if (charging_flow_monitor_enable == 1) {
+				pr_err
+				    ("%s: BATT TEMP 46 ~ 55 (STATE: %d) (thm: %d) (volt: %d)!.\n",
+				     __func__, CHG_BATT_DC_CURRENT_STATE,
+				     temp_adc, batt_level);
+			}
+			rtnValue = 0;
+			if (get_ext_cable_type_value() == MHL_CABLE_500MA ||
+			    get_ext_cable_type_value() == TA_CABLE_600MA ||
+			    get_ext_cable_type_value() == TA_CABLE_800MA ||
+			    get_ext_cable_type_value() == TA_CABLE_DTC_800MA ||
+			    get_ext_cable_type_value() == TA_CABLE_FORGED_500MA
+			    || get_ext_cable_type_value() ==
+			    USB_CABLE_DTC_500MA)
+				pm_chg_imaxsel_set(450);
+		}
+
+		else if (chg_batt_temp == CHG_BATT_TEMP_M4_41
+			 || chg_batt_temp == CHG_BATT_TEMP_M10_M5
+			 || chg_batt_temp == CHG_BATT_TEMP_42_45) {
+			chg_batt_temp_state = CHG_BATT_NORMAL_STATE;
+			if (charging_flow_monitor_enable == 1) {
+				pr_err
+				    ("%s: BATT TEMP NORMAL (STATE: %d) (thm: %d) (volt: %d)!.\n",
+				     __func__, CHG_BATT_DC_CURRENT_STATE,
+				     temp_adc, batt_level);
+			}
+			rtnValue = 0;
+
+			if (get_ext_cable_type_value() == MHL_CABLE_500MA)
+				pm_chg_imaxsel_set(500);
+			else if (get_ext_cable_type_value() == TA_CABLE_600MA)
+				pm_chg_imaxsel_set(600);
+			else if (get_ext_cable_type_value() == TA_CABLE_800MA) {
+#ifdef CONFIG_LGE_BACKLIGHT_LM3530
+				printk
+				    ("[%s] CHG_BATT_DC_CURRENT_STATE, backlight=%d, curr_set_status = %d \n",
+				     __func__, lm3530_backlight_status(),
+				     curr_set_status);
+				if ((msm_chg.chg_current_set == 1) && (lm3530_backlight_status() == 1))	//LCD ON, Overheat Fake mode
+				{
+					/*Default charging current is setted to 450mA while LCD is turned ON */
+					if (msm_chg.capacity <= 10) {
+						curr = 800;
+						curr_set_status = 1;	//It means charging current is 800mA while LCD is turned ON.
+					} else if ((msm_chg.capacity > 10) && (msm_chg.capacity <= 20))	//10<capacity<=20
+					{
+						if (curr_set_status == 0)	//charging current is 450mA
+						{
+							curr = 450;	/*Default Value */
+							curr_set_status = 0;
+						} else if (curr_set_status == 1)	// charging current is 800mA
+						{
+							curr = 800;
+							curr_set_status = 1;
+						}
+					} else	//capacity > 20
+					{
+						curr = 450;	/*Default Value */
+						curr_set_status = 0;
+					}
+					pm_chg_imaxsel_set(curr);
+					msm_chg.lcd_on_charge_curr_status =
+					    curr_set_status;
+					printk
+					    ("[%s] LCD ON: pm_chg_imaxsel_set(%d), curr_set_status = %d, capacity = %d \n",
+					     __func__, curr, curr_set_status,
+					     msm_chg.capacity);
+				} else	//LCD OFF, NORMAL MODE
+				{
+					if (msm_chg.chg_current_set == 1) {
+						msm_chg.chg_current_set = 0;
+						msm_chg.
+						    lcd_on_charge_curr_status =
+						    0;
+						printk
+						    ("[%s] LCD OFF, so we need to set chg_current_set to 0!! \n",
+						     __func__);
+					}
+					pm_chg_imaxsel_set(800);
+					printk
+					    ("[%s] LCD OFF or Normal Mode: pm_chg_imaxsel_set(800)\n",
+					     __func__);
+				}
+				//
+#endif
+			} else if (get_ext_cable_type_value() ==
+				   TA_CABLE_DTC_800MA)
+				pm_chg_imaxsel_set(800);
+			else if (get_ext_cable_type_value() ==
+				 TA_CABLE_FORGED_500MA)
+				pm_chg_imaxsel_set(500);
+			else if (get_ext_cable_type_value() == LT_CABLE_56K)
+				pm_chg_imaxsel_set(1500);
+			else if (get_ext_cable_type_value() == LT_CABLE_130K)
+				pm_chg_imaxsel_set(1500);
+			else if (get_ext_cable_type_value() ==
+				 USB_CABLE_DTC_500MA)
+				pm_chg_imaxsel_set(500);
+			else
+#ifdef ACC_ENABLE
+				pm_chg_imaxsel_set(acc_current());
+#else
+				pm_chg_imaxsel_set(450);
+#endif
+		} else {
+			chg_batt_temp_state = CHG_BATT_DC_CURRENT_STATE;
+			if (charging_flow_monitor_enable == 1) {
+				pr_err
+				    ("%s: BATT TEMP UNREAL (STATE: %d) (thm: %d) (volt: %d)!.\n",
+				     __func__, CHG_BATT_DC_CURRENT_STATE,
+				     temp_adc, batt_level);
+			}
+
+			rtnValue = 0;
+		}
+		break;
+
+	case CHG_BATT_STOP_CHARGING_STATE:
+		if (chg_batt_temp ==
+		    CHG_BATT_TEMP_M4_41
+		    /* #ifndef SKW_TEST || chg_batt_temp== CHG_BATT_TEMP_M10_M5 */
+		    ) {
+			chg_batt_temp_state = CHG_BATT_NORMAL_STATE;
+			if (charging_flow_monitor_enable == 1) {
+				pr_err
+				    ("%s: BATT TEMP NORMAL (STATE: %d) (thm: %d) (volt: %d)!.\n",
+				     __func__, CHG_BATT_STOP_CHARGING_STATE,
+				     temp_adc, batt_level);
+			}
+
+			rtnValue = 0;
+
+			if (get_ext_cable_type_value() == MHL_CABLE_500MA)
+				pm_chg_imaxsel_set(500);
+			else if (get_ext_cable_type_value() == TA_CABLE_600MA)
+				pm_chg_imaxsel_set(600);
+			else if (get_ext_cable_type_value() == TA_CABLE_800MA) {
+#ifdef CONFIG_LGE_BACKLIGHT_LM3530
+				//
+				printk
+				    ("[%s] CHG_BATT_STOP_CHARGING_STATE, backlight=%d, curr_set_status = %d \n",
+				     __func__, lm3530_backlight_status(),
+				     curr_set_status);
+				if ((msm_chg.chg_current_set == 1) && (lm3530_backlight_status() == 1))	//LCD ON, Overheat Fake mode
+				{
+					/*Default charging current is setted to 450mA while LCD is turned ON */
+					if (msm_chg.capacity <= 10) {
+						curr = 800;
+						curr_set_status = 1;	//It means charging current is 800mA while LCD is turned ON.
+					} else if ((msm_chg.capacity > 10) && (msm_chg.capacity <= 20))	//10<capacity<=20
+					{
+						if (curr_set_status == 0)	//charging current is 450mA
+						{
+							curr = 450;	/*Default Value */
+							curr_set_status = 0;
+						} else if (curr_set_status == 1)	// charging current is 800mA
+						{
+							curr = 800;
+							curr_set_status = 1;
+						}
+					} else	//capacity > 20
+					{
+						curr = 450;	/*Default Value */
+						curr_set_status = 0;
+					}
+					pm_chg_imaxsel_set(curr);
+					msm_chg.lcd_on_charge_curr_status =
+					    curr_set_status;
+					printk
+					    ("[%s] LCD ON: pm_chg_imaxsel_set(%d), curr_set_status = %d, capacity = %d \n",
+					     __func__, curr, curr_set_status,
+					     msm_chg.capacity);
+				} else	//LCD OFF, NORMAL MODE
+				{
+					if (msm_chg.chg_current_set == 1) {
+						msm_chg.chg_current_set = 0;
+						msm_chg.
+						    lcd_on_charge_curr_status =
+						    0;
+						printk
+						    ("[%s] LCD OFF, so we need to set chg_current_set to 0!! \n",
+						     __func__);
+					}
+					pm_chg_imaxsel_set(800);
+					printk
+					    ("[%s] LCD OFF or Normal Mode: pm_chg_imaxsel_set(800)\n",
+					     __func__);
+				}
+#endif
+			} else if (get_ext_cable_type_value() ==
+				   TA_CABLE_DTC_800MA)
+				pm_chg_imaxsel_set(800);
+			else if (get_ext_cable_type_value() ==
+				 TA_CABLE_FORGED_500MA)
+				pm_chg_imaxsel_set(500);
+			else if (get_ext_cable_type_value() == LT_CABLE_56K)
+				pm_chg_imaxsel_set(1500);
+			else if (get_ext_cable_type_value() == LT_CABLE_130K)
+				pm_chg_imaxsel_set(1500);
+			else if (get_ext_cable_type_value() ==
+				 USB_CABLE_DTC_500MA)
+				pm_chg_imaxsel_set(500);
+			else
+#ifdef ACC_ENABLE
+				pm_chg_imaxsel_set(acc_current());
+#else
+				pm_chg_imaxsel_set(450);
+#endif
+		} else {
+			chg_batt_temp_state = CHG_BATT_STOP_CHARGING_STATE;
+			if (chg_batt_temp == CHG_BATT_TEMP_UNDER_M10
+			    || (chg_batt_temp == CHG_BATT_TEMP_46_55
+				&& batt_level > 4000)) {
+				pseudo_ui_charging = 1;	// we must show charging image although charging is stopped.
+			}
+
+			if (charging_flow_monitor_enable == 1) {
+				pr_err
+				    ("%s: BATT TEMP OUT OF SPEC (STATE: %d) (thm: %d) (volt: %d)!.\n",
+				     __func__, CHG_BATT_STOP_CHARGING_STATE,
+				     temp_adc, batt_level);
 			}
 			rtnValue = 1;
-        }
-        break;
-    }
+		}
+		break;
+	}
 
 	return rtnValue;
 
 }
-
 
 #endif
 
@@ -1939,7 +1867,7 @@ static void update_heartbeat(struct work_struct *work)
 #endif
 
 	if (msm_chg.batt_status == BATT_STATUS_ABSENT
-		|| msm_chg.batt_status == BATT_STATUS_ID_INVALID) {
+	    || msm_chg.batt_status == BATT_STATUS_ID_INVALID) {
 		if (is_battery_present())
 			if (is_battery_id_valid()) {
 				msm_chg.batt_status = BATT_STATUS_DISCHARGING;
@@ -1960,84 +1888,71 @@ static void update_heartbeat(struct work_struct *work)
 		}
 	}
 	pr_debug("msm-charger %s batt_status= %d\n",
-				__func__, msm_chg.batt_status);
+		 __func__, msm_chg.batt_status);
+#ifdef CONFIG_LGE_FACTORY
 //sujin.shin [TEMP_CONTROL]
-#if defined(CONFIG_MACH_LGE_120_BOARD) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
-	if (msm_chg.temp_control == 0xFF)  //When phone is boot completed, 
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
+	if (msm_chg.temp_control == 0xFF)	//When phone is boot completed,
 	{
 		printk("%s : msm_chg.temp_control value is 0xFF\n", __func__);
 		msm_chg.temp_control = get_status_power();
-		printk("%s : msm_chg.temp_control = %d\n", __func__, msm_chg.temp_control);
-		if (msm_chg.temp_control == FAKE_BATT_ENABLED)
-		{
+		printk("%s : msm_chg.temp_control = %d\n", __func__,
+		       msm_chg.temp_control);
+		if (msm_chg.temp_control == FAKE_BATT_ENABLED) {
 			//SET Pseudo_batt ..
 			pseudo_batt_set(&booting_set);
-		}
-		else if (msm_chg.temp_control == FAKE_BATT_DISABLED)
-		{
+		} else if (msm_chg.temp_control == FAKE_BATT_DISABLED) {
 			//default
 		}
 	}
 #endif
+#endif // CONFIG_LGE_FACTORY
+
 	msm_chg.temperature = get_battery_temperature();
-	msm_chg.capacity = get_prop_batt_capacity();  //                                   
+	msm_chg.capacity = get_prop_batt_capacity();
 	if (msm_chg.current_chg_priv
-		&& msm_chg.current_chg_priv->hw_chg_state
-			== CHG_CHARGING_STATE) {
-		/* TODO implement JEITA SPEC*/
+	    && msm_chg.current_chg_priv->hw_chg_state == CHG_CHARGING_STATE) {
+		/* TODO implement JEITA SPEC */
 #ifdef CONFIG_LGE_CHARGER_TEMP_SCENARIO
-		pr_err("%s: battery temperature is %d celcius)!.\n",__func__,msm_chg.temperature);
+		pr_err("%s: battery temperature is %d celcius)!.\n", __func__,
+		       msm_chg.temperature);
 		temp_adc = get_battery_temperature_adc();
-        g_temp_adc = temp_adc;
-		if(pseudo_batt_info.mode == 1)
-		{
-#ifdef CONFIG_MACH_LGE_120_BOARD
-		  if(msm_chg.temperature < FAKE_BATT_DISABLE_TEMP)
-		  {
-		    temp_adc = pseudo_batt_info.therm; // kiwone.seo 2011-07-08 charging must be work in case of DV event in high temp
-		  }	
-#endif
-		  temp_adc = pseudo_batt_info.therm; // kiwone.seo 2011-07-08 charging must be work in case of DV event in high temp
+		g_temp_adc = temp_adc;
+		if (pseudo_batt_info.mode == 1) {
+			temp_adc = pseudo_batt_info.therm;	// kiwone.seo 2011-07-08 charging must be work in case of DV event in high temp
 		}
 		battery_level = get_prop_battery_mvolts();
 		//stop_charging = chg_is_battery_too_hot_or_too_cold(temp_adc,battery_level);
-		stop_charging = chg_is_battery_too_hot_or_too_cold(temp_adc,battery_level,msm_chg.lcd_on_charge_curr_status); //                                      
-/*                                                                                                          */
+		stop_charging =
+		    chg_is_battery_too_hot_or_too_cold(temp_adc, battery_level,
+						       msm_chg.
+						       lcd_on_charge_curr_status);
 #if defined(CONFIG_MACH_LGE_IJB_BOARD_SKT) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU)
-		if ((pseudo_batt_info.mode == 1)&&
-			((get_ext_cable_type_value() == USB_CABLE_400MA)||
-			(get_ext_cable_type_value() == ABNORMAL_USB_CABLE_400MA))){
+		if ((pseudo_batt_info.mode == 1) &&
+		    ((get_ext_cable_type_value() == USB_CABLE_400MA) ||
+		     (get_ext_cable_type_value() ==
+		      ABNORMAL_USB_CABLE_400MA))) {
 			pm_chg_imaxsel_set(700);
 		}
 #endif
 /* [End] USB charging current is set to 800mA when enabling FAKE mode. */
-/*                                                                                                                                 
-                                                                                                                 
-                                                                                                                              
-                                                                                                                     */
-		if(stop_charging == 1 && last_stop_charging == 0)
-		{
+		if (stop_charging == 1 && last_stop_charging == 0) {
 			pm_chg_auto_disable(1);
 			pr_err("msm-charger stop charing by scenario\n");
 			last_stop_charging = stop_charging;
-#if 1 // after stop charging, charging is working when TA re-inserted to inform UI
-/*                                                                                                    */
-			if(pseudo_ui_charging)
-				; 
+/* after stop charging, charging is working when TA re-inserted to inform UI */
+			if (pseudo_ui_charging) ;
 			else
-			msm_chg.batt_status = BATT_STATUS_TEMPERATURE_OUT_OF_RANGE;
-#endif
-		}
-		else if(stop_charging == 0 && last_stop_charging == 1)
-		{
+				msm_chg.batt_status =
+				    BATT_STATUS_TEMPERATURE_OUT_OF_RANGE;
+		} else if (stop_charging == 0 && last_stop_charging == 1) {
 			pm_chg_auto_disable(0);
 			pr_err("msm-charger start charing by scenario\n");
 			last_stop_charging = stop_charging;
-/*                                                                                                    */
 			pseudo_ui_charging = 0;
-#if 1 // after stop charging, charging is working when TA re-inserted to inform UI
+/* after stop charging, charging is working when TA re-inserted to inform UI */
 			msm_chg.batt_status = BATT_STATUS_TRKL_CHARGING;
-#endif
+
 		}
 #endif
 	}
@@ -2047,10 +1962,10 @@ static void update_heartbeat(struct work_struct *work)
 	 * voltage read*/
 #ifdef CONFIG_LGE_FUEL_GAUGE
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM)
-  if (usb_chg_type == 2) /* not fixed */
+	if (usb_chg_type == 2)	/* not fixed */
 		power_supply_changed(&msm_psy_ac);
 #else
-	if (usb_chg_type_for_FG == 2) /* not fixed */
+	if (usb_chg_type_for_FG == 2)	/* not fixed */
 		power_supply_changed(&msm_psy_ac);
 #endif
 #if defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
@@ -2059,16 +1974,16 @@ static void update_heartbeat(struct work_struct *work)
 #endif
 	else
 #endif
-	power_supply_changed(&msm_psy_batt);
+		power_supply_changed(&msm_psy_batt);
 
 	if (msm_chg.stop_update) {
 		msm_chg.stop_update = 0;
 		return;
 	}
 	queue_delayed_work(msm_chg.event_wq_thread,
-				&msm_chg.update_heartbeat_work,
-			      round_jiffies_relative(msecs_to_jiffies
-						     (msm_chg.update_time)));
+			   &msm_chg.update_heartbeat_work,
+			   round_jiffies_relative(msecs_to_jiffies
+						  (msm_chg.update_time)));
 }
 
 /* set the charger state to READY before calling this */
@@ -2127,12 +2042,13 @@ static void handle_charger_ready(struct msm_hardware_charger_priv *hw_chg_priv)
 			 * timer */
 			if (!is_batt_status_charging()) {
 				dev_info(msm_chg.dev,
-				       "%s: starting safety timer\n", __func__);
+					 "%s: starting safety timer\n",
+					 __func__);
 				queue_delayed_work(msm_chg.event_wq_thread,
-							&msm_chg.teoc_work,
-						      round_jiffies_relative
-						      (msecs_to_jiffies
-						       (msm_chg.safety_time)));
+						   &msm_chg.teoc_work,
+						   round_jiffies_relative
+						   (msecs_to_jiffies
+						    (msm_chg.safety_time)));
 				msm_chg.batt_status = BATT_STATUS_TRKL_CHARGING;
 			}
 		} else {
@@ -2144,53 +2060,51 @@ static void handle_charger_ready(struct msm_hardware_charger_priv *hw_chg_priv)
 	}
 }
 
-//                                                   
 #define SKIP_STOP_CHARGING  1
 #define DO_STOP_CHARGING    0
-int lge_skip_stop_charging_with_factory_condition( void )
+int lge_skip_stop_charging_with_factory_condition(void)
 {
-    acc_cable_type ext_cable_type;
-    printk(KERN_DEBUG "%s: entered\n",__func__);
+	acc_cable_type ext_cable_type;
+	printk(KERN_DEBUG "%s: entered\n", __func__);
 
-    if(0 != battery_info_get())
-    {
-        printk(KERN_DEBUG "%s: battery is present! ignore factory condition\n",__func__);
-        return DO_STOP_CHARGING;
-    }
+	if (0 != battery_info_get()) {
+		printk(KERN_DEBUG
+		       "%s: battery is present! ignore factory condition\n",
+		       __func__);
+		return DO_STOP_CHARGING;
+	}
 
-    ext_cable_type = get_ext_cable_type_value();
-    if( LT_CABLE_56K == ext_cable_type ) {
-        printk(KERN_DEBUG "%s: 56K or 910K Factory Cable detected\n",__func__);
-        return SKIP_STOP_CHARGING;
-    }
-    else {
-        return DO_STOP_CHARGING;
-    }
+	ext_cable_type = get_ext_cable_type_value();
+	if (LT_CABLE_56K == ext_cable_type) {
+		printk(KERN_DEBUG "%s: 56K or 910K Factory Cable detected\n",
+		       __func__);
+		return SKIP_STOP_CHARGING;
+	} else {
+		return DO_STOP_CHARGING;
+	}
 }
-//                                                 
 
 static void handle_charger_removed(struct msm_hardware_charger_priv
 				   *hw_chg_removed, int new_state)
 {
 	struct msm_hardware_charger_priv *hw_chg_priv;
 
-	msm_chg.lcd_on_charge_curr_status = 0; //                                   
+	msm_chg.lcd_on_charge_curr_status = 0;
 
 #ifdef ACC_ENABLE
-	if(usb_pc_connection == 1)
+	if (usb_pc_connection == 1)
 		usb_pc_connection = 0;
 #endif
 
 	debug_print(__func__, hw_chg_removed);
-//                                                   
-    if( lge_skip_stop_charging_with_factory_condition() )
-        return;
-//                                                 
+
+	if (lge_skip_stop_charging_with_factory_condition())
+		return;
 
 	if (msm_chg.current_chg_priv == hw_chg_removed) {
 		msm_disable_system_current(hw_chg_removed);
 		if (msm_chg.current_chg_priv->hw_chg_state
-						== CHG_CHARGING_STATE) {
+		    == CHG_CHARGING_STATE) {
 			if (msm_stop_charging(hw_chg_removed)) {
 				dev_err(msm_chg.dev, "%s couldnt stop chg\n",
 					msm_chg.current_chg_priv->hw_chg->name);
@@ -2210,28 +2124,26 @@ static void handle_charger_removed(struct msm_hardware_charger_priv
 			 * in to charging the battery when a charger is
 			 * plugged in shortly. */
 #ifdef CONFIG_LGE_PM
-/*                                                                
-                                                                                                  
-                                                                                                       */
 #else
 			if (is_batt_status_charging())
-#endif				
+#endif
 				msm_chg.batt_status = BATT_STATUS_DISCHARGING;
 #ifdef CONFIG_LGE_PM_BATTERY_ALARM
-            pm8xxx_batt_alarm_config_lge();
+			pm8xxx_batt_alarm_config_lge();
 #endif
 
 #ifdef CONFIG_LGE_CHARGER_TEMP_SCENARIO
-            if (!is_battery_id_valid())
-            {
-            	pr_err("===========================================================");
-            	pr_err("%s: pm_power_off board  \n",__func__);
-            	pr_err("===========================================================");
-            
-                pm_power_off();
-            }
+			if (!is_battery_id_valid()) {
+				pr_err
+				    ("===========================================================");
+				pr_err("%s: pm_power_off board  \n", __func__);
+				pr_err
+				    ("===========================================================");
+
+				pm_power_off();
+			}
 #endif
-            
+
 		} else {
 			msm_chg.current_chg_priv = hw_chg_priv;
 			msm_enable_system_current(hw_chg_priv);
@@ -2247,7 +2159,7 @@ static void handle_charger_removed(struct msm_hardware_charger_priv
 				msm_chg.batt_status = BATT_STATUS_DISCHARGING;
 			}
 #ifdef CONFIG_LGE_PM_BATTERY_ALARM
-            pm8xxx_batt_alarm_config_lge();
+			pm8xxx_batt_alarm_config_lge();
 #endif
 
 		}
@@ -2256,26 +2168,23 @@ static void handle_charger_removed(struct msm_hardware_charger_priv
 	/* if we arent charging stop the safety timer */
 	if (!is_batt_status_charging()) {
 		dev_info(msm_chg.dev, "%s: stopping safety timer work\n",
-				__func__);
+			 __func__);
 		cancel_delayed_work(&msm_chg.teoc_work);
 	}
 }
 
-/*                                     */
 extern void pm8058_chg_batt_remove_and_reset(void);
 static void update_battery_remove_work(struct work_struct *work)
 {
-  if(msm_batt_gauge->get_battery_temperature_adc() < 2000)
-  {
-    printk(KERN_ERR "================== [ update_battery_remove_work ] BATTERY INSERTED!!!! =======================\n");
-  }
-  else
-  {
-    printk(KERN_ERR "================== [ update_battery_remove_work ] BATTERY REMOVED!!!! =======================\n");
-    pm8058_chg_batt_remove_and_reset();
-  }
+	if (msm_batt_gauge->get_battery_temperature_adc() < 2000) {
+		printk(KERN_ERR
+		       "================== [ update_battery_remove_work ] BATTERY INSERTED!!!! =======================\n");
+	} else {
+		printk(KERN_ERR
+		       "================== [ update_battery_remove_work ] BATTERY REMOVED!!!! =======================\n");
+		pm8058_chg_batt_remove_and_reset();
+	}
 }
-/*                                     */
 
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM)
 static bool cable_already_inserted = false;
@@ -2298,12 +2207,12 @@ static void handle_event(struct msm_hardware_charger *hw_chg, int event)
 	case CHG_INSERTED_EVENT:
 #ifdef CONFIG_LGE_CHARGER_TEMP_SCENARIO
 		last_stop_charging = 0;
-/*                                                                                                    */
+
 		pseudo_ui_charging = 0;
 #endif
 		if (priv->hw_chg_state != CHG_ABSENT_STATE) {
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM)
-      cable_already_inserted = true;
+			cable_already_inserted = true;
 #endif
 			dev_info(msm_chg.dev,
 				 "%s insertion detected when cbl present",
@@ -2312,7 +2221,7 @@ static void handle_event(struct msm_hardware_charger *hw_chg, int event)
 		}
 #ifdef CONFIG_LGE_TOUCH_CHAGER_CTRL
 		trigger_baseline_state_machine(IC_CHARGER_CTRL_ON);
-#endif 				
+#endif
 		update_batt_status();
 		if (hw_chg->type == CHG_TYPE_USB) {
 			priv->hw_chg_state = CHG_PRESENT_STATE;
@@ -2337,7 +2246,7 @@ static void handle_event(struct msm_hardware_charger *hw_chg, int event)
 		}
 		update_batt_status();
 		dev_dbg(msm_chg.dev, "%s enum with %dmA to draw\n",
-			 hw_chg->name, priv->max_source_current);
+			hw_chg->name, priv->max_source_current);
 		if (priv->max_source_current == 0) {
 			/* usb subsystem doesnt want us to draw
 			 * charging current */
@@ -2347,21 +2256,17 @@ static void handle_event(struct msm_hardware_charger *hw_chg, int event)
 		} else {
 			if (priv->hw_chg_state != CHG_READY_STATE) {
 #ifdef CONFIG_LGE_CHARGER_TEMP_SCENARIO
-/*                                                              
-                                                                                                              
-                                                       */				
-				if(priv->hw_chg_state == CHG_CHARGING_STATE)
-					; // don't change hw_chg_state
+				if (priv->hw_chg_state == CHG_CHARGING_STATE) ;	// don't change hw_chg_state
 				else
 #endif
-				priv->hw_chg_state = CHG_READY_STATE;
+					priv->hw_chg_state = CHG_READY_STATE;
 				handle_charger_ready(priv);
 			}
 		}
 		break;
 	case CHG_REMOVED_EVENT:
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM)
-    cable_already_inserted = false;
+		cable_already_inserted = false;
 #endif
 		if (priv->hw_chg_state == CHG_ABSENT_STATE) {
 			dev_info(msm_chg.dev, "%s cable already removed\n",
@@ -2370,11 +2275,11 @@ static void handle_event(struct msm_hardware_charger *hw_chg, int event)
 		}
 #ifdef CONFIG_LGE_TOUCH_CHAGER_CTRL
 		trigger_baseline_state_machine(IC_CHARGER_CTRL_OFF);
-#endif 		
+#endif
 		update_batt_status();
 #ifdef CONFIG_LGE_FUEL_GAUGE
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM)
-    usb_chg_type = 0;
+		usb_chg_type = 0;
 #else
 		usb_chg_type_for_FG = 0;
 #endif
@@ -2388,7 +2293,7 @@ static void handle_event(struct msm_hardware_charger *hw_chg, int event)
 	case CHG_DONE_EVENT:
 #ifdef CONFIG_LGE_TOUCH_CHAGER_CTRL
 		trigger_baseline_state_machine(IC_CHARGER_CTRL_NONE);
-#endif 		
+#endif
 		if (priv->hw_chg_state == CHG_CHARGING_STATE)
 			handle_charging_done(priv);
 		break;
@@ -2405,9 +2310,9 @@ static void handle_event(struct msm_hardware_charger *hw_chg, int event)
 	case CHG_BATT_TEMP_OUTOFRANGE:
 		/* the batt_temp out of range can trigger
 		 * when the battery is absent */
-		 //                                                                   
-		if (pseudo_batt_info.mode == 1) {			
-			break; //If it does not have charge when fake mode
+		//
+		if (pseudo_batt_info.mode == 1) {
+			break;	//If it does not have charge when fake mode
 		}
 		if (!is_battery_present()
 		    && msm_chg.batt_status != BATT_STATUS_ABSENT) {
@@ -2458,26 +2363,23 @@ static void handle_event(struct msm_hardware_charger *hw_chg, int event)
 		break;
 	case CHG_BATT_STATUS_CHANGE:
 		/* TODO  battery SOC like battery-alarm/charging-full features
-		can be added here for future improvement */
+		   can be added here for future improvement */
 		break;
-/*                                     */
-//                                  
-	case CHG_BATT_REMOVE_EVENT:
-		printk(KERN_DEBUG "############ Handle Event: [CHG_BATT_REMOVE_EVENT] #####################\n");
-		queue_delayed_work(msm_chg.event_wq_thread,
-				&msm_chg.update_batt_remove_work,
-			      round_jiffies_relative(msecs_to_jiffies
-						     (msm_chg.processing_delay)));
-		break;
-//#endif
-/*                                     */
 
-/*                                     */
+	case CHG_BATT_REMOVE_EVENT:
+		printk(KERN_DEBUG
+		       "############ Handle Event: [CHG_BATT_REMOVE_EVENT] #####################\n");
+		queue_delayed_work(msm_chg.event_wq_thread,
+				   &msm_chg.update_batt_remove_work,
+				   round_jiffies_relative(msecs_to_jiffies
+							  (msm_chg.
+							   processing_delay)));
+		break;
+
 #ifdef CONFIG_LGE_PM_BATTERY_ALARM
 	case CHG_BATT_REFRESH_EVENT:
 		break;
 #endif
-/*                                     */
 	}
 	dev_dbg(msm_chg.dev, "%s %d done batt_status=%d\n", __func__,
 		event, msm_chg.batt_status);
@@ -2487,16 +2389,15 @@ static void handle_event(struct msm_hardware_charger *hw_chg, int event)
 		power_supply_changed(&msm_psy_batt);
 #ifdef CONFIG_LGE_FUEL_GAUGE
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM)
-  if(!cable_already_inserted)
-  {
-    if (usb_chg_type == 2) /* not fixed */
-	    power_supply_changed(&msm_psy_ac);
-	  else if (usb_chg_type == 3) /* not fixed */
-	    power_supply_changed(&msm_psy_usb);
-  }
+	if (!cable_already_inserted) {
+		if (usb_chg_type == 2)	/* not fixed */
+			power_supply_changed(&msm_psy_ac);
+		else if (usb_chg_type == 3)	/* not fixed */
+			power_supply_changed(&msm_psy_usb);
+	}
 #else
 	if (priv) {
-		if (usb_chg_type_for_FG == 2) /* not fixed */
+		if (usb_chg_type_for_FG == 2)	/* not fixed */
 			power_supply_changed(&msm_psy_ac);
 		else
 			power_supply_changed(&priv->psy);
@@ -2528,21 +2429,20 @@ static int msm_chg_dequeue_event(struct msm_charger_event **event)
 }
 
 static int msm_chg_enqueue_event(struct msm_hardware_charger *hw_chg,
-			enum msm_hardware_charger_event event)
+				 enum msm_hardware_charger_event event)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&msm_chg.queue_lock, flags);
 	if (msm_chg.queue_count == MSM_CHG_MAX_EVENTS) {
 		spin_unlock_irqrestore(&msm_chg.queue_lock, flags);
-		pr_err("%s: queue full cannot enqueue %d\n",
-				__func__, event);
+		pr_err("%s: queue full cannot enqueue %d\n", __func__, event);
 		return -EAGAIN;
 	}
 	pr_debug("%s queueing %d\n", __func__, event);
 	msm_chg.queue[msm_chg.tail].event = event;
 	msm_chg.queue[msm_chg.tail].hw_chg = hw_chg;
-	msm_chg.tail = (msm_chg.tail + 1)%MSM_CHG_MAX_EVENTS;
+	msm_chg.tail = (msm_chg.tail + 1) % MSM_CHG_MAX_EVENTS;
 	msm_chg.queue_count++;
 	spin_unlock_irqrestore(&msm_chg.queue_lock, flags);
 	return 0;
@@ -2565,24 +2465,25 @@ void msm_charger_vbus_draw(unsigned int mA)
 {
 	if (usb_hw_chg_priv) {
 		usb_hw_chg_priv->max_source_current = mA;
-/*                                                                                                          */
 #if defined(CONFIG_MACH_LGE_IJB_BOARD_SKT) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU)
-		if ((pseudo_batt_info.mode == 1)&&
-			((get_ext_cable_type_value() == USB_CABLE_400MA)||
-			(get_ext_cable_type_value() == ABNORMAL_USB_CABLE_400MA))){
+		if ((pseudo_batt_info.mode == 1) &&
+		    ((get_ext_cable_type_value() == USB_CABLE_400MA) ||
+		     (get_ext_cable_type_value() ==
+		      ABNORMAL_USB_CABLE_400MA))) {
 			usb_hw_chg_priv->max_source_current = 700;
-			printk("%s :fake mode - max_source_current = %d \n", __func__, usb_hw_chg_priv->max_source_current);
+			printk("%s :fake mode - max_source_current = %d \n",
+			       __func__, usb_hw_chg_priv->max_source_current);
 		}
 #endif
 /* [End] USB charging current is set to 800mA when enabling FAKE mode */
-//                                         
-		if((msm_chg.chg_current_set == 1) && (msm_chg.capacity > 10)) {
+		if ((msm_chg.chg_current_set == 1) && (msm_chg.capacity > 10)) {
 			usb_hw_chg_priv->max_source_current = 450;
-			printk("%s :Overheat fake mode - max_source_current = %d \n", __func__, usb_hw_chg_priv->max_source_current);
+			printk
+			    ("%s :Overheat fake mode - max_source_current = %d \n",
+			     __func__, usb_hw_chg_priv->max_source_current);
 		}
-//                                       
 		msm_charger_notify_event(usb_hw_chg_priv->hw_chg,
-						CHG_ENUMERATED_EVENT);
+					 CHG_ENUMERATED_EVENT);
 	} else
 		/* remember the current, to be used when charger is ready */
 		usb_chg_current = mA;
@@ -2590,15 +2491,13 @@ void msm_charger_vbus_draw(unsigned int mA)
 
 static int determine_initial_batt_status(void)
 {
-	/*                  */
 	int rc;
-#if defined(CONFIG_MACH_LGE_120_BOARD) || defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
+#if defined(CONFIG_MACH_LGE_IJB_BOARD_LGU) || defined(CONFIG_MACH_LGE_IJB_BOARD_SKT)
 	msm_chg.temp_control = 0xFF;
 #endif
-	//                                         
+
 	msm_chg.chg_current_set = 0;
 	msm_chg.lcd_on_charge_curr_status = 0;
-	//                                       
 
 	if (is_battery_present())
 		if (is_battery_id_valid())
@@ -2635,20 +2534,20 @@ static int determine_initial_batt_status(void)
 	/* start updaing the battery powersupply every msm_chg.update_time
 	 * milliseconds */
 	queue_delayed_work(msm_chg.event_wq_thread,
-				&msm_chg.update_heartbeat_work,
-			      round_jiffies_relative(msecs_to_jiffies
-						     (msm_chg.update_time)));
+			   &msm_chg.update_heartbeat_work,
+			   round_jiffies_relative(msecs_to_jiffies
+						  (msm_chg.update_time)));
 
 	pr_debug("%s:OK batt_status=%d\n", __func__, msm_chg.batt_status);
 	return 0;
 }
 
 #ifdef CONFIG_LGE_PM_CURRENT_CABLE_TYPE
-/*                                                                                                    */
 int get_is_battery_present(void)
 {
 	return msm_chg.batt_status;
 };
+
 EXPORT_SYMBOL(get_is_battery_present);
 /* END */
 #endif
@@ -2661,238 +2560,232 @@ extern void max17040_set_battery_atcmd(int flag, int value);
 extern int max17040_get_battery_capacity_percent(void);
 extern void machine_restart(char *cmd);
 
-
-static ssize_t at_chg_status_show(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t at_chg_status_show(struct device *dev,
+				  struct device_attribute *attr, char *buf)
 {
 	int r = 0;
-  bool b_chg_ok = false;
+	bool b_chg_ok = false;
 
-  if(msm_chg.current_chg_priv->hw_chg_state == CHG_CHARGING_STATE)
-  {
-    b_chg_ok = true;
-	  r = sprintf(buf, "%d\n", b_chg_ok);
-  }
-  else
-  {
-    b_chg_ok = false;
-	  r = sprintf(buf, "%d\n", b_chg_ok);
-  }
-	
+	if (msm_chg.current_chg_priv->hw_chg_state == CHG_CHARGING_STATE) {
+		b_chg_ok = true;
+		r = sprintf(buf, "%d\n", b_chg_ok);
+	} else {
+		b_chg_ok = false;
+		r = sprintf(buf, "%d\n", b_chg_ok);
+	}
+
 	return r;
 }
 
-
-static ssize_t at_chg_status_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t at_chg_status_store(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t count)
 {
-  int ret;
-  unsigned char string[2];
+	int ret;
+	unsigned char string[2];
 
 	sscanf(buf, "%s", string);
 
-  if (!count)
+	if (!count)
 		return -EINVAL;
 
-  if(!strncmp(string, "0", 1))
-  {
-    /* Stop Charging */
+	if (!strncmp(string, "0", 1)) {
+		/* Stop Charging */
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-    struct msm_hardware_charger_priv *priv;
+		struct msm_hardware_charger_priv *priv;
 
-    bq24160_at_cmd_chg_set(true);
+		bq24160_at_cmd_chg_set(true);
 
-    /*                                                                         */
-    if (msm_chg.current_chg_priv != NULL)
-    {
-      priv = msm_chg.current_chg_priv;
-  	  ret = priv->hw_chg->stop_charging(priv->hw_chg);
+		if (msm_chg.current_chg_priv != NULL) {
+			priv = msm_chg.current_chg_priv;
+			ret = priv->hw_chg->stop_charging(priv->hw_chg);
 
-      msm_chg.current_chg_priv->hw_chg_state = CHG_ABSENT_STATE;
-    }
-    /*                                                                         */
-    
-    msm_chg.batt_status = BATT_STATUS_ABSENT;
+			msm_chg.current_chg_priv->hw_chg_state =
+			    CHG_ABSENT_STATE;
+		}
+
+		msm_chg.batt_status = BATT_STATUS_ABSENT;
 #else
-    if(msm_chg.current_chg_priv->hw_chg_state == CHG_CHARGING_STATE)
-    {
-      ret = pm8058_stop_charging_for_ATCMD();
-      msm_chg.current_chg_priv->hw_chg_state = CHG_ABSENT_STATE;
-      msm_chg.batt_status = BATT_STATUS_ABSENT;
-      b_is_at_cmd_on = false;
-    }
+		if (msm_chg.current_chg_priv->hw_chg_state ==
+		    CHG_CHARGING_STATE) {
+			ret = pm8058_stop_charging_for_ATCMD();
+			msm_chg.current_chg_priv->hw_chg_state =
+			    CHG_ABSENT_STATE;
+			msm_chg.batt_status = BATT_STATUS_ABSENT;
+			b_is_at_cmd_on = false;
+		}
 #endif
-  }
-  else if(!strncmp(string, "1", 1))
-  {
-    /* Start Charging */
+	} else if (!strncmp(string, "1", 1)) {
+		/* Start Charging */
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-	  struct msm_hardware_charger_priv *priv;
+		struct msm_hardware_charger_priv *priv;
 
-    bq24160_at_cmd_chg_set(true);
+		bq24160_at_cmd_chg_set(true);
 
-    msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
-    /*                                                                         */
-    if (msm_chg.current_chg_priv != NULL)
-    {
-      msm_chg.current_chg_priv->hw_chg_state = CHG_CHARGING_STATE;
+		msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
+		if (msm_chg.current_chg_priv != NULL) {
+			msm_chg.current_chg_priv->hw_chg_state =
+			    CHG_CHARGING_STATE;
 
-      priv = msm_chg.current_chg_priv;
-      ret = priv->hw_chg->start_charging(priv->hw_chg, msm_chg.max_voltage,
-					 priv->max_source_current);
-    }
-    /*                                                                         */
+			priv = msm_chg.current_chg_priv;
+			ret =
+			    priv->hw_chg->start_charging(priv->hw_chg,
+							 msm_chg.max_voltage,
+							 priv->
+							 max_source_current);
+		}
 #else
-    if(msm_chg.current_chg_priv->hw_chg_state != CHG_CHARGING_STATE)
-    {
-      printk(KERN_DEBUG "############ [chg_status_store] START CHARGING #####################\n");
+		if (msm_chg.current_chg_priv->hw_chg_state !=
+		    CHG_CHARGING_STATE) {
+			printk(KERN_DEBUG
+			       "############ [chg_status_store] START CHARGING #####################\n");
 
-      b_is_at_cmd_on = true;
-      msm_chg.current_chg_priv->hw_chg_state = CHG_CHARGING_STATE;
-      msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
-      ret = pm8058_start_charging_for_ATCMD();
+			b_is_at_cmd_on = true;
+			msm_chg.current_chg_priv->hw_chg_state =
+			    CHG_CHARGING_STATE;
+			msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
+			ret = pm8058_start_charging_for_ATCMD();
 
-      msm_charger_notify_event(usb_hw_chg_priv->hw_chg, CHG_BATT_BEGIN_FAST_CHARGING);
-    }
+			msm_charger_notify_event(usb_hw_chg_priv->hw_chg,
+						 CHG_BATT_BEGIN_FAST_CHARGING);
+		}
 #endif
-  }
-	
+	}
+
 	return count;
 }
 
-
-static ssize_t at_chg_status_complete_show(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t at_chg_status_complete_show(struct device *dev,
+					   struct device_attribute *attr,
+					   char *buf)
 {
 	int r = 0;
 	bool b_chg_complete = false;
 
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM)
-  int guage_level = 0;
+	int guage_level = 0;
 
-  guage_level = max17040_get_battery_capacity_percent();
+	guage_level = max17040_get_battery_capacity_percent();
 
-  if(guage_level == 100)
-  {
-    b_chg_complete = true;
-	  r = sprintf(buf, "%d\n", b_chg_complete);
-  }
-  else
-  {
-    b_chg_complete = false;
-	  r = sprintf(buf, "%d\n", b_chg_complete);
-  }
+	if (guage_level == 100) {
+		b_chg_complete = true;
+		r = sprintf(buf, "%d\n", b_chg_complete);
+	} else {
+		b_chg_complete = false;
+		r = sprintf(buf, "%d\n", b_chg_complete);
+	}
 #else
-  if(get_prop_batt_status()==POWER_SUPPLY_STATUS_FULL)
-  {
-    b_chg_complete = true;
-	  r = sprintf(buf, "%d\n", b_chg_complete);
-  }
-  else
-  {
-    b_chg_complete = false;
-	  r = sprintf(buf, "%d\n", b_chg_complete);
-  }
+	if (get_prop_batt_status() == POWER_SUPPLY_STATUS_FULL) {
+		b_chg_complete = true;
+		r = sprintf(buf, "%d\n", b_chg_complete);
+	} else {
+		b_chg_complete = false;
+		r = sprintf(buf, "%d\n", b_chg_complete);
+	}
 #endif
-	
+
 	return r;
 }
 
-static ssize_t at_chg_status_complete_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t at_chg_status_complete_store(struct device *dev,
+					    struct device_attribute *attr,
+					    const char *buf, size_t count)
 {
-    int ret;  
-    unsigned char string[2];
-  
-    sscanf(buf, "%s", string);
-  
-    if (!count)
-      return -EINVAL;
-  
-    if(!strncmp(string, "0", 1))
-    {
-      /* Charging not Complete */
+	int ret;
+	unsigned char string[2];
+
+	sscanf(buf, "%s", string);
+
+	if (!count)
+		return -EINVAL;
+
+	if (!strncmp(string, "0", 1)) {
+		/* Charging not Complete */
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-      struct msm_hardware_charger_priv *priv;
+		struct msm_hardware_charger_priv *priv;
 
-      bq24160_at_cmd_chg_set(true);
+		bq24160_at_cmd_chg_set(true);
 
-      msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
+		msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
 
-      /*                                                                         */
-      if (msm_chg.current_chg_priv != NULL)
-      {
-        msm_chg.current_chg_priv->hw_chg_state = CHG_CHARGING_STATE;
-        priv = msm_chg.current_chg_priv;
-        ret = priv->hw_chg->start_charging(priv->hw_chg, msm_chg.max_voltage,
-  					 priv->max_source_current);
-      }      
-      /*                                                                         */
-      max17040_set_battery_atcmd(2, 100);
+		if (msm_chg.current_chg_priv != NULL) {
+			msm_chg.current_chg_priv->hw_chg_state =
+			    CHG_CHARGING_STATE;
+			priv = msm_chg.current_chg_priv;
+			ret =
+			    priv->hw_chg->start_charging(priv->hw_chg,
+							 msm_chg.max_voltage,
+							 priv->
+							 max_source_current);
+		}
+		max17040_set_battery_atcmd(2, 100);
 #else
-      if(msm_chg.current_chg_priv->hw_chg_state != CHG_CHARGING_STATE)
-      {  
-        msm_chg.current_chg_priv->hw_chg_state = CHG_CHARGING_STATE;
-        msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
-        ret = pm8058_start_charging_for_ATCMD();
+		if (msm_chg.current_chg_priv->hw_chg_state !=
+		    CHG_CHARGING_STATE) {
+			msm_chg.current_chg_priv->hw_chg_state =
+			    CHG_CHARGING_STATE;
+			msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
+			ret = pm8058_start_charging_for_ATCMD();
 
-        msm_charger_notify_event(usb_hw_chg_priv->hw_chg, CHG_BATT_BEGIN_FAST_CHARGING);
-        max17040_set_battery_atcmd(2, 100);
-        b_is_at_cmd_on = false;
-      }
+			msm_charger_notify_event(usb_hw_chg_priv->hw_chg,
+						 CHG_BATT_BEGIN_FAST_CHARGING);
+			max17040_set_battery_atcmd(2, 100);
+			b_is_at_cmd_on = false;
+		}
 #endif
-    }
-    else if(!strncmp(string, "1", 1))
-    {
-      /* Charging Complete */
+	} else if (!strncmp(string, "1", 1)) {
+		/* Charging Complete */
 #if defined(CONFIG_MACH_LGE_I_BOARD_DCM) && defined(CONFIG_LGE_SWITCHING_CHARGER_BQ24160_DOCOMO_ONLY)
-      struct msm_hardware_charger_priv *priv;
+		struct msm_hardware_charger_priv *priv;
 
-      bq24160_at_cmd_chg_set(true);
+		bq24160_at_cmd_chg_set(true);
 
-      /*                                                                         */
-      if (msm_chg.current_chg_priv != NULL)
-      {
-        priv = msm_chg.current_chg_priv;
-  	    ret = priv->hw_chg->stop_charging(priv->hw_chg);
-        
-        msm_chg.current_chg_priv->hw_chg_state = CHG_ABSENT_STATE;
-      }
-      /*                                                                         */
-      msm_chg.batt_status = BATT_STATUS_ABSENT;
+		if (msm_chg.current_chg_priv != NULL) {
+			priv = msm_chg.current_chg_priv;
+			ret = priv->hw_chg->stop_charging(priv->hw_chg);
 
-      max17040_set_battery_atcmd(1, 100);
+			msm_chg.current_chg_priv->hw_chg_state =
+			    CHG_ABSENT_STATE;
+		}
+		msm_chg.batt_status = BATT_STATUS_ABSENT;
+
+		max17040_set_battery_atcmd(1, 100);
 #else
-      if((msm_chg.batt_status != BATT_STATUS_JUST_FINISHED_CHARGING))
-      {  
-        b_is_at_cmd_on = true;
+		if ((msm_chg.batt_status != BATT_STATUS_JUST_FINISHED_CHARGING)) {
+			b_is_at_cmd_on = true;
 
-        ret = pm8058_stop_charging_for_ATCMD();
-        msm_chg.current_chg_priv->hw_chg_state = CHG_ABSENT_STATE;
-        msm_chg.batt_status = BATT_STATUS_ABSENT;
+			ret = pm8058_stop_charging_for_ATCMD();
+			msm_chg.current_chg_priv->hw_chg_state =
+			    CHG_ABSENT_STATE;
+			msm_chg.batt_status = BATT_STATUS_ABSENT;
 
-        max17040_set_battery_atcmd(1, 100);
-      }
+			max17040_set_battery_atcmd(1, 100);
+		}
 #endif
-    }
-    
-    return count;
+	}
+
+	return count;
 
 }
 
-
-
-static ssize_t at_fuel_guage_reset_show(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t at_fuel_guage_reset_show(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
 {
 	int r = 0;
 
-	max17040_set_battery_atcmd(0, 100);  // Reset the fuel guage IC
+	max17040_set_battery_atcmd(0, 100);	// Reset the fuel guage IC
 
 	r = sprintf(buf, "%d\n", true);
 
-	max17040_set_battery_atcmd(2, 100);  // Release the AT command mode
-	
+	max17040_set_battery_atcmd(2, 100);	// Release the AT command mode
+
 	return r;
 }
 
-
-static ssize_t at_fuel_guage_level_show(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t at_fuel_guage_level_show(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
 {
 	int r = 0;
 	int guage_level = 0;
@@ -2900,42 +2793,44 @@ static ssize_t at_fuel_guage_level_show(struct device *dev, struct device_attrib
 	guage_level = max17040_get_battery_capacity_percent();
 
 	r = sprintf(buf, "%d\n", guage_level);
-	
+
 	return r;
 }
 
-static ssize_t at_pmic_reset_show(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t at_pmic_reset_show(struct device *dev,
+				  struct device_attribute *attr, char *buf)
 {
 	int r = 0;
 
-	msleep(500); //for waiting return values of testmode
+	msleep(500);		//for waiting return values of testmode
 
 	machine_restart(NULL);
 
 	r = sprintf(buf, "%d\n", true);
-	
+
 	return r;
 }
 
-
-static ssize_t at_batt_level_show(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t at_batt_level_show(struct device *dev,
+				  struct device_attribute *attr, char *buf)
 {
 	int r = 0;
 	int battery_level = 0;
-  
-  battery_level = get_prop_battery_mvolts();
 
-  printk(KERN_DEBUG "############ [at_batt_level_show] BATT LVL = %d #####################\n", battery_level);
+	battery_level = get_prop_battery_mvolts();
 
-  r = sprintf(buf, "%d\n", battery_level);
-	
+	printk(KERN_DEBUG
+	       "############ [at_batt_level_show] BATT LVL = %d #####################\n",
+	       battery_level);
+
+	r = sprintf(buf, "%d\n", battery_level);
+
 	return r;
 }
 
-
-
 DEVICE_ATTR(at_charge, 0644, at_chg_status_show, at_chg_status_store);
-DEVICE_ATTR(at_chcomp, 0644, at_chg_status_complete_show, at_chg_status_complete_store);
+DEVICE_ATTR(at_chcomp, 0644, at_chg_status_complete_show,
+	    at_chg_status_complete_store);
 DEVICE_ATTR(at_fuelrst, 0644, at_fuel_guage_reset_show, NULL);
 DEVICE_ATTR(at_fuelval, 0644, at_fuel_guage_level_show, NULL);
 DEVICE_ATTR(at_pmrst, 0644, at_pmic_reset_show, NULL);
@@ -2945,43 +2840,43 @@ DEVICE_ATTR(at_batl, 0644, at_batt_level_show, NULL);
 #if defined(CONFIG_LGE_PM_CAYMAN_VZW) || defined(CONFIG_LGE_PM_CAYMAN_MPCS)
 void testmode_charging_mode_test(void)
 {
-  int ret;
+	int ret;
 
-  /* Start Charging */
-  if(msm_chg.current_chg_priv->hw_chg_state != CHG_CHARGING_STATE)
-  {
-  	printk(KERN_DEBUG "############ [chg_status_store] START CHARGING #####################\n");
+	/* Start Charging */
+	if (msm_chg.current_chg_priv->hw_chg_state != CHG_CHARGING_STATE) {
+		printk(KERN_DEBUG
+		       "############ [chg_status_store] START CHARGING #####################\n");
 
-	b_is_testmode_cmd_on = true;
-	msm_chg.current_chg_priv->hw_chg_state = CHG_CHARGING_STATE;
-	msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
-	ret = pm8058_start_charging_for_TESTMODE();
+		b_is_testmode_cmd_on = true;
+		msm_chg.current_chg_priv->hw_chg_state = CHG_CHARGING_STATE;
+		msm_chg.batt_status = BATT_STATUS_FAST_CHARGING;
+		ret = pm8058_start_charging_for_TESTMODE();
 
-	msm_charger_notify_event(usb_hw_chg_priv->hw_chg, CHG_BATT_BEGIN_FAST_CHARGING);
-  }
-	
+		msm_charger_notify_event(usb_hw_chg_priv->hw_chg,
+					 CHG_BATT_BEGIN_FAST_CHARGING);
+	}
+
 }
+
 EXPORT_SYMBOL(testmode_charging_mode_test);
 
 void testmode_discharging_mode_test(void)
 {
-  int ret;
+	int ret;
 
- /* Stop Charging */
-    if(msm_chg.current_chg_priv->hw_chg_state == CHG_CHARGING_STATE)
-    {
-      ret = pm8058_stop_charging_for_TESTMODE();
-      msm_chg.current_chg_priv->hw_chg_state = CHG_ABSENT_STATE;
-      msm_chg.batt_status = BATT_STATUS_ABSENT;
-      b_is_testmode_cmd_on = false;
-    }
-	
+	/* Stop Charging */
+	if (msm_chg.current_chg_priv->hw_chg_state == CHG_CHARGING_STATE) {
+		ret = pm8058_stop_charging_for_TESTMODE();
+		msm_chg.current_chg_priv->hw_chg_state = CHG_ABSENT_STATE;
+		msm_chg.batt_status = BATT_STATUS_ABSENT;
+		b_is_testmode_cmd_on = false;
+	}
+
 }
+
 EXPORT_SYMBOL(testmode_discharging_mode_test);
-#endif /*                                                           */
+#endif
 
-
-/*                                     */
 #ifdef CONFIG_LGE_PM_TEMPERATURE_MONITOR
 static void msm_charger_program_alarm(int seconds)
 {
@@ -2989,69 +2884,66 @@ static void msm_charger_program_alarm(int seconds)
 	ktime_t slack = ktime_set(20, 0);
 	ktime_t next;
 
- // printk(KERN_DEBUG "############ [msm_charger_program_alarm] ALARM TIME = %d #####################\n", seconds);
-
 	next = ktime_add(msm_chg.last_poll, low_interval);
 
 	alarm_start_range(&msm_chg.alarm, next, ktime_add(next, slack));
 }
 
-
 static void msm_charger_temp_work(struct work_struct *work)
-{  
-  int temp_adc;
-  int polling_sec_time;
-  
+{
+	int temp_adc;
+	int polling_sec_time;
+
 	msm_chg.last_poll = alarm_get_elapsed_realtime();
 
-  /* Check the battery temperature to decide next alarm time */
-  temp_adc = g_temp_adc;
+	/* Check the battery temperature to decide next alarm time */
+	temp_adc = g_temp_adc;
 
-  if(temp_adc < adcmap_batttherm[THERM_55].x)
-    polling_sec_time = TIME_POLL_0P5_MINUTE;
-  else if(temp_adc < adcmap_batttherm[THERM_45].x)
-    polling_sec_time = TIME_POLL_10_MINUTE;
-  else if(temp_adc <= adcmap_batttherm[THERM_42].x)
-    polling_sec_time = TIME_POLL_30_MINUTE;
-  else
-    polling_sec_time = TIME_POLL_90_MINUTE;
+	if (temp_adc < adcmap_batttherm[THERM_55].x)
+		polling_sec_time = TIME_POLL_0P5_MINUTE;
+	else if (temp_adc < adcmap_batttherm[THERM_45].x)
+		polling_sec_time = TIME_POLL_10_MINUTE;
+	else if (temp_adc <= adcmap_batttherm[THERM_42].x)
+		polling_sec_time = TIME_POLL_30_MINUTE;
+	else
+		polling_sec_time = TIME_POLL_90_MINUTE;
 #ifdef CONFIG_LGE_PM_TA_COMPENSATION
-  if (is_chg_plugged_in())
-  {
-	  if(temp_adc < adcmap_batttherm_ta[THERM_55].x)
-	    polling_sec_time = TIME_POLL_0P5_MINUTE;
-	  else if(temp_adc < adcmap_batttherm_ta[THERM_45].x)
-	    polling_sec_time = TIME_POLL_10_MINUTE;
-	  else if(temp_adc <= adcmap_batttherm_ta[THERM_42].x)
-	    polling_sec_time = TIME_POLL_30_MINUTE;
-	  else
-	    polling_sec_time = TIME_POLL_90_MINUTE;
-  }
+	if (is_chg_plugged_in()) {
+		if (temp_adc < adcmap_batttherm_ta[THERM_55].x)
+			polling_sec_time = TIME_POLL_0P5_MINUTE;
+		else if (temp_adc < adcmap_batttherm_ta[THERM_45].x)
+			polling_sec_time = TIME_POLL_10_MINUTE;
+		else if (temp_adc <= adcmap_batttherm_ta[THERM_42].x)
+			polling_sec_time = TIME_POLL_30_MINUTE;
+		else
+			polling_sec_time = TIME_POLL_90_MINUTE;
+	}
 #endif
-  printk(KERN_DEBUG "############ [msm_charger_temp_work] POLL TIME = %d #####################\n", polling_sec_time);
+	printk(KERN_DEBUG
+	       "############ [msm_charger_temp_work] POLL TIME = %d #####################\n",
+	       polling_sec_time);
 
-  /* Set the Next Alarm Time */
+	/* Set the Next Alarm Time */
 	msm_charger_program_alarm(polling_sec_time);
 
 	/* prevent suspend before starting the alarm */
 	wake_unlock(&msm_chg.temp_wake_lock);
 }
 
-
 static void msm_charger_temperature_battery_alarm(struct alarm *alarm)
 {
-  printk(KERN_DEBUG "############ [msm_charger_temperature_battery_alarm] #####################\n");
-  
+	printk(KERN_DEBUG
+	       "############ [msm_charger_temperature_battery_alarm] #####################\n");
+
 	wake_lock(&msm_chg.temp_wake_lock);
 	queue_delayed_work(msm_chg.event_wq_thread, &msm_chg.monitor_work, 0);
 }
 #endif
-/*                                     */
 
 static int __devinit msm_charger_probe(struct platform_device *pdev)
 {
 #ifdef CONFIG_LGE_AT_COMMAND_ABOUT_POWER
-  int err;
+	int err;
 #endif
 	msm_chg.dev = &pdev->dev;
 	if (pdev->dev.platform_data) {
@@ -3069,11 +2961,7 @@ static int __devinit msm_charger_probe(struct platform_device *pdev)
 		}
 		msm_chg.safety_time = milli_secs;
 
-#ifdef CONFIG_MACH_LGE_120_BOARD
-		milli_secs = pdata->update_time * 30 * MSEC_PER_SEC;
-#else
 		milli_secs = pdata->update_time * 60 * MSEC_PER_SEC;
-#endif
 		if (milli_secs > jiffies_to_msecs(MAX_JIFFY_OFFSET)) {
 			dev_warn(&pdev->dev, "%s: safety time too large"
 				 "%dms\n", __func__, milli_secs);
@@ -3098,11 +2986,12 @@ static int __devinit msm_charger_probe(struct platform_device *pdev)
 		msm_chg.get_batt_capacity_percent =
 		    msm_chg_get_batt_capacity_percent;
 
-	msm_chg.processing_delay = 1000;  /*                                   */
+	msm_chg.processing_delay = 1000;
 	mutex_init(&msm_chg.status_lock);
 	INIT_DELAYED_WORK(&msm_chg.teoc_work, teoc);
 	INIT_DELAYED_WORK(&msm_chg.update_heartbeat_work, update_heartbeat);
-	INIT_DELAYED_WORK(&msm_chg.update_batt_remove_work, update_battery_remove_work);  /*                                   */
+	INIT_DELAYED_WORK(&msm_chg.update_batt_remove_work,
+			  update_battery_remove_work);
 
 #ifdef ACC_ENABLE
 	f120_acc_data.charger_fixed = FALSE;
@@ -3111,36 +3000,35 @@ static int __devinit msm_charger_probe(struct platform_device *pdev)
 	f120_acc_data.vchg_good_cnt = 0;
 #endif
 
-/*                                     */
 #ifdef CONFIG_LGE_PM_TEMPERATURE_MONITOR
-  INIT_DELAYED_WORK(&msm_chg.monitor_work, msm_charger_temp_work);
+	INIT_DELAYED_WORK(&msm_chg.monitor_work, msm_charger_temp_work);
 
 	/* init to something sane */
 	msm_chg.last_poll = alarm_get_elapsed_realtime();
 
-  wake_lock_init(&msm_chg.temp_wake_lock, WAKE_LOCK_SUSPEND, "msm_temp");
+	wake_lock_init(&msm_chg.temp_wake_lock, WAKE_LOCK_SUSPEND, "msm_temp");
 
-  alarm_init(&msm_chg.alarm, ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP,
-			msm_charger_temperature_battery_alarm);
-  wake_lock(&msm_chg.temp_wake_lock);
+	alarm_init(&msm_chg.alarm, ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP,
+		   msm_charger_temperature_battery_alarm);
+	wake_lock(&msm_chg.temp_wake_lock);
 
-  queue_delayed_work(msm_chg.event_wq_thread, &msm_chg.monitor_work, 1000);
+	queue_delayed_work(msm_chg.event_wq_thread, &msm_chg.monitor_work,
+			   1000);
 #endif
-/*                                     */
 
 #ifdef CONFIG_LGE_PM
-	 wake_lock_init(&uevent_wake_lock, WAKE_LOCK_SUSPEND, "charge_uevent");
+	wake_lock_init(&uevent_wake_lock, WAKE_LOCK_SUSPEND, "charge_uevent");
 
-     wake_lock_init(&adc_wake_lock, WAKE_LOCK_SUSPEND, "pmic8058_adc");
+	wake_lock_init(&adc_wake_lock, WAKE_LOCK_SUSPEND, "pmic8058_adc");
 #endif
 
 #ifdef CONFIG_LGE_AT_COMMAND_ABOUT_POWER
-  err = device_create_file(&pdev->dev, &dev_attr_at_charge);
-  err = device_create_file(&pdev->dev, &dev_attr_at_chcomp);
-  err = device_create_file(&pdev->dev, &dev_attr_at_fuelrst);
-  err = device_create_file(&pdev->dev, &dev_attr_at_fuelval);
-  err = device_create_file(&pdev->dev, &dev_attr_at_pmrst);
-  err = device_create_file(&pdev->dev, &dev_attr_at_batl);
+	err = device_create_file(&pdev->dev, &dev_attr_at_charge);
+	err = device_create_file(&pdev->dev, &dev_attr_at_chcomp);
+	err = device_create_file(&pdev->dev, &dev_attr_at_fuelrst);
+	err = device_create_file(&pdev->dev, &dev_attr_at_fuelval);
+	err = device_create_file(&pdev->dev, &dev_attr_at_pmrst);
+	err = device_create_file(&pdev->dev, &dev_attr_at_batl);
 #endif
 
 	wake_lock_init(&msm_chg.wl, WAKE_LOCK_SUSPEND, "msm_charger");
@@ -3150,12 +3038,12 @@ static int __devinit msm_charger_probe(struct platform_device *pdev)
 static int __devexit msm_charger_remove(struct platform_device *pdev)
 {
 #ifdef CONFIG_LGE_AT_COMMAND_ABOUT_POWER
-    device_remove_file(&pdev->dev, &dev_attr_at_charge);
-    device_remove_file(&pdev->dev, &dev_attr_at_chcomp);
-    device_remove_file(&pdev->dev, &dev_attr_at_fuelrst);
-    device_remove_file(&pdev->dev, &dev_attr_at_fuelval);
-    device_remove_file(&pdev->dev, &dev_attr_at_pmrst);
-    device_remove_file(&pdev->dev, &dev_attr_at_batl);
+	device_remove_file(&pdev->dev, &dev_attr_at_charge);
+	device_remove_file(&pdev->dev, &dev_attr_at_chcomp);
+	device_remove_file(&pdev->dev, &dev_attr_at_fuelrst);
+	device_remove_file(&pdev->dev, &dev_attr_at_fuelval);
+	device_remove_file(&pdev->dev, &dev_attr_at_pmrst);
+	device_remove_file(&pdev->dev, &dev_attr_at_batl);
 #endif
 
 	wake_lock_destroy(&msm_chg.wl);
@@ -3171,6 +3059,7 @@ int msm_charger_notify_event(struct msm_hardware_charger *hw_chg,
 	queue_work(msm_chg.event_wq_thread, &msm_chg.queue_work);
 	return 0;
 }
+
 EXPORT_SYMBOL(msm_charger_notify_event);
 
 int msm_charger_register(struct msm_hardware_charger *hw_chg)
@@ -3184,9 +3073,8 @@ int msm_charger_register(struct msm_hardware_charger *hw_chg)
 	}
 
 	if (hw_chg->start_charging == NULL
-		|| hw_chg->stop_charging == NULL
-		|| hw_chg->name == NULL
-		|| hw_chg->rating == 0) {
+	    || hw_chg->stop_charging == NULL
+	    || hw_chg->name == NULL || hw_chg->rating == 0) {
 		pr_err("%s: invalid hw_chg\n", __func__);
 		return -EINVAL;
 	}
@@ -3229,6 +3117,7 @@ out:
 	kfree(priv);
 	return rc;
 }
+
 EXPORT_SYMBOL(msm_charger_register);
 
 void msm_battery_gauge_register(struct msm_battery_gauge *batt_gauge)
@@ -3238,12 +3127,12 @@ void msm_battery_gauge_register(struct msm_battery_gauge *batt_gauge)
 	if (msm_batt_gauge) {
 		msm_batt_gauge = batt_gauge;
 		pr_err("msm-charger %s multiple battery gauge called\n",
-								__func__);
+		       __func__);
 	} else {
 		rc = power_supply_register(msm_chg.dev, &msm_psy_batt);
 		if (rc < 0) {
 			dev_err(msm_chg.dev, "%s: power_supply_register failed"
-					" rc=%d\n", __func__, rc);
+				" rc=%d\n", __func__, rc);
 			return;
 		}
 
@@ -3251,12 +3140,14 @@ void msm_battery_gauge_register(struct msm_battery_gauge *batt_gauge)
 		determine_initial_batt_status();
 	}
 }
+
 EXPORT_SYMBOL(msm_battery_gauge_register);
 
 void msm_battery_gauge_unregister(struct msm_battery_gauge *batt_gauge)
 {
 	msm_batt_gauge = NULL;
 }
+
 EXPORT_SYMBOL(msm_battery_gauge_unregister);
 
 int msm_charger_unregister(struct msm_hardware_charger *hw_chg)
@@ -3271,6 +3162,7 @@ int msm_charger_unregister(struct msm_hardware_charger *hw_chg)
 	kfree(priv);
 	return 0;
 }
+
 EXPORT_SYMBOL(msm_charger_unregister);
 
 static int msm_charger_suspend(struct device *dev)
@@ -3280,7 +3172,7 @@ static int msm_charger_suspend(struct device *dev)
 	cancel_delayed_work(&msm_chg.update_heartbeat_work);
 	mutex_lock(&msm_chg.status_lock);
 	handle_battery_removed();
-#ifdef CONFIG_LGE_PM_BATTERY_ALARM 
+#ifdef CONFIG_LGE_PM_BATTERY_ALARM
 	pm8xxx_batt_alarm_config_lge();
 #endif
 	mutex_unlock(&msm_chg.status_lock);
@@ -3290,42 +3182,27 @@ static int msm_charger_suspend(struct device *dev)
 static int msm_charger_resume(struct device *dev)
 {
 #ifdef CONFIG_LGE_PM_BATTERY_ALARM
-    int soc;
+	int soc;
 #endif
 	dev_dbg(msm_chg.dev, "%s resumed\n", __func__);
 	msm_chg.stop_update = 0;
 	/* start updaing the battery powersupply every msm_chg.update_time
 	 * milliseconds */
 	queue_delayed_work(msm_chg.event_wq_thread,
-				&msm_chg.update_heartbeat_work,
-			      round_jiffies_relative(msecs_to_jiffies
-						     (msm_chg.update_time)));
-	msm_chg.chg_current_set = 0; //                                   
+			   &msm_chg.update_heartbeat_work,
+			   round_jiffies_relative(msecs_to_jiffies
+						  (msm_chg.update_time)));
+	msm_chg.chg_current_set = 0;
 	mutex_lock(&msm_chg.status_lock);
 	handle_battery_inserted();
 
 #ifdef CONFIG_LGE_PM_BATTERY_ALARM
-	/*                                                     */
-	msm_charger_notify_event(NULL, CHG_BATT_REFRESH_EVENT); /*                                  */
+	msm_charger_notify_event(NULL, CHG_BATT_REFRESH_EVENT);
 	soc = max17040_get_battery_capacity_percent();
-#if 0 /*                                          */
-	pr_info("resume wake up fuel gauge is %d\n", soc);
-	if (soc ==14 || soc == 4 || soc == 0 ) {
-#else
-	//pr_info("resume wake up fuel gauge is %d\n", soc);
-	if (soc ==15 || soc == 5) {
-#endif
+	if (soc == 15 || soc == 5) {
 		pr_info("wake lock.............\n");
 	}
-#if 1
 	pm8xxx_batt_alarm_config_lge();
-#else
-	else if (!is_chg_plugged_in()) {
-		pm8xxx_batt_alarm_config_lge();
-	}
-	else
-		pm8xxx_batt_alarm_enable(PM8XXX_BATT_ALARM_LOWER_COMPARATOR);
-#endif	
 #endif
 
 	mutex_unlock(&msm_chg.status_lock);
@@ -3333,7 +3210,7 @@ static int msm_charger_resume(struct device *dev)
 }
 
 static SIMPLE_DEV_PM_OPS(msm_charger_pm_ops,
-		msm_charger_suspend, msm_charger_resume);
+			 msm_charger_suspend, msm_charger_resume);
 
 static struct platform_driver msm_charger_driver = {
 	.probe = msm_charger_probe,
@@ -3342,7 +3219,7 @@ static struct platform_driver msm_charger_driver = {
 		   .name = "msm-charger",
 		   .owner = THIS_MODULE,
 		   .pm = &msm_charger_pm_ops,
-	},
+		   },
 };
 
 static int __init msm_charger_init(void)
@@ -3354,8 +3231,7 @@ static int __init msm_charger_init(void)
 	mutex_init(&msm_chg.msm_hardware_chargers_lock);
 
 	msm_chg.queue = kzalloc(sizeof(struct msm_charger_event)
-				* MSM_CHG_MAX_EVENTS,
-				GFP_KERNEL);
+				* MSM_CHG_MAX_EVENTS, GFP_KERNEL);
 	if (!msm_chg.queue) {
 		rc = -ENOMEM;
 		goto out;
