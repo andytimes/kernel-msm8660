@@ -42,7 +42,7 @@ config THERMAL_TSENS
 	  Also able to set threshold temperature for both hot and cold and update
 	  when a threshold is reached.
 
-config THERMAL_TSENS8x60
+config THERMAL_TSENS8X60
 	tristate "New Qualcomm 8x60 Tsens Temperature Alarm"
 	depends on THERMAL
 	help
@@ -85,7 +85,7 @@ config THERMAL_PM8XXX
 
 config THERMAL_MONITOR
 	bool "Monitor thermal state and limit CPU Frequency"
-	depends on THERMAL_TSENS8960 || THERMAL_TSENS8974 || THERMAL_TSENS8x60
+	depends on THERMAL_TSENS8960 || THERMAL_TSENS8974 || THERMAL_TSENS8X60
 	depends on CPU_FREQ_MSM
 	help
 	  This enables thermal monitoring capability in the kernel in the
