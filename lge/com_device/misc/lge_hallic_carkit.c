@@ -13,7 +13,7 @@
 #include <linux/module.h>
 #include <linux/input.h>
 #include <linux/platform_device.h>
-#include <linux/workqueue.h>  
+#include <linux/workqueue.h>
 #include <linux/earlysuspend.h>
 #include <linux/switch.h>
 #include <mach/gpio.h>
@@ -30,7 +30,6 @@
 #define PM8058_GPIO_PM_TO_SYS(pm_gpio)		(pm_gpio + PM8058_GPIO_BASE)
 #define PM8058_IRQ_BASE				(NR_MSM_IRQS + NR_GPIO_IRQS)
 
-
 #define GPIO_CAR_CRADLE PM8058_GPIO_PM_TO_SYS(GPIO_CAR_CRADLE_DET-1)
 #define GPIO_CAR_CRADLE_INT PM8058_GPIO_IRQ(PM8058_IRQ_BASE, GPIO_CAR_CRADLE_DET-1)
 
@@ -39,7 +38,6 @@
 
 static void hall_ic_dock_work_func(struct work_struct *work);
 static struct workqueue_struct *hallic_dock_wq;
-
 
 static int suspend_flag = 0;
 #ifdef CONFIG_HAS_EARLYSUSPEND
@@ -52,8 +50,8 @@ struct hall_ic_dock_device {
 #ifndef CONFIG_MACH_LGE_I_BOARD_DCM
 	struct delayed_work work;
 	int s_hall_ic_carkit_gpio;
-	int s_hall_ic_desk_gpio;	
-#endif /*                             */
+	int s_hall_ic_desk_gpio;
+#endif				/*                             */
 };
 
 static struct hall_ic_dock_device *dock_dev = NULL;
@@ -61,41 +59,40 @@ static struct hall_ic_dock_device *dock_dev = NULL;
 #ifndef CONFIG_MACH_LGE_I_BOARD_DCM
 #if 1
 enum {
-	GPIO_UNDOCKED=1,
-	GPIO_CARKIT_DETECT=0,
-	GPIO_POUCH_DETECT=0,
+	GPIO_UNDOCKED = 1,
+	GPIO_CARKIT_DETECT = 0,
+	GPIO_POUCH_DETECT = 0,
 };
 #else
 enum {
-	GPIO_CARKIT_DETECT=0,
-	GPIO_DESK_DETECT=0,
+	GPIO_CARKIT_DETECT = 0,
+	GPIO_DESK_DETECT = 0,
 	GPIO_UNDOCKED = 1,
 };
 #endif
 
 enum {
-	HALL_IC_EARLY_SUSPEND 	= 2,
-	HALL_IC_EARLY_RESUME 	= 0,
-	HALL_IC_SUSPEND 		= 1,
-	HALL_IC_RESUME 			= 0,
+	HALL_IC_EARLY_SUSPEND = 2,
+	HALL_IC_EARLY_RESUME = 0,
+	HALL_IC_SUSPEND = 1,
+	HALL_IC_RESUME = 0,
 };
 #endif /*                             */
 
 enum {
-	DOCK_STATE_UNDOCKED	= 0,
-	DOCK_STATE_DESK = 1, /* multikit */
-	DOCK_STATE_CAR = 2,  /* carkit */
-	DOCK_STATE_POUCH = 256, /* pouch */
+	DOCK_STATE_UNDOCKED = 0,
+	DOCK_STATE_DESK = 1,	/* multikit */
+	DOCK_STATE_CAR = 2,	/* carkit */
+	DOCK_STATE_POUCH = 256,	/* pouch */
 	DOCK_STATE_UNKNOWN,
 };
 
 static int reported_dock_state = DOCK_STATE_UNDOCKED;
 
-void hall_ic_dock_report_event(int state) 
+void hall_ic_dock_report_event(int state)
 {
-	if(reported_dock_state != state)
-	{
-		printk(KERN_INFO"%s: report_state:%d\n",__func__,state);
+	if (reported_dock_state != state) {
+		printk(KERN_INFO "%s: report_state:%d\n", __func__, state);
 
 		switch_set_state(&dock_dev->sdev, state);
 		reported_dock_state = state;
@@ -103,6 +100,7 @@ void hall_ic_dock_report_event(int state)
 
 	return;
 }
+
 EXPORT_SYMBOL(hall_ic_dock_report_event);
 
 int hall_ic_get_dock_state(void)
@@ -124,26 +122,22 @@ static void hall_timer(unsigned long arg)
 #ifndef CONFIG_MACH_LGE_I_BOARD_DCM
 static void hall_ic_dock_work_func(struct work_struct *work)
 {
-//	struct hall_ic_dock_device *dev = container_of(work, struct hall_ic_dock_device, work);
+//      struct hall_ic_dock_device *dev = container_of(work, struct hall_ic_dock_device, work);
 	int state;
 
-	if(gpio_get_value_cansleep(GPIO_POUCH) == GPIO_POUCH_DETECT)
-	{
-   		printk("### pouch detect \n");
-		state = DOCK_STATE_POUCH; //DOCK_STATE_DESK;
-	}
-	else if(gpio_get_value_cansleep(GPIO_CAR_CRADLE) ==  GPIO_CARKIT_DETECT)
-	{
+	if (gpio_get_value_cansleep(GPIO_POUCH) == GPIO_POUCH_DETECT) {
+		printk("### pouch detect \n");
+		state = DOCK_STATE_POUCH;	//DOCK_STATE_DESK;
+	} else if (gpio_get_value_cansleep(GPIO_CAR_CRADLE) ==
+		   GPIO_CARKIT_DETECT) {
 		printk("### carkit detect \n");
 		state = DOCK_STATE_CAR;
-	}
-	else
-	{
-   		printk("### undock detect \n");	
+	} else {
+		printk("### undock detect \n");
 		state = DOCK_STATE_UNDOCKED;
 	}
 
-	printk(KERN_INFO"%s:  curr:%d, \n",__func__,state);
+	printk(KERN_INFO "%s:  curr:%d, \n", __func__, state);
 
 	hall_ic_dock_report_event(state);
 
@@ -156,7 +150,7 @@ static irqreturn_t hall_ic_dock_irq_handler(int irq, void *dev_id)
 	printk("### hall_ic_dock_irq_handler \n");
 
 	cancel_delayed_work(&dev->work);
-	queue_delayed_work(hallic_dock_wq, &dev->work, (HZ)/5);
+	queue_delayed_work(hallic_dock_wq, &dev->work, (HZ) / 5);
 	//queue_work(hallic_dock_wq, &dev->work);
 	return IRQ_HANDLED;
 }
@@ -165,23 +159,23 @@ static irqreturn_t hall_ic_dock_irq_handler(int irq, void *dev_id)
 static ssize_t hall_ic_dock_print_name(struct switch_dev *sdev, char *buf)
 {
 	switch (switch_get_state(sdev)) {
-		case DOCK_STATE_UNDOCKED:
-			return sprintf(buf, "UNDOCKED\n");
-		case DOCK_STATE_DESK:
-			return sprintf(buf, "DESK\n");
-		case DOCK_STATE_CAR:
-			return sprintf(buf, "CARKIT\n");
-		case DOCK_STATE_POUCH:
-			return sprintf(buf, "POUCH\n");
+	case DOCK_STATE_UNDOCKED:
+		return sprintf(buf, "UNDOCKED\n");
+	case DOCK_STATE_DESK:
+		return sprintf(buf, "DESK\n");
+	case DOCK_STATE_CAR:
+		return sprintf(buf, "CARKIT\n");
+	case DOCK_STATE_POUCH:
+		return sprintf(buf, "POUCH\n");
 	}
 	return -EINVAL;
 }
 
 #ifndef CONFIG_MACH_LGE_I_BOARD_DCM
 #ifdef CONFIG_HAS_EARLYSUSPEND
-static void hall_early_suspend(struct early_suspend *h) 
+static void hall_early_suspend(struct early_suspend *h)
 {
-	printk(KERN_INFO"%s: \n",__func__);
+	printk(KERN_INFO "%s: \n", __func__);
 	suspend_flag = HALL_IC_EARLY_SUSPEND;
 
 	return;
@@ -189,36 +183,37 @@ static void hall_early_suspend(struct early_suspend *h)
 
 static void hall_late_resume(struct early_suspend *h)
 {
-	printk(KERN_INFO"%s: \n",__func__);	
+	printk(KERN_INFO "%s: \n", __func__);
 	suspend_flag = HALL_IC_EARLY_RESUME;
 	return;
 }
 #endif
 
-static int hall_ic_dock_suspend(struct platform_device *pdev, pm_message_t state) 
+static int hall_ic_dock_suspend(struct platform_device *pdev,
+				pm_message_t state)
 {
 	suspend_flag = HALL_IC_SUSPEND;
 	return 0;
 }
 
-static int hall_ic_dock_resume(struct platform_device *pdev) 
+static int hall_ic_dock_resume(struct platform_device *pdev)
 {
 	suspend_flag = HALL_IC_RESUME;
 	return 0;
 }
 #endif /*                             */
 
-static ssize_t dock_mode_store(
-		struct device *dev, struct device_attribute *attr, 
-		const char *buf, size_t size)
+static ssize_t dock_mode_store(struct device *dev,
+			       struct device_attribute *attr, const char *buf,
+			       size_t size)
 {
-	if (!strncmp(buf, "undock", size - 1)) 
+	if (!strncmp(buf, "undock", size - 1))
 		hall_ic_dock_report_event(DOCK_STATE_UNDOCKED);
-	else if (!strncmp(buf, "desk", size - 1)) 
+	else if (!strncmp(buf, "desk", size - 1))
 		hall_ic_dock_report_event(DOCK_STATE_DESK);
-	else if (!strncmp(buf, "car", size -1))
+	else if (!strncmp(buf, "car", size - 1))
 		hall_ic_dock_report_event(DOCK_STATE_CAR);
-	else if (!strncmp(buf, "pouch", size -1))
+	else if (!strncmp(buf, "pouch", size - 1))
 		hall_ic_dock_report_event(DOCK_STATE_POUCH);
 	else
 		return -EINVAL;
@@ -226,14 +221,14 @@ static ssize_t dock_mode_store(
 	return size;
 }
 
-static DEVICE_ATTR(report, S_IRUGO | S_IWUSR, NULL , dock_mode_store);
+static DEVICE_ATTR(report, S_IRUGO | S_IWUSR, NULL, dock_mode_store);
 
 static int hall_ic_dock_probe(struct platform_device *pdev)
 {
 	struct hall_ic_dock_device *dev;
 	int ret;
 #ifndef CONFIG_MACH_LGE_I_BOARD_DCM
-    int err;
+	int err;
 	int state;
 #endif /*                             */
 
@@ -253,77 +248,84 @@ static int hall_ic_dock_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&dev->work, hall_ic_dock_work_func);
 
 	ret = gpio_request(GPIO_CAR_CRADLE, "carkit_detect");
-	if(ret < 0)
+	if (ret < 0)
 		goto err_request_carkit_detect_gpio;
 
 	ret = gpio_direction_input(GPIO_CAR_CRADLE);
 	if (ret < 0)
 		goto err_set_carkit_detect_gpio;
-	
-	ret = request_threaded_irq(GPIO_CAR_CRADLE_INT,NULL, hall_ic_dock_irq_handler,
-			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,"hall-ic-carkit", dev);
+
+	ret =
+	    request_threaded_irq(GPIO_CAR_CRADLE_INT, NULL,
+				 hall_ic_dock_irq_handler,
+				 IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+				 "hall-ic-carkit", dev);
 
 	if (ret) {
-		printk("\nHALL IC CARKIT IRQ Check-fail\n pdev->client->irq %d\n",dev->s_hall_ic_carkit_gpio);
+		printk
+		    ("\nHALL IC CARKIT IRQ Check-fail\n pdev->client->irq %d\n",
+		     dev->s_hall_ic_carkit_gpio);
 		goto err_request_carkit_detect_irq;
 	}
 
 	err = irq_set_irq_wake(GPIO_CAR_CRADLE_INT, 1);
 	if (err) {
 		pr_err("hall-ic-carkit: set_irq_wake failed for gpio %d, "
-				"irq %d\n", GPIO_CAR_CRADLE, GPIO_CAR_CRADLE_INT);
+		       "irq %d\n", GPIO_CAR_CRADLE, GPIO_CAR_CRADLE_INT);
 	}
 
-
-
 	ret = gpio_request(GPIO_POUCH, "pouch_detect");
-	if(ret < 0)
+	if (ret < 0)
 		goto err_request_carkit_detect_gpio;
 
 	ret = gpio_direction_input(GPIO_POUCH);
 	if (ret < 0)
 		goto err_set_carkit_detect_gpio;
 
-	ret = request_threaded_irq(GPIO_POUCH_INT,NULL, hall_ic_dock_irq_handler,
-			IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,"hall-ic-pouch", dev);
+	ret =
+	    request_threaded_irq(GPIO_POUCH_INT, NULL, hall_ic_dock_irq_handler,
+				 IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+				 "hall-ic-pouch", dev);
 
 	if (ret) {
-		printk("\nHALL IC CARKIT IRQ Check-fail\n pdev->client->irq %d\n",dev->s_hall_ic_carkit_gpio);
+		printk
+		    ("\nHALL IC CARKIT IRQ Check-fail\n pdev->client->irq %d\n",
+		     dev->s_hall_ic_carkit_gpio);
 		goto err_request_carkit_detect_irq;
 	}
 
 	err = irq_set_irq_wake(GPIO_POUCH_INT, 1);
 	if (err) {
 		pr_err("hall-ic-carkit: set_irq_wake failed for gpio %d, "
-				"irq %d\n", GPIO_POUCH, GPIO_POUCH_INT);
+		       "irq %d\n", GPIO_POUCH, GPIO_POUCH_INT);
 	}
-
 #if 0
 	dev->s_hall_ic_desk_gpio = gpio_to_irq(GPIO_DESK_IRQ);
 	ret = request_irq(dev->s_hall_ic_desk_gpio, hall_ic_dock_irq_handler,
-			IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING,
-			"hall-ic-multikit", dev); 
+			  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+			  "hall-ic-multikit", dev);
 
 	if (ret) {
-		printk("\nHALL IC MULTIKIT IRQ Check-fail\n pdev->client->irq %d\n",dev->s_hall_ic_desk_gpio);
+		printk
+		    ("\nHALL IC MULTIKIT IRQ Check-fail\n pdev->client->irq %d\n",
+		     dev->s_hall_ic_desk_gpio);
 		goto err_request_multikit_detect_irq;
 	}
 
 	err = irq_set_irq_wake(dev->s_hall_ic_desk_gpio, 1);
 	if (err) {
 		pr_err("hall-ic-multikit: set_irq_wake failed for gpio %d, "
-				"irq %d\n", GPIO_DESK_IRQ, dev->s_hall_ic_desk_gpio);
+		       "irq %d\n", GPIO_DESK_IRQ, dev->s_hall_ic_desk_gpio);
 	}
 #endif
 #endif /*                             */
 
 	ret = device_create_file(&pdev->dev, &dev_attr_report);
 	if (ret) {
-		printk( "hall-ic-dock_probe: device create file Fail\n");
+		printk("hall-ic-dock_probe: device create file Fail\n");
 		device_remove_file(&pdev->dev, &dev_attr_report);
 		goto err_request_irq;
 	}
-
 #ifndef CONFIG_MACH_LGE_I_BOARD_DCM
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	hall_ic_early_suspend.suspend = hall_early_suspend;
@@ -333,27 +335,22 @@ static int hall_ic_dock_probe(struct platform_device *pdev)
 #endif
 
 	/* check initial dock state */
-	if(gpio_get_value_cansleep(GPIO_POUCH) == GPIO_POUCH_DETECT)
-	{
-   		printk("### pouch detect \n");
-		state = DOCK_STATE_POUCH; //DOCK_STATE_DESK;
-	}
-	else if(gpio_get_value_cansleep(GPIO_CAR_CRADLE) ==  GPIO_CARKIT_DETECT)
-	{
+	if (gpio_get_value_cansleep(GPIO_POUCH) == GPIO_POUCH_DETECT) {
+		printk("### pouch detect \n");
+		state = DOCK_STATE_POUCH;	//DOCK_STATE_DESK;
+	} else if (gpio_get_value_cansleep(GPIO_CAR_CRADLE) ==
+		   GPIO_CARKIT_DETECT) {
 		printk("### carkit detect \n");
 		state = DOCK_STATE_CAR;
-	}
-	else
-	{
-   		printk("### undock detect \n");	
+	} else {
+		printk("### undock detect \n");
 		state = DOCK_STATE_UNDOCKED;
 	}
 
-	printk(KERN_INFO"%s:  curr:%d, \n",__func__,state);
+	printk(KERN_INFO "%s:  curr:%d, \n", __func__, state);
 
 	hall_ic_dock_report_event(state);
 #endif /*                             */
-
 
 	printk(KERN_ERR "hall_ic_dock: hall_ic_dock_probe: Done\n");
 	return 0;
@@ -361,7 +358,7 @@ static int hall_ic_dock_probe(struct platform_device *pdev)
 err_request_irq:
 #ifndef CONFIG_MACH_LGE_I_BOARD_DCM
 	free_irq(GPIO_CAR_CRADLE_INT, 0);
-#if 0	
+#if 0
 	free_irq(dev->s_hall_ic_desk_gpio, 0);
 #endif
 //err_request_multikit_detect_irq:
@@ -369,7 +366,7 @@ err_request_irq:
 err_request_carkit_detect_irq:
 //err_set_multikit_detect_gpio:
 err_set_carkit_detect_gpio:
-#if 0	
+#if 0
 	gpio_free(GPIO_DESK_IRQ);
 #endif
 //err_request_multikit_detect_gpio:
@@ -383,7 +380,7 @@ err_switch_dev_register:
 	return ret;
 }
 
-static int hall_ic_dock_remove(struct platform_device *pdev) 
+static int hall_ic_dock_remove(struct platform_device *pdev)
 {
 	struct hall_ic_dock_device *dev = dock_dev;
 
@@ -402,23 +399,23 @@ static int hall_ic_dock_remove(struct platform_device *pdev)
 }
 
 static struct platform_driver hall_ic_dock_driver = {
-	.probe		= hall_ic_dock_probe,
-	.remove		= hall_ic_dock_remove,
+	.probe = hall_ic_dock_probe,
+	.remove = hall_ic_dock_remove,
 #ifndef CONFIG_MACH_LGE_I_BOARD_DCM
-	.suspend 	= hall_ic_dock_suspend,
-	.resume		= hall_ic_dock_resume,
+	.suspend = hall_ic_dock_suspend,
+	.resume = hall_ic_dock_resume,
 #endif /*                             */
-	.driver		= {
-		.name		= "hall-ic-dock",
-		.owner		= THIS_MODULE,
-	},
+	.driver = {
+		   .name = "hall-ic-dock",
+		   .owner = THIS_MODULE,
+		   },
 };
 
 static int __init hall_ic_dock_init(void)
 {
 #ifndef CONFIG_MACH_LGE_I_BOARD_DCM
 	hallic_dock_wq = create_singlethread_workqueue("hallic_dock_wq");
-	if (!hallic_dock_wq){
+	if (!hallic_dock_wq) {
 		return -ENOMEM;
 	}
 #endif /*                             */

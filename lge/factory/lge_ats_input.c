@@ -19,20 +19,20 @@
  *  along with this program; if not, you can find it at http://www.fsf.org
  */
 
-#if 1 /*                                               */
-#include <linux/module.h>   /* kernel module definitions */
+#if 1				/*                                               */
+#include <linux/module.h>	/* kernel module definitions */
 #endif
 #include <linux/platform_device.h>
 #include <linux/input.h>
 
 #define DRIVER_NAME "ats_input"
 //                                            
-// ADD 0010583: [ETA/MTC] ETA Capture, Key, Touch, Logging / MTC Key, Logging 		
+// ADD 0010583: [ETA/MTC] ETA Capture, Key, Touch, Logging / MTC Key, Logging           
 #if 0
-extern int touch_get_x_max (void);
+extern int touch_get_x_max(void);
 extern int touch_get_y_max(void);
 //                                           
-#endif  
+#endif
 static struct input_dev *ats_input_dev;
 
 /* add interface get ATS_INPUT_DEVICE [younchan.kim, 2010-06-11] */
@@ -40,8 +40,8 @@ struct input_dev *get_ats_input_dev(void)
 {
 	return ats_input_dev;
 }
-EXPORT_SYMBOL(get_ats_input_dev);
 
+EXPORT_SYMBOL(get_ats_input_dev);
 
 static int __devinit ats_input_probe(struct platform_device *pdev)
 {
@@ -50,29 +50,33 @@ static int __devinit ats_input_probe(struct platform_device *pdev)
 
 	ats_input_dev = input_allocate_device();
 	if (!ats_input_dev) {
-		printk(KERN_ERR "%s: not enough memory for input device\n", __func__);
+		printk(KERN_ERR "%s: not enough memory for input device\n",
+		       __func__);
 		return -ENOMEM;
 	}
 	ats_input_dev->name = "ats_input";
 
-	for(i=0; i<EV_CNT; i++)
+	for (i = 0; i < EV_CNT; i++)
 		set_bit(i, ats_input_dev->evbit);
-	for(i=0; i<KEY_CNT; i++)
+	for (i = 0; i < KEY_CNT; i++)
 		set_bit(i, ats_input_dev->keybit);
 	set_bit(ABS_MT_TOUCH_MAJOR, ats_input_dev->absbit);
 	clear_bit(EV_REP, ats_input_dev->evbit);
 
 	rc = input_register_device(ats_input_dev);
 	if (rc)
-		printk(KERN_ERR"%s : input_register_device failed\n", __func__);
+		printk(KERN_ERR "%s : input_register_device failed\n",
+		       __func__);
 
 	/* FIXME: Touch resolution should be given by platform data */
 //                                            
 // MOD 0010583: [ETA/MTC] ETA Capture, Key, Touch, Logging / MTC Key, Logging  
 #if 0
-	input_set_abs_params(ats_input_dev, ABS_MT_POSITION_X, 0, touch_get_x_max(), 0, 0);
-	input_set_abs_params(ats_input_dev, ABS_MT_POSITION_Y, 0, touch_get_y_max(), 0, 0);
-#endif 
+	input_set_abs_params(ats_input_dev, ABS_MT_POSITION_X, 0,
+			     touch_get_x_max(), 0, 0);
+	input_set_abs_params(ats_input_dev, ABS_MT_POSITION_Y, 0,
+			     touch_get_y_max(), 0, 0);
+#endif
 //                                           
 	return rc;
 }
@@ -85,10 +89,10 @@ static int ats_input_remove(struct platform_device *pdev)
 
 static struct platform_driver ats_input_driver = {
 	.driver = {
-		.name = DRIVER_NAME,
-		.owner = THIS_MODULE,
-	},
-	.probe	 = ats_input_probe,
+		   .name = DRIVER_NAME,
+		   .owner = THIS_MODULE,
+		   },
+	.probe = ats_input_probe,
 	.remove = ats_input_remove,
 };
 
@@ -96,7 +100,6 @@ static int __init ats_input_init(void)
 {
 	return platform_driver_register(&ats_input_driver);
 }
-
 
 static void __exit ats_input_exit(void)
 {

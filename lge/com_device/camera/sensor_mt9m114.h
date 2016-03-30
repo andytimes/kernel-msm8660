@@ -25,12 +25,11 @@
 /* Enum Type for different ISO Mode supported */
 enum mt9m114_iso_value {
 	CAMERA_ISO_AUTO = 0,
-	CAMERA_ISO_100 =2,
+	CAMERA_ISO_100 = 2,
 	CAMERA_ISO_200,
 	CAMERA_ISO_400,
 	CAMERA_ISO_MAX
 };
-
 
 extern struct mt9m114_reg mt9m114_regs;
 
@@ -90,8 +89,7 @@ struct mt9m114_reg {
 	// Change-config
 	struct mt9m114_i2c_reg_conf const *change_config_tbl;
 	uint16_t change_config_tbl_size;
-	
-};
 
+};
 
 #endif /* MT9M114_H */

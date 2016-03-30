@@ -54,8 +54,8 @@
 
 #include "fsa8008.h"
 
-#undef  LGE_HSD_DEBUG_PRINT // TODO
-#define LGE_HSD_DEBUG_PRINT // TODO
+#undef  LGE_HSD_DEBUG_PRINT	// TODO
+#define LGE_HSD_DEBUG_PRINT	// TODO
 #undef  LGE_HSD_ERROR_PRINT
 #define LGE_HSD_ERROR_PRINT
 
@@ -90,20 +90,20 @@ struct hsd_info {
 	struct mutex mutex_lock;
 
 /* h/w configuration : initilized by platform data */
-	unsigned int gpio_detect; /* DET : to detect jack inserted or not */
-	unsigned int gpio_mic_en; /* EN : to enable mic */
-	unsigned int gpio_jpole;  /* JPOLE : 3pole or 4pole */
-	unsigned int gpio_key;    /* S/E button */
+	unsigned int gpio_detect;	/* DET : to detect jack inserted or not */
+	unsigned int gpio_mic_en;	/* EN : to enable mic */
+	unsigned int gpio_jpole;	/* JPOLE : 3pole or 4pole */
+	unsigned int gpio_key;	/* S/E button */
 
-	void (*set_headset_mic_bias)(int enable); /* callback function which is initialized while probing */
+	void (*set_headset_mic_bias) (int enable);	/* callback function which is initialized while probing */
 
 	unsigned int latency_for_detection;
 	unsigned int latency_for_key;
 
-    //                              
-    // RCA & TD 316355 
-    unsigned int latency_for_key_release;
-    unsigned int key_code;
+	//                              
+	// RCA & TD 316355 
+	unsigned int latency_for_key_release;
+	unsigned int key_code;
 
 /* irqs */
 	unsigned int irq_detect;
@@ -119,7 +119,7 @@ struct hsd_info {
 };
 
 enum {
-	NO_DEVICE   = 0,
+	NO_DEVICE = 0,
 	LGE_HEADSET = (1 << 0),
 	LGE_HEADSET_NO_MIC = (1 << 1),
 };
@@ -129,10 +129,9 @@ enum {
 	TRUE = 1,
 };
 
-#ifdef CONFIG_LGE_BROADCAST_DCM //for 325 BATMAN MMBI
+#ifdef CONFIG_LGE_BROADCAST_DCM	//for 325 BATMAN MMBI
 static int ear_state = 0;
 #endif
-
 
 #define AT_TEST_GPKD
 
@@ -142,26 +141,25 @@ static char start_keylog;
 
 #if defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_LGU) || defined(CONFIG_MACH_LGE_325_BOARD_DCM)
 
-
 static struct class *fsa8008_class;
-
 
 #endif
 
-
 #if defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_LGU) || defined(CONFIG_MACH_LGE_325_BOARD_DCM)
 
-ssize_t hookkeylog_show_onoff(struct class *class, struct class_attribute *attr, char *buf)
+ssize_t hookkeylog_show_onoff(struct class *class, struct class_attribute *attr,
+			      char *buf)
 {
 	int r = 0;
 
 	r = sprintf(buf, "%c%c\n", start_keylog, hook_keycode);
-    hook_keycode = ' ';
+	hook_keycode = ' ';
 	return r;
 }
 
-
-ssize_t hookkeylog_store_onoff(struct class *class, struct class_attribute *attr, const char *buf, size_t count)
+ssize_t hookkeylog_store_onoff(struct class * class,
+			       struct class_attribute * attr, const char *buf,
+			       size_t count)
 {
 	unsigned char string[2];
 
@@ -170,32 +168,32 @@ ssize_t hookkeylog_store_onoff(struct class *class, struct class_attribute *attr
 	if (!count)
 		return -EINVAL;
 
-	if(!strncmp(string, "0", 1))
-	{
+	if (!strncmp(string, "0", 1)) {
 		start_keylog = '0';
 		hook_keycode = ' ';
-	}
-	else if(!strncmp(string, "1", 1))
+	} else if (!strncmp(string, "1", 1))
 		start_keylog = '1';
 
 	return count;
 }
 
-
-static CLASS_ATTR(hookkeylog, 0664, hookkeylog_show_onoff, hookkeylog_store_onoff);
+static CLASS_ATTR(hookkeylog, 0664, hookkeylog_show_onoff,
+		  hookkeylog_store_onoff);
 #else
-ssize_t hookkeylog_show_onoff(struct device *dev, struct device_attribute *attr, char *buf)
+ssize_t hookkeylog_show_onoff(struct device *dev, struct device_attribute *attr,
+			      char *buf)
 {
 	int r = 0;
 
 	r = sprintf(buf, "%c%c\n", start_keylog, hook_keycode);
-    hook_keycode = ' ';
+	hook_keycode = ' ';
 
 	return r;
 }
 
-
-ssize_t hookkeylog_store_onoff(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+ssize_t hookkeylog_store_onoff(struct device * dev,
+			       struct device_attribute * attr, const char *buf,
+			       size_t count)
 {
 	unsigned char string[2];
 
@@ -204,17 +202,14 @@ ssize_t hookkeylog_store_onoff(struct device *dev, struct device_attribute *attr
 	if (!count)
 		return -EINVAL;
 
-	if(!strncmp(string, "0", 1))
-	{
+	if (!strncmp(string, "0", 1)) {
 		start_keylog = '0';
 		hook_keycode = ' ';
-	}
-	else if(!strncmp(string, "1", 1))
+	} else if (!strncmp(string, "1", 1))
 		start_keylog = '1';
 
 	return count;
 }
-
 
 DEVICE_ATTR(hookkeylog, 0664, hookkeylog_show_onoff, hookkeylog_store_onoff);
 
@@ -246,14 +241,18 @@ static ssize_t lge_hsd_print_state(struct switch_dev *sdev, char *buf)
 
 static void button_pressed(struct work_struct *work)
 {
-	struct delayed_work *dwork = container_of(work, struct delayed_work, work);
-	struct hsd_info *hi = container_of(dwork, struct hsd_info, work_for_key_pressed);
+	struct delayed_work *dwork =
+	    container_of(work, struct delayed_work, work);
+	struct hsd_info *hi =
+	    container_of(dwork, struct hsd_info, work_for_key_pressed);
 
-//	msleep(1);
+//      msleep(1);
 
 	//if (gpio_get_value_cansleep(hi->gpio_detect)){
-	if (gpio_get_value_cansleep(hi->gpio_detect) && (switch_get_state(&hi->sdev)== LGE_HEADSET)){
-		HSD_ERR("button_pressed but ear jack is plugged out already! just ignore the event.\n");
+	if (gpio_get_value_cansleep(hi->gpio_detect)
+	    && (switch_get_state(&hi->sdev) == LGE_HEADSET)) {
+		HSD_ERR
+		    ("button_pressed but ear jack is plugged out already! just ignore the event.\n");
 		return;
 	}
 
@@ -263,7 +262,7 @@ static void button_pressed(struct work_struct *work)
 	input_report_key(hi->input, hi->key_code, 1);
 
 #ifdef AT_TEST_GPKD
-	if(start_keylog == '1')
+	if (start_keylog == '1')
 		hook_keycode = 'H';
 #endif
 
@@ -272,12 +271,16 @@ static void button_pressed(struct work_struct *work)
 
 static void button_released(struct work_struct *work)
 {
-	struct delayed_work *dwork = container_of(work, struct delayed_work, work);
-	struct hsd_info *hi = container_of(dwork, struct hsd_info, work_for_key_released);
+	struct delayed_work *dwork =
+	    container_of(work, struct delayed_work, work);
+	struct hsd_info *hi =
+	    container_of(dwork, struct hsd_info, work_for_key_released);
 
 	//if (gpio_get_value_cansleep(hi->gpio_detect)){
-	if (gpio_get_value_cansleep(hi->gpio_detect) && (switch_get_state(&hi->sdev)== LGE_HEADSET)){
-		HSD_ERR("button_released but ear jack is plugged out already! just ignore the event.\n");
+	if (gpio_get_value_cansleep(hi->gpio_detect)
+	    && (switch_get_state(&hi->sdev) == LGE_HEADSET)) {
+		HSD_ERR
+		    ("button_released but ear jack is plugged out already! just ignore the event.\n");
 		return;
 	}
 
@@ -294,7 +297,8 @@ static void insert_headset(struct hsd_info *hi)
 
 	HSD_DBG("insert_headset\n");
 
-	if (hi->set_headset_mic_bias) hi->set_headset_mic_bias(TRUE);
+	if (hi->set_headset_mic_bias)
+		hi->set_headset_mic_bias(TRUE);
 	gpio_set_value_cansleep(hi->gpio_mic_en, 1);
 
 	msleep(hi->latency_for_detection);
@@ -311,7 +315,8 @@ static void insert_headset(struct hsd_info *hi)
 		mutex_unlock(&hi->mutex_lock);
 
 		gpio_set_value_cansleep(hi->gpio_mic_en, 0);
-		if (hi->set_headset_mic_bias) hi->set_headset_mic_bias(FALSE);
+		if (hi->set_headset_mic_bias)
+			hi->set_headset_mic_bias(FALSE);
 
 	} else {
 		HSD_DBG("4 polarity earjack\n");
@@ -340,7 +345,8 @@ static void remove_headset(struct hsd_info *hi)
 	HSD_DBG("remove_headset\n");
 
 	gpio_set_value_cansleep(hi->gpio_mic_en, 0);
-	if (hi->set_headset_mic_bias) hi->set_headset_mic_bias(FALSE);
+	if (hi->set_headset_mic_bias)
+		hi->set_headset_mic_bias(FALSE);
 
 	atomic_set(&hi->is_3_pole_or_not, 1);
 	mutex_lock(&hi->mutex_lock);
@@ -356,34 +362,37 @@ static void remove_headset(struct hsd_info *hi)
 		atomic_set(&hi->irq_key_enabled, FALSE);
 	}
 
-    if (atomic_read(&hi->btn_state))
-    {   
+	if (atomic_read(&hi->btn_state)) {
 #ifdef	CONFIG_FSA8008_USE_LOCAL_WORK_QUEUE
-        //                              
-        //TD 316355 
-        //queue_delayed_work(local_fsa8008_workqueue, &(hi->work_for_key_released), hi->latency_for_key );
-    	queue_delayed_work(local_fsa8008_workqueue, &(hi->work_for_key_released), hi->latency_for_key_release );
+		//                              
+		//TD 316355 
+		//queue_delayed_work(local_fsa8008_workqueue, &(hi->work_for_key_released), hi->latency_for_key );
+		queue_delayed_work(local_fsa8008_workqueue,
+				   &(hi->work_for_key_released),
+				   hi->latency_for_key_release);
 #else
-        schedule_delayed_work(&(hi->work_for_key_released), hi->latency_for_key );
+		schedule_delayed_work(&(hi->work_for_key_released),
+				      hi->latency_for_key);
 #endif
-     }
+	}
 }
 
-#ifdef CONFIG_LGE_BROADCAST_DCM //for 325 BATMAN MMBI
+#ifdef CONFIG_LGE_BROADCAST_DCM	//for 325 BATMAN MMBI
 extern void isdbt_hw_antenna_switch(int ear_state);
 #endif
 static void detect_work(struct work_struct *work)
 {
 	int state;
-	#if 0
+#if 0
 	unsigned long irq_flags;
-	#endif
-	struct delayed_work *dwork = container_of(work, struct delayed_work, work);
+#endif
+	struct delayed_work *dwork =
+	    container_of(work, struct delayed_work, work);
 	struct hsd_info *hi = container_of(dwork, struct hsd_info, work);
 
 	HSD_DBG("detect_work\n");
 
-	#if 0
+#if 0
 	local_irq_save(irq_flags);
 	disable_irq(hi->irq_detect);
 	local_irq_restore(irq_flags);
@@ -395,10 +404,10 @@ static void detect_work(struct work_struct *work)
 		if (switch_get_state(&hi->sdev) != NO_DEVICE) {
 			HSD_DBG("==== LGE headset removing\n");
 			remove_headset(hi);
-			#ifdef CONFIG_LGE_BROADCAST_DCM
+#ifdef CONFIG_LGE_BROADCAST_DCM
 			isdbt_hw_antenna_switch(0);
 			ear_state = 0;
-			#endif
+#endif
 		} else {
 			HSD_DBG("err_invalid_state state = %d\n", state);
 		}
@@ -407,59 +416,61 @@ static void detect_work(struct work_struct *work)
 		if (switch_get_state(&hi->sdev) == NO_DEVICE) {
 			HSD_DBG("==== LGE headset inserting\n");
 			insert_headset(hi);
-			#ifdef CONFIG_LGE_BROADCAST_DCM
+#ifdef CONFIG_LGE_BROADCAST_DCM
 			isdbt_hw_antenna_switch(1);
 			ear_state = 1;
-			#endif
+#endif
 		} else {
 			HSD_DBG("err_invalid_state state = %d\n", state);
 		}
 	}
 
-	#if 0
+#if 0
 	local_irq_save(irq_flags);
 	enable_irq(hi->irq_detect);
 	local_irq_restore(irq_flags);
 #endif
 }
 
-#ifdef CONFIG_LGE_BROADCAST_DCM //for 325 BATMAN MMBI
+#ifdef CONFIG_LGE_BROADCAST_DCM	//for 325 BATMAN MMBI
 int check_ear_state(void)
 {
 	return ear_state;
 }
+
 EXPORT_SYMBOL(check_ear_state);
 #endif
 
 static irqreturn_t gpio_irq_handler(int irq, void *dev_id)
 {
-	struct hsd_info *hi = (struct hsd_info *) dev_id;
-	
-	#if 0
+	struct hsd_info *hi = (struct hsd_info *)dev_id;
+
+#if 0
 	int value = gpio_get_value_cansleep(hi->gpio_detect);
 #endif
-	wake_lock_timeout(&ear_hook_wake_lock, 2 * HZ); 
+	wake_lock_timeout(&ear_hook_wake_lock, 2 * HZ);
 
 	HSD_DBG("gpio_irq_handler\n");
 
-	#if 0
-	if ((switch_get_state(&hi->sdev) ^ !value)) { /* the detection status is inverted */
+#if 0
+	if ((switch_get_state(&hi->sdev) ^ !value)) {	/* the detection status is inverted */
 		schedule_work(&(hi->work));
 	}
 #else
 
 #ifdef CONFIG_FSA8008_USE_LOCAL_WORK_QUEUE
 
-#if 1 //                               
-	queue_delayed_work(local_fsa8008_workqueue, &(hi->work), HZ/2 /* 500ms */);
+#if 1				//
+	queue_delayed_work(local_fsa8008_workqueue, &(hi->work),
+			   HZ / 2 /* 500ms */ );
 #else
 	queue_delayed_work(local_fsa8008_workqueue, &(hi->work), 0);
 #endif
 
 #else
 
-#if 1 //                               
-	schedule_delayed_work(&(hi->work), HZ/2 /* 500ms */);
+#if 1				//
+	schedule_delayed_work(&(hi->work), HZ / 2 /* 500ms */ );
 #else
 	schedule_delayed_work(&(hi->work), 0);
 #endif
@@ -472,31 +483,36 @@ static irqreturn_t gpio_irq_handler(int irq, void *dev_id)
 
 static irqreturn_t button_irq_handler(int irq, void *dev_id)
 {
-	struct hsd_info *hi = (struct hsd_info *) dev_id;
+	struct hsd_info *hi = (struct hsd_info *)dev_id;
 
 	int value;
 
-	wake_lock_timeout(&ear_hook_wake_lock, 2 * HZ); 
+	wake_lock_timeout(&ear_hook_wake_lock, 2 * HZ);
 
 	HSD_DBG("button_irq_handler\n");
 
 	value = gpio_get_value_cansleep(hi->gpio_key);
 
 #ifdef	CONFIG_FSA8008_USE_LOCAL_WORK_QUEUE
-    if (value) 
-    {
-        queue_delayed_work(local_fsa8008_workqueue, &(hi->work_for_key_pressed), hi->latency_for_key );
-    }
-    else
-    {
-        //                              
-        //TD 316355     
-        //queue_delayed_work(local_fsa8008_workqueue, &(hi->work_for_key_released), hi->latency_for_key );
-    	queue_delayed_work(local_fsa8008_workqueue, &(hi->work_for_key_released), hi->latency_for_key_release );
-    }
+	if (value) {
+		queue_delayed_work(local_fsa8008_workqueue,
+				   &(hi->work_for_key_pressed),
+				   hi->latency_for_key);
+	} else {
+		//                              
+		//TD 316355     
+		//queue_delayed_work(local_fsa8008_workqueue, &(hi->work_for_key_released), hi->latency_for_key );
+		queue_delayed_work(local_fsa8008_workqueue,
+				   &(hi->work_for_key_released),
+				   hi->latency_for_key_release);
+	}
 #else
-	if (value) schedule_delayed_work(&(hi->work_for_key_pressed), hi->latency_for_key );
-	else schedule_delayed_work(&(hi->work_for_key_released), hi->latency_for_key );
+	if (value)
+		schedule_delayed_work(&(hi->work_for_key_pressed),
+				      hi->latency_for_key);
+	else
+		schedule_delayed_work(&(hi->work_for_key_released),
+				      hi->latency_for_key);
 #endif
 
 	return IRQ_HANDLED;
@@ -505,7 +521,7 @@ static irqreturn_t button_irq_handler(int irq, void *dev_id)
 static int lge_hsd_probe(struct platform_device *pdev)
 {
 #ifdef AT_TEST_GPKD
-	 int err;
+	int err;
 #endif
 
 	int ret = 0;
@@ -536,13 +552,13 @@ static int lge_hsd_probe(struct platform_device *pdev)
 	hi->set_headset_mic_bias = pdata->set_headset_mic_bias;
 
 	hi->latency_for_detection = pdata->latency_for_detection;
-    //hi->latency_for_key = 0;
-    //                              
-    //TD 316355        
-    //hi->latency_for_key = 200 /* milli */ * HZ / 1000; /* convert milli to jiffies */
-    hi->latency_for_key = 30 /* milli */ * HZ / 1000; /* convert milli to jiffies */
-    hi->latency_for_key_release = 40 /* milli */ * HZ / 1000; /* convert milli to jiffies */
-    
+	//hi->latency_for_key = 0;
+	//                              
+	//TD 316355        
+	//hi->latency_for_key = 200 /* milli */ * HZ / 1000; /* convert milli to jiffies */
+	hi->latency_for_key = 30 /* milli */  * HZ / 1000;	/* convert milli to jiffies */
+	hi->latency_for_key_release = 40 /* milli */  * HZ / 1000;	/* convert milli to jiffies */
+
 	mutex_init(&hi->mutex_lock);
 	INIT_DELAYED_WORK(&hi->work, detect_work);
 	INIT_DELAYED_WORK(&hi->work_for_key_pressed, button_pressed);
@@ -551,52 +567,67 @@ static int lge_hsd_probe(struct platform_device *pdev)
 	/* initialize gpio_detect */
 	ret = gpio_request(hi->gpio_detect, "gpio_detect");
 	if (ret < 0) {
-		HSD_ERR("Failed to configure gpio%d (gpio_detect) gpio_request\n", hi->gpio_detect);
+		HSD_ERR
+		    ("Failed to configure gpio%d (gpio_detect) gpio_request\n",
+		     hi->gpio_detect);
 		goto error_01;
 	}
 
 	ret = gpio_direction_input(hi->gpio_detect);
 	if (ret < 0) {
-		HSD_ERR("Failed to configure gpio%d (gpio_detect) gpio_direction_input\n", hi->gpio_detect);
+		HSD_ERR
+		    ("Failed to configure gpio%d (gpio_detect) gpio_direction_input\n",
+		     hi->gpio_detect);
 		goto error_02;
 	}
 
 	/* initialize gpio_jpole */
 	ret = gpio_request(hi->gpio_jpole, "gpio_jpole");
 	if (ret < 0) {
-		HSD_ERR("Failed to configure gpio%d (gpio_jpole) gpio_request\n", hi->gpio_jpole);
+		HSD_ERR
+		    ("Failed to configure gpio%d (gpio_jpole) gpio_request\n",
+		     hi->gpio_jpole);
 		goto error_02;
 	}
 
 	ret = gpio_direction_input(hi->gpio_jpole);
 	if (ret < 0) {
-		HSD_ERR("Failed to configure gpio%d (gpio_jpole) gpio_direction_input\n", hi->gpio_jpole);
+		HSD_ERR
+		    ("Failed to configure gpio%d (gpio_jpole) gpio_direction_input\n",
+		     hi->gpio_jpole);
 		goto error_03;
 	}
 
 	/* initialize gpio_key */
 	ret = gpio_request(hi->gpio_key, "gpio_key");
 	if (ret < 0) {
-		HSD_ERR("Failed to configure gpio%d (gpio_key) gpio_request\n", hi->gpio_key);
+		HSD_ERR("Failed to configure gpio%d (gpio_key) gpio_request\n",
+			hi->gpio_key);
 		goto error_03;
 	}
 
 	ret = gpio_direction_input(hi->gpio_key);
 	if (ret < 0) {
-		HSD_ERR("Failed to configure gpio%d (gpio_key) gpio_direction_input\n", hi->gpio_key);
+		HSD_ERR
+		    ("Failed to configure gpio%d (gpio_key) gpio_direction_input\n",
+		     hi->gpio_key);
 		goto error_04;
 	}
 
 	/* initialize gpio_mic_en */
 	ret = gpio_request(hi->gpio_mic_en, "gpio_mic_en");
 	if (ret < 0) {
-		HSD_ERR("Failed to configure gpio%d (gpio_mic_en) gpio_request\n", hi->gpio_mic_en);
+		HSD_ERR
+		    ("Failed to configure gpio%d (gpio_mic_en) gpio_request\n",
+		     hi->gpio_mic_en);
 		goto error_04;
 	}
 
 	ret = gpio_direction_output(hi->gpio_mic_en, 0);
 	if (ret < 0) {
-		HSD_ERR("Failed to configure gpio%d (gpio_mic_en) gpio_direction_output\n", hi->gpio_mic_en);
+		HSD_ERR
+		    ("Failed to configure gpio%d (gpio_mic_en) gpio_direction_output\n",
+		     hi->gpio_mic_en);
 		goto error_05;
 	}
 
@@ -612,7 +643,8 @@ static int lge_hsd_probe(struct platform_device *pdev)
 	}
 
 	ret = request_threaded_irq(hi->irq_detect, NULL, gpio_irq_handler,
-	                           IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING, pdev->name, hi);
+				   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+				   pdev->name, hi);
 
 	if (ret) {
 		HSD_ERR("failed to request button irq\n");
@@ -637,7 +669,8 @@ static int lge_hsd_probe(struct platform_device *pdev)
 	}
 
 	ret = request_threaded_irq(hi->irq_key, NULL, button_irq_handler,
-	                           IRQF_TRIGGER_RISING|IRQF_TRIGGER_FALLING, pdev->name, hi);
+				   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+				   pdev->name, hi);
 
 	if (ret) {
 		HSD_ERR("failed to request button irq\n");
@@ -673,11 +706,11 @@ static int lge_hsd_probe(struct platform_device *pdev)
 
 	hi->input->name = pdata->keypad_name;
 
-	hi->input->id.vendor    = 0x0001;
-	hi->input->id.product   = 1;
-	hi->input->id.version   = 1;
+	hi->input->id.vendor = 0x0001;
+	hi->input->id.product = 1;
+	hi->input->id.version = 1;
 
-//	input_set_capability(hi->input, EV_SW, SW_HEADPHONE_INSERT);
+//      input_set_capability(hi->input, EV_SW, SW_HEADPHONE_INSERT);
 	set_bit(EV_SYN, hi->input->evbit);
 	set_bit(EV_KEY, hi->input->evbit);
 	set_bit(hi->key_code, hi->input->keybit);
@@ -690,43 +723,43 @@ static int lge_hsd_probe(struct platform_device *pdev)
 
 	if (!gpio_get_value_cansleep(hi->gpio_detect))
 #ifdef CONFIG_FSA8008_USE_LOCAL_WORK_QUEUE
-		queue_delayed_work(local_fsa8008_workqueue, &(hi->work), 0); /* to detect in initialization with eacjack insertion */
+		queue_delayed_work(local_fsa8008_workqueue, &(hi->work), 0);	/* to detect in initialization with eacjack insertion */
 #else
-		schedule_delayed_work(&(hi->work), 0); /* to detect in initialization with eacjack insertion */
+		schedule_delayed_work(&(hi->work), 0);	/* to detect in initialization with eacjack insertion */
 #endif
 
 #ifdef AT_TEST_GPKD
 
 #if defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_LGU) || defined(CONFIG_MACH_LGE_325_BOARD_DCM)
-    fsa8008_class = class_create(THIS_MODULE, "fsa8008");
-  	err = class_create_file(fsa8008_class, &class_attr_hookkeylog);
+	fsa8008_class = class_create(THIS_MODULE, "fsa8008");
+	err = class_create_file(fsa8008_class, &class_attr_hookkeylog);
 #else
-	  err = device_create_file(&pdev->dev, &dev_attr_hookkeylog);
+	err = device_create_file(&pdev->dev, &dev_attr_hookkeylog);
 #endif
 #endif
 
 	return ret;
 
-error_09 :
+error_09:
 	input_free_device(hi->input);
-error_08 :
+error_08:
 	switch_dev_unregister(&hi->sdev);
 
-error_07 :
+error_07:
 	free_irq(hi->irq_key, 0);
-error_06 :
+error_06:
 	free_irq(hi->irq_detect, 0);
 
-error_05 :
+error_05:
 	gpio_free(hi->gpio_mic_en);
-error_04 :
+error_04:
 	gpio_free(hi->gpio_key);
-error_03 :
+error_03:
 	gpio_free(hi->gpio_jpole);
-error_02 :
+error_02:
 	gpio_free(hi->gpio_detect);
 
-error_01 :
+error_01:
 	mutex_destroy(&hi->mutex_lock);
 	kfree(hi);
 
@@ -761,12 +794,12 @@ static int lge_hsd_remove(struct platform_device *pdev)
 }
 
 static struct platform_driver lge_hsd_driver = {
-	.probe          = lge_hsd_probe,
-	.remove         = lge_hsd_remove,
-	.driver         = {
-		.name   = "fsa8008",
-		.owner  = THIS_MODULE,
-	},
+	.probe = lge_hsd_probe,
+	.remove = lge_hsd_remove,
+	.driver = {
+		   .name = "fsa8008",
+		   .owner = THIS_MODULE,
+		   },
 };
 
 static int __init lge_hsd_init(void)
@@ -776,8 +809,8 @@ static int __init lge_hsd_init(void)
 	HSD_DBG("lge_hsd_init\n");
 
 #ifdef CONFIG_FSA8008_USE_LOCAL_WORK_QUEUE
-	local_fsa8008_workqueue = create_workqueue("fsa8008") ;
-	if(!local_fsa8008_workqueue)
+	local_fsa8008_workqueue = create_workqueue("fsa8008");
+	if (!local_fsa8008_workqueue)
 		return -ENOMEM;
 #endif
 
@@ -794,7 +827,7 @@ static int __init lge_hsd_init(void)
 static void __exit lge_hsd_exit(void)
 {
 #ifdef CONFIG_FSA8008_USE_LOCAL_WORK_QUEUE
-	if(local_fsa8008_workqueue)
+	if (local_fsa8008_workqueue)
 		destroy_workqueue(local_fsa8008_workqueue);
 	local_fsa8008_workqueue = NULL;
 #endif
@@ -813,4 +846,3 @@ module_exit(lge_hsd_exit);
 MODULE_AUTHOR("Yoon Gi Souk <gisouk.yoon@lge.com>");
 MODULE_DESCRIPTION("LGE Headset detection driver (fsa8008)");
 MODULE_LICENSE("GPL");
-

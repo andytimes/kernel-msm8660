@@ -31,9 +31,9 @@ struct synaptics_ts_platform_data {
 	unsigned short i2c_sda_gpio;
 	unsigned short i2c_scl_gpio;
 	unsigned short i2c_int_gpio;
-	int (*power)(int on, bool log_on);
-	unsigned short ic_booting_delay;		/* ms */
-	unsigned long report_period;			/* ns */
+	int (*power) (int on, bool log_on);
+	unsigned short ic_booting_delay;	/* ms */
+	unsigned long report_period;	/* ns */
 	unsigned char num_of_finger;
 	unsigned char num_of_button;
 	unsigned short button[MAX_NUM_OF_BUTTON];
@@ -72,15 +72,15 @@ struct synaptics_ts_data {
 	struct i2c_client *client;
 	struct input_dev *input_dev;
 	struct synaptics_ts_platform_data *pdata;
-	bool is_downloading;		/* avoid power off during F/W upgrade */
-	bool is_suspended;			/* avoid power off during F/W upgrade */
+	bool is_downloading;	/* avoid power off during F/W upgrade */
+	bool is_suspended;	/* avoid power off during F/W upgrade */
 	unsigned int button_width;
 	char button_prestate[MAX_NUM_OF_BUTTON];
 	char finger_prestate[MAX_NUM_OF_FINGER];
 	bool ic_init;
 	bool is_probed;
-	bool melt_mode;					/* for Ghost finger defense - melt mode status */
-	unsigned int idle_lock_distance;		/* for Ghost finger defense - lock screen drag distance */
+	bool melt_mode;		/* for Ghost finger defense - melt mode status */
+	unsigned int idle_lock_distance;	/* for Ghost finger defense - lock screen drag distance */
 	atomic_t interrupt_handled;
 	ts_function_descriptor common_dsc;
 	ts_function_descriptor finger_dsc;
@@ -136,20 +136,20 @@ struct synaptics_ts_data {
  * default		: 0
  */
 enum {
-	SYNAPTICS_RMI4_I2C_DEBUG_NONE				= 0,
-	SYNAPTICS_RMI4_I2C_DEBUG_FUNC_TRACE			= 1U << 0,	/* 1 */
-	SYNAPTICS_RMI4_I2C_DEBUG_INT_STATUS			= 1U << 1,	/* 2 */
-	SYNAPTICS_RMI4_I2C_DEBUG_FINGER_STATUS		= 1U << 2,	/* 4 */
-	SYNAPTICS_RMI4_I2C_DEBUG_FINGER_POSITION	= 1U << 3,	/* 8 */
-	SYNAPTICS_RMI4_I2C_DEBUG_FINGER_REG			= 1U << 4,	/* 16 */
-	SYNAPTICS_RMI4_I2C_DEBUG_BUTTON_STATUS		= 1U << 5,	/* 32 */
-	SYNAPTICS_RMI4_I2C_DEBUG_BUTTON_REG			= 1U << 6,	/* 64 */
-	SYNAPTICS_RMI4_I2C_DEBUG_INT_INTERVAL		= 1U << 7,	/* 128 */
-	SYNAPTICS_RMI4_I2C_DEBUG_INT_ISR_DELAY		= 1U << 8,	/* 256 */
-	SYNAPTICS_RMI4_I2C_DEBUG_FINGER_HANDLE_TIME	= 1U << 9,	/* 512 */
-	SYNAPTICS_RMI4_I2C_DEBUG_BUTTON_HANDLE_TIME	= 1U << 10,	/* 1024 */
-	SYNAPTICS_RMI4_I2C_DEBUG_UPGRADE_DELAY		= 1U << 11,	/* 2048 */
-	SYNAPTICS_DEBUG_FW_UPGRADE					= 1U << 12,	/* 4096 */
+	SYNAPTICS_RMI4_I2C_DEBUG_NONE = 0,
+	SYNAPTICS_RMI4_I2C_DEBUG_FUNC_TRACE = 1U << 0,	/* 1 */
+	SYNAPTICS_RMI4_I2C_DEBUG_INT_STATUS = 1U << 1,	/* 2 */
+	SYNAPTICS_RMI4_I2C_DEBUG_FINGER_STATUS = 1U << 2,	/* 4 */
+	SYNAPTICS_RMI4_I2C_DEBUG_FINGER_POSITION = 1U << 3,	/* 8 */
+	SYNAPTICS_RMI4_I2C_DEBUG_FINGER_REG = 1U << 4,	/* 16 */
+	SYNAPTICS_RMI4_I2C_DEBUG_BUTTON_STATUS = 1U << 5,	/* 32 */
+	SYNAPTICS_RMI4_I2C_DEBUG_BUTTON_REG = 1U << 6,	/* 64 */
+	SYNAPTICS_RMI4_I2C_DEBUG_INT_INTERVAL = 1U << 7,	/* 128 */
+	SYNAPTICS_RMI4_I2C_DEBUG_INT_ISR_DELAY = 1U << 8,	/* 256 */
+	SYNAPTICS_RMI4_I2C_DEBUG_FINGER_HANDLE_TIME = 1U << 9,	/* 512 */
+	SYNAPTICS_RMI4_I2C_DEBUG_BUTTON_HANDLE_TIME = 1U << 10,	/* 1024 */
+	SYNAPTICS_RMI4_I2C_DEBUG_UPGRADE_DELAY = 1U << 11,	/* 2048 */
+	SYNAPTICS_DEBUG_FW_UPGRADE = 1U << 12,	/* 4096 */
 };
 
 #define DESCRIPTION_TABLE_START	0xe9

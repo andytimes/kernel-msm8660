@@ -1,16 +1,11 @@
 /*===========================================================================
 
-
                         SiI9244 Driver Processor
               
-
 
 DESCRIPTION
 
   This file explains the SiI9244 initialization and call the virtual main function.
-
-
-
 
  Copyright (c) 2002-2009, Silicon Image, Inc.  All rights reserved.             
   No part of this work may be reproduced, modified, distributed, transmitted,    
@@ -19,13 +14,9 @@ or by any means without written permission of: Silicon Image, Inc.,
 1060 East Arques Avenue, Sunnyvale, California 94085                           
 ===========================================================================*/
 
-
-
 /*===========================================================================
 
-
                       EDIT HISTORY FOR FILE
-
 
 when              who                         what, where, why
 --------        ---                        ----------------------------------------------------------
@@ -33,13 +24,12 @@ when              who                         what, where, why
 2011/04/06    Rajkumar c m            added support for qualcomm msm8060
 ===========================================================================*/
 
-
 /*===========================================================================
                      INCLUDE FILES FOR MODULE
 ===========================================================================*/
 
-#if 1 /*                                               */
-#include <linux/module.h>   /* kernel module definitions */
+#if 1				/*                                               */
+#include <linux/module.h>	/* kernel module definitions */
 #endif
 #include <linux/interrupt.h>
 #include <linux/i2c.h>
@@ -53,15 +43,15 @@ when              who                         what, where, why
 #include <linux/workqueue.h>
 #include <linux/freezer.h>
 #include <linux/delay.h>
-#include <linux/syscalls.h> 
-#include <linux/fcntl.h> 
-#include <asm/uaccess.h> 
+#include <linux/syscalls.h>
+#include <linux/fcntl.h>
+#include <asm/uaccess.h>
 #include <linux/types.h>
 #include <linux/miscdevice.h>
 
-#include <linux/syscalls.h> 
-#include <linux/fcntl.h> 
-#include <asm/uaccess.h> 
+#include <linux/syscalls.h>
+#include <linux/fcntl.h>
+#include <asm/uaccess.h>
 #include <linux/hrtimer.h>
 #include <linux/ktime.h>
 
@@ -80,12 +70,9 @@ when              who                         what, where, why
 ===========================================================================*/
 #define TX_HW_RESET_PERIOD      200
 
-
 #define SiI_DEVICE_ID           0xB0
 
-
 #define DDC_XLTN_TIMEOUT_MAX_VAL		0x30
-
 
 #define INDEXED_PAGE_0		0x01
 #define INDEXED_PAGE_1		0x02
@@ -104,8 +91,6 @@ when              who                         what, where, why
 
 #define TX_DEBUG_PRINT(x) printk x
 
-
-
 #define	I2C_READ_MODIFY_WRITE(saddr,offset,mask)	I2C_WriteByte(saddr, offset, I2C_ReadByte(saddr, offset) | (mask));
 
 #define	SET_BIT(saddr,offset,bitnumber)		I2C_READ_MODIFY_WRITE(saddr,offset, (1<<bitnumber))
@@ -116,44 +101,44 @@ when              who                         what, where, why
 #define	DISABLE_DISCOVERY				CLR_BIT(SA_TX_Page0_Primary, 0x90, 0);
 #define	ENABLE_DISCOVERY				SET_BIT(SA_TX_Page0_Primary, 0x90, 0);
 //
-//	Look for interrupts on INTR_4 (Register 0x74)
-//		7 = PVT_HTBT(reserved)
-//		6 = RGND RDY		(interested)
-//		5 = VBUS low(interested)	
-//		4 = CBUS LKOUT		(reserved)
-//		3 = USB EST		(reserved)
-//		2 = MHL EST		(reserved)
-//		1 = RPWR5V CHANGE		(reserved)
-//		0 = SCDT CHANGE		(reserved)
-#define	INTR_4_DESIRED_MASK				( BIT_2 | BIT_3 | BIT_4 | BIT_6) 
-#define	UNMASK_INTR_4_INTERRUPTS		I2C_WriteByte(SA_TX_Page0_Primary, 0x78, 0x00) 
-#define	MASK_INTR_4_INTERRUPTS	I2C_WriteByte(SA_TX_Page0_Primary, 0x78, INTR_4_DESIRED_MASK)		
+//      Look for interrupts on INTR_4 (Register 0x74)
+//              7 = PVT_HTBT(reserved)
+//              6 = RGND RDY            (interested)
+//              5 = VBUS low(interested)        
+//              4 = CBUS LKOUT          (reserved)
+//              3 = USB EST             (reserved)
+//              2 = MHL EST             (reserved)
+//              1 = RPWR5V CHANGE               (reserved)
+//              0 = SCDT CHANGE         (reserved)
+#define	INTR_4_DESIRED_MASK				( BIT_2 | BIT_3 | BIT_4 | BIT_6)
+#define	UNMASK_INTR_4_INTERRUPTS		I2C_WriteByte(SA_TX_Page0_Primary, 0x78, 0x00)
+#define	MASK_INTR_4_INTERRUPTS	I2C_WriteByte(SA_TX_Page0_Primary, 0x78, INTR_4_DESIRED_MASK)
 
-//	Look for interrupts on INTR_1 (Register 0x71)
-//		7 = RSVD		(reserved)
-//		6 = MDI_HPD		(interested)
-//		5 = RSEN CHANGED(interested)	
-//		4 = RSVD		(reserved)
-//		3 = RSVD		(reserved)
-//		2 = RSVD		(reserved)
-//		1 = RSVD		(reserved)
-//		0 = RSVD		(reserved)
+//      Look for interrupts on INTR_1 (Register 0x71)
+//              7 = RSVD                (reserved)
+//              6 = MDI_HPD             (interested)
+//              5 = RSEN CHANGED(interested)    
+//              4 = RSVD                (reserved)
+//              3 = RSVD                (reserved)
+//              2 = RSVD                (reserved)
+//              1 = RSVD                (reserved)
+//              0 = RSVD                (reserved)
 //3355
-#define	INTR_1_DESIRED_MASK				(BIT_5|BIT_6) 
+#define	INTR_1_DESIRED_MASK				(BIT_5|BIT_6)
 #define	UNMASK_INTR_1_INTERRUPTS		I2C_WriteByte(SA_TX_Page0_Primary, 0x75, 0x00)
 #define	MASK_INTR_1_INTERRUPTS			I2C_WriteByte(SA_TX_Page0_Primary, 0x75, INTR_1_DESIRED_MASK)
 //3355
-//	Look for interrupts on CBUS:CBUS_INTR_STATUS [0xC8:0x08]
-//		7 = RSVD			(reserved)
-//		6 = MSC_RESP_ABORT	(interested)
-//		5 = MSC_REQ_ABORT	(interested)	
-//		4 = MSC_REQ_DONE	(interested)
-//		3 = MSC_MSG_RCVD	(interested)
-//		2 = DDC_ABORT		(interested)
-//		1 = RSVD			(reserved)
-//		0 = rsvd			(reserved)
+//      Look for interrupts on CBUS:CBUS_INTR_STATUS [0xC8:0x08]
+//              7 = RSVD                        (reserved)
+//              6 = MSC_RESP_ABORT      (interested)
+//              5 = MSC_REQ_ABORT       (interested)    
+//              4 = MSC_REQ_DONE        (interested)
+//              3 = MSC_MSG_RCVD        (interested)
+//              2 = DDC_ABORT           (interested)
+//              1 = RSVD                        (reserved)
+//              0 = rsvd                        (reserved)
 #define	INTR_CBUS1_DESIRED_MASK			(BIT_2 | BIT_3 | BIT_4 | BIT_5 | BIT_6)
-#define	UNMASK_CBUS1_INTERRUPTS		I2C_WriteByte(SA_TX_CBUS_Primary, 0x09, 0x00)	
+#define	UNMASK_CBUS1_INTERRUPTS		I2C_WriteByte(SA_TX_CBUS_Primary, 0x09, 0x00)
 #define	MASK_CBUS1_INTERRUPTS			I2C_WriteByte(SA_TX_CBUS_Primary, 0x09, INTR_CBUS1_DESIRED_MASK)
 
 #ifdef MHL_CTL
@@ -162,7 +147,7 @@ when              who                         what, where, why
 #define	INTR_CBUS2_DESIRED_MASK			(BIT_2 | BIT_3)
 #endif
 
-#define	UNMASK_CBUS2_INTERRUPTS		 I2C_WriteByte(SA_TX_CBUS_Primary, 0x1F, 0x00)	
+#define	UNMASK_CBUS2_INTERRUPTS		 I2C_WriteByte(SA_TX_CBUS_Primary, 0x1F, 0x00)
 #define	MASK_CBUS2_INTERRUPTS			 I2C_WriteByte(SA_TX_CBUS_Primary, 0x1F, INTR_CBUS2_DESIRED_MASK)
 
 #define		MHL_TX_EVENT_NONE			0x00	/* No event worth reporting.  */
@@ -172,14 +157,14 @@ when              who                         what, where, why
 //
 #define		MHL_TX_EVENT_RCP_RECEIVED	0x04	/* Received an RCP. Key Code in "eventParameter" */
 #define		MHL_TX_EVENT_RCPK_RECEIVED	0x05	/* Received an RCPK message */
-#define		MHL_TX_EVENT_RCPE_RECEIVED	0x06	/* Received an RCPE message .*/
+#define		MHL_TX_EVENT_RCPE_RECEIVED	0x06	/* Received an RCPE message . */
 
 #ifdef MHL_CTL
 #define	MAGIC_CANVAS_X	1280
 #define	MAGIC_CANVAS_Y	720
 
-static int	tvCtl_x = MAGIC_CANVAS_X;
-static int	tvCtl_y = MAGIC_CANVAS_Y;
+static int tvCtl_x = MAGIC_CANVAS_X;
+static int tvCtl_y = MAGIC_CANVAS_Y;
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -199,16 +184,14 @@ static bool first_timer;
 bool hdmi_mhl_connection = 0;
 #endif
 
-
 enum hrtimer_restart hrtimer_wakeup_callback(struct hrtimer *timer)
 {
 	//wake_up(&wake_wq);
 	wakeup_time_expired = true;
 	wake_up_interruptible(&wake_wq);
-//	hrtimer_cancel(&hr_wake_timer);
+//      hrtimer_cancel(&hr_wake_timer);
 	return HRTIMER_NORESTART;
 }
-
 
 void start_hrtimer_ms(unsigned long delay_in_ms)
 {
@@ -216,18 +199,17 @@ void start_hrtimer_ms(unsigned long delay_in_ms)
 	ktime = ktime_set(0, MS_TO_NS(delay_in_ms));
 
 	wakeup_time_expired = false;
-//	hrtimer_init(&hr_wake_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+//      hrtimer_init(&hr_wake_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	if (first_timer)
 		first_timer = false;
 	else
 		hrtimer_cancel(&hr_wake_timer);
 
-//	hr_wake_timer.function = &hrtimer_wakeup_callback;
+//      hr_wake_timer.function = &hrtimer_wakeup_callback;
 	hrtimer_start(&hr_wake_timer, ktime, HRTIMER_MODE_REL);
 }
 
 //wait_queue_head_t wake_wq;
-
 
 /*===========================================================================
                 
@@ -235,14 +217,14 @@ void start_hrtimer_ms(unsigned long delay_in_ms)
 //
 // To remember the current power state.
 //
-byte	fwPowerState = TX_POWER_STATE_FIRST_INIT;
+byte fwPowerState = TX_POWER_STATE_FIRST_INIT;
 
 //
 // When MHL Fifo underrun or overrun happens, we set this flag
 // to avoid calling a function in recursive manner. The monitoring loop
 // would look at this flag and call appropriate function and clear this flag.
 //
-//static	bool	gotFifoUnderRunOverRun = FALSE;
+//static        bool    gotFifoUnderRunOverRun = FALSE;
 
 //
 // This flag is set to TRUE as soon as a INT1 RSEN CHANGE interrupt arrives and
@@ -257,101 +239,107 @@ byte	fwPowerState = TX_POWER_STATE_FIRST_INIT;
 // To serialize the RCP commands posted to the CBUS engine, this flag
 // is maintained by the function SiiMhlTxDrvSendCbusCommand()
 //
-static	bool		mscCmdInProgress;	// FALSE when it is okay to send a new command
+static bool mscCmdInProgress;	// FALSE when it is okay to send a new command
 //
 // Preserve Downstream HPD status
 //
-static	byte	dsHpdStatus = 0;
+static byte dsHpdStatus = 0;
 
-
-
-byte mhl_cable_status =MHL_INIT_POWER_OFF;			//NAGSM_Android_SEL_Kernel_Aakash_20101214
+byte mhl_cable_status = MHL_INIT_POWER_OFF;	//NAGSM_Android_SEL_Kernel_Aakash_20101214
 
 #define	MHL_MAX_RCP_KEY_CODE	(0x7F + 1)	// inclusive
-byte		rcpSupportTable [MHL_MAX_RCP_KEY_CODE] = {
-	(MHL_DEV_LD_GUI),		// 0x00 = Select
-	(MHL_DEV_LD_GUI),		// 0x01 = Up
-	(MHL_DEV_LD_GUI),		// 0x02 = Down
-	(MHL_DEV_LD_GUI),		// 0x03 = Left
-	(MHL_DEV_LD_GUI),		// 0x04 = Right
-	0, 0, 0, 0,				// 05-08 Reserved
-	(MHL_DEV_LD_GUI),		// 0x09 = Root Menu
-	0, 0, 0,				// 0A-0C Reserved
-	(MHL_DEV_LD_GUI),		// 0x0D = Select
+byte rcpSupportTable[MHL_MAX_RCP_KEY_CODE] = {
+	(MHL_DEV_LD_GUI),	// 0x00 = Select
+	(MHL_DEV_LD_GUI),	// 0x01 = Up
+	(MHL_DEV_LD_GUI),	// 0x02 = Down
+	(MHL_DEV_LD_GUI),	// 0x03 = Left
+	(MHL_DEV_LD_GUI),	// 0x04 = Right
+	0, 0, 0, 0,		// 05-08 Reserved
+	(MHL_DEV_LD_GUI),	// 0x09 = Root Menu
+	0, 0, 0,		// 0A-0C Reserved
+	(MHL_DEV_LD_GUI),	// 0x0D = Select
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	// 0E-1F Reserved
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),	// Numeric keys 0x20-0x29
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),
-	0,						// 0x2A = Dot
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),	// Enter key = 0x2B
-	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */),	// Clear key = 0x2C
-	0, 0, 0,				// 2D-2F Reserved
-	(MHL_DEV_LD_TUNER),		// 0x30 = Channel Up
-	(MHL_DEV_LD_TUNER),		// 0x31 = Channel Dn
-	0,//	(MHL_DEV_LD_TUNER),		// 0x32 = Previous Channel
-	0,//	(MHL_DEV_LD_AUDIO),		// 0x33 = Sound Select
-	0,						// 0x34 = Input Select
-	0,						// 0x35 = Show Information
-	0,						// 0x36 = Help
-	0,						// 0x37 = Page Up
-	0,						// 0x38 = Page Down
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */ ),	// Numeric keys 0x20-0x29
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA
+	 /*| MHL_DEV_LD_TUNER */ ),
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA
+	 /*| MHL_DEV_LD_TUNER */ ),
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA
+	 /*| MHL_DEV_LD_TUNER */ ),
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA
+	 /*| MHL_DEV_LD_TUNER */ ),
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA
+	 /*| MHL_DEV_LD_TUNER */ ),
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA
+	 /*| MHL_DEV_LD_TUNER */ ),
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA
+	 /*| MHL_DEV_LD_TUNER */ ),
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA
+	 /*| MHL_DEV_LD_TUNER */ ),
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA
+	 /*| MHL_DEV_LD_TUNER */ ),
+	0,			// 0x2A = Dot
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */ ),	// Enter key = 0x2B
+	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA /*| MHL_DEV_LD_TUNER */ ),	// Clear key = 0x2C
+	0, 0, 0,		// 2D-2F Reserved
+	(MHL_DEV_LD_TUNER),	// 0x30 = Channel Up
+	(MHL_DEV_LD_TUNER),	// 0x31 = Channel Dn
+	0,			//    (MHL_DEV_LD_TUNER),             // 0x32 = Previous Channel
+	0,			//    (MHL_DEV_LD_AUDIO),             // 0x33 = Sound Select
+	0,			// 0x34 = Input Select
+	0,			// 0x35 = Show Information
+	0,			// 0x36 = Help
+	0,			// 0x37 = Page Up
+	0,			// 0x38 = Page Down
 	0, 0, 0, 0, 0, 0, 0,	// 0x39-0x3F Reserved
-	0,						// 0x40 = Undefined
+	0,			// 0x40 = Undefined
 
-	0,//	(MHL_DEV_LD_SPEAKER),	// 0x41 = Volume Up
-	0,//	(MHL_DEV_LD_SPEAKER),	// 0x42 = Volume Down
-	0,//	(MHL_DEV_LD_SPEAKER),	// 0x43 = Mute
+	0,			//    (MHL_DEV_LD_SPEAKER),   // 0x41 = Volume Up
+	0,			//    (MHL_DEV_LD_SPEAKER),   // 0x42 = Volume Down
+	0,			//    (MHL_DEV_LD_SPEAKER),   // 0x43 = Mute
 	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO),	// 0x44 = Play
 	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_RECORD),	// 0x45 = Stop
 	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_RECORD),	// 0x46 = Pause
-	0,//	(MHL_DEV_LD_RECORD),	// 0x47 = Record
+	0,			//    (MHL_DEV_LD_RECORD),    // 0x47 = Record
 	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO),	// 0x48 = Rewind
 	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO),	// 0x49 = Fast Forward
-	0,//	(MHL_DEV_LD_MEDIA),		// 0x4A = Eject
-	0,//	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA),	// 0x4B = Forward
-	0,//	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA),	// 0x4C = Backward
-	0, 0, 0,				// 4D-4F Reserved
-	0,						// 0x50 = Angle
-	0,						// 0x51 = Subpicture
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 52-5F Reserved
+	0,			//    (MHL_DEV_LD_MEDIA),             // 0x4A = Eject
+	0,			//    (MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA),       // 0x4B = Forward
+	0,			//    (MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_MEDIA),       // 0x4C = Backward
+	0, 0, 0,		// 4D-4F Reserved
+	0,			// 0x50 = Angle
+	0,			// 0x51 = Subpicture
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	// 52-5F Reserved
 	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO),	// 0x60 = Play Function
 	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO),	// 0x61 = Pause the Play Function
-	0,//	(MHL_DEV_LD_RECORD),	// 0x62 = Record Function
-	0,//	(MHL_DEV_LD_RECORD),	// 0x63 = Pause the Record Function
+	0,			//    (MHL_DEV_LD_RECORD),    // 0x62 = Record Function
+	0,			//    (MHL_DEV_LD_RECORD),    // 0x63 = Pause the Record Function
 	(MHL_DEV_LD_VIDEO | MHL_DEV_LD_AUDIO | MHL_DEV_LD_RECORD),	// 0x64 = Stop Function
 
-	0,//	(MHL_DEV_LD_SPEAKER),	// 0x65 = Mute Function
-	0,//	(MHL_DEV_LD_SPEAKER),	// 0x66 = Restore Mute Function
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 	// Undefined or reserved
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 		// Undefined or reserved
+	0,			//    (MHL_DEV_LD_SPEAKER),   // 0x65 = Mute Function
+	0,			//    (MHL_DEV_LD_SPEAKER),   // 0x66 = Restore Mute Function
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	// Undefined or reserved
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0	// Undefined or reserved
 };
 
 /*===========================================================================
                    FUNCTION DEFINITIONS
 ===========================================================================*/
-static	void	Int4Isr( void );
-static	void	Int1RsenIsr( void );
-static	void	MhlCbusIsr( void );
+static void Int4Isr(void);
+static void Int1RsenIsr(void);
+static void MhlCbusIsr(void);
 /* static	void 	DeglitchRsenLow(void); */
 
-void	CbusReset(void);
-void	SwitchToD0( void );
-void	SwitchToD3( void );
-void	WriteInitialRegisterValues ( void );
-static	void	InitCBusRegs( void );
-static	void	ForceUsbIdSwitchOpen ( void );
-static	void	ReleaseUsbIdSwitchOpen ( void );
-void	MhlTxDrvProcessConnection ( void );
-	void	MhlTxDrvProcessDisconnection ( void );
-static	void	ApplyDdcAbortSafety(void);
-
+void CbusReset(void);
+void SwitchToD0(void);
+void SwitchToD3(void);
+void WriteInitialRegisterValues(void);
+static void InitCBusRegs(void);
+static void ForceUsbIdSwitchOpen(void);
+static void ReleaseUsbIdSwitchOpen(void);
+void MhlTxDrvProcessConnection(void);
+void MhlTxDrvProcessDisconnection(void);
+static void ApplyDdcAbortSafety(void);
 
 //
 // Store global config info here. This is shared by the driver.
@@ -360,76 +348,71 @@ static	void	ApplyDdcAbortSafety(void);
 //
 // structure to hold operating information of MhlTx component
 //
-static	mhlTx_config_t	mhlTxConfig;
+static mhlTx_config_t mhlTxConfig;
 //
 // Functions used internally.
 //
-static bool  SiiMhlTxRapkSend( void );
-static void MhlTxDriveStates( void );
-static void MhlTxResetStates( void );
-static bool MhlTxSendMscMsg ( byte command, byte cmdData );
-void	SiiMhlTxNotifyConnection( bool mhlConnected );
-void	AppVbusControl( bool powerOn );
-void	AppRcpDemo( byte event, byte eventParameter);
-void	SiiMhlTxNotifyDsHpdChange( byte dsHpdStatus );
-bool SiiMhlTxReadDevcap( byte offset );
-bool SiiMhlTxRcpkSend( byte );
-void	SiiMhlTxGotMhlStatus( byte status_0, byte status_1 );
-void	SiiMhlTxGotMhlIntr( byte intr_0, byte intr_1 );
-void	SiiMhlTxGotMhlMscMsg( byte subCommand, byte cmdData );
-void	SiiMhlTxMscCommandDone( byte data1 );
-void SiiMhlTxGetEvents( byte *event, byte *eventParameter );
-void SiiMhlTxInitialize( void );
-bool SiiMhlTxRcpeSend( byte rcpeErrorCode );
-
+static bool SiiMhlTxRapkSend(void);
+static void MhlTxDriveStates(void);
+static void MhlTxResetStates(void);
+static bool MhlTxSendMscMsg(byte command, byte cmdData);
+void SiiMhlTxNotifyConnection(bool mhlConnected);
+void AppVbusControl(bool powerOn);
+void AppRcpDemo(byte event, byte eventParameter);
+void SiiMhlTxNotifyDsHpdChange(byte dsHpdStatus);
+bool SiiMhlTxReadDevcap(byte offset);
+bool SiiMhlTxRcpkSend(byte);
+void SiiMhlTxGotMhlStatus(byte status_0, byte status_1);
+void SiiMhlTxGotMhlIntr(byte intr_0, byte intr_1);
+void SiiMhlTxGotMhlMscMsg(byte subCommand, byte cmdData);
+void SiiMhlTxMscCommandDone(byte data1);
+void SiiMhlTxGetEvents(byte * event, byte * eventParameter);
+void SiiMhlTxInitialize(void);
+bool SiiMhlTxRcpeSend(byte rcpeErrorCode);
 
 void DelayMS(word msec);
 void SiI9244_HW_Reset(void);
 Bool SiI9244_startTPI(void);
 Bool SiI9244_init(void);
 void SiI9244_interrupt_event(void);
-void	ProcessRgnd( void );
+void ProcessRgnd(void);
 
 #ifdef MHL_CTL
 bool SiiMhlTxWritePeerRegister(byte command, byte offset, byte value);
 void SiiMhlTxReadScratchpad(void);
-void SiiMhlTxWriteScratchpad(byte *wdata);
+void SiiMhlTxWriteScratchpad(byte * wdata);
 void MhlControl(void);
 extern void hdmi_common_send_uevent(char *buf);
 
 static unsigned short kbd_key_pressed[2];
 #endif
 
-
 static int pwroff_requested = 0;
 static int rsen_incorrect = 0;
 
 void sii9244_pwroff_req(void)
 {
-  mhl_pwroff_request();
-  pwroff_requested = 1;  
+	mhl_pwroff_request();
+	pwroff_requested = 1;
 }
 
 void sii9244_pwroff_req_rsen_incorrect(void)
 {
-  rsen_incorrect = 1;  
-  sii9244_pwroff_req();
+	rsen_incorrect = 1;
+	sii9244_pwroff_req();
 }
 
 int sii9244_get_last_rsen_incorrect(void)
 {
-  return rsen_incorrect;
+	return rsen_incorrect;
 }
 
 void sii9244_clear_rsen_incorrect(void)
 {
-  rsen_incorrect = 0;
+	rsen_incorrect = 0;
 }
 
-
 /*======================================================================*/
-
-
 
 /*===========================================================================
   FUNCTION DelayMS
@@ -450,7 +433,6 @@ void DelayMS(word msec)
 {
 	msleep(msec);
 }
-
 
 /*===========================================================================
   FUNCTION SiI9244_HW_Reset
@@ -496,12 +478,11 @@ Bool SiI9244_startTPI(void)
 {
 	byte devID = 0x00;
 	printk(">>StartTPI()\n");
-	WriteByteTPI(TPI_ENABLE, 0x00);            // Write "0" to 72:C7 to start HW TPI mode
+	WriteByteTPI(TPI_ENABLE, 0x00);	// Write "0" to 72:C7 to start HW TPI mode
 	DelayMS(10);
 
 	devID = ReadByteTPI(TPI_DEVICE_ID);
-	if (devID == SiI_DEVICE_ID) 
-	{
+	if (devID == SiI_DEVICE_ID) {
 		printk("######## Silicon Device Id: %x\n", devID);
 		return TRUE;
 	}
@@ -509,7 +490,6 @@ Bool SiI9244_startTPI(void)
 	printk("Unsupported TX\n");
 	return FALSE;
 }
-
 
 /*===========================================================================
   FUNCTION SiI9244_init
@@ -528,8 +508,8 @@ Bool SiI9244_startTPI(void)
 ===========================================================================*/
 Bool SiI9244_init(void)
 {
-	printk("# SiI9244 initialization start~ \n");  
-	//SiI9244_HW_Reset();	
+	printk("# SiI9244 initialization start~ \n");
+	//SiI9244_HW_Reset();   
 	SiiMhlTxInitialize();
 	return TRUE;
 }
@@ -544,16 +524,17 @@ Bool SiI9244_init(void)
 //
 //////////////////////////////////////////////////////////////////////////////
 
-bool SiiMhlTxChipInitialize ( void )
+bool SiiMhlTxChipInitialize(void)
 {
-	TX_DEBUG_PRINT( ("Drv: SiiMhlTxChipInitialize: 0x%X\n", (int)I2C_ReadByte(SA_TX_Page0_Primary, 0x03)) );
+	TX_DEBUG_PRINT(("Drv: SiiMhlTxChipInitialize: 0x%X\n",
+			(int)I2C_ReadByte(SA_TX_Page0_Primary, 0x03)));
 
 	// setup device registers. Ensure RGND interrupt would happen.
 	WriteInitialRegisterValues();
 	// Setup interrupt masks for all those we are interested.
 	MASK_INTR_4_INTERRUPTS;
 	MASK_INTR_1_INTERRUPTS;
-	
+
 	SwitchToD3();
 	return TRUE;
 }
@@ -587,35 +568,32 @@ bool SiiMhlTxChipInitialize ( void )
 // call this from our monitor (Sii9244TimerIsr) in periodic fashion.
 //
 // Device Interrupts we would look at
-//		RGND		= to wake up from D3
-//		MHL_EST 	= connection establishment
-//		CBUS_LOCKOUT= Service USB switch
-//		RSEN_LOW	= Disconnection deglitcher
-//		CBUS 		= responder to peer messages
-//					  Especially for DCAP etc time based events
+//              RGND            = to wake up from D3
+//              MHL_EST         = connection establishment
+//              CBUS_LOCKOUT= Service USB switch
+//              RSEN_LOW        = Disconnection deglitcher
+//              CBUS            = responder to peer messages
+//                                        Especially for DCAP etc time based events
 //
-void 	SiiMhlTxDeviceIsr( void )
+void SiiMhlTxDeviceIsr(void)
 {
 	byte tmp;		//NAGSM_Android_SEL_Kernel_Aakash_20101214
-	if( TX_POWER_STATE_D0_MHL != fwPowerState )
-	{  
+	if (TX_POWER_STATE_D0_MHL != fwPowerState) {
 		//
 		// Check important RGND, MHL_EST, CBUS_LOCKOUT and SCDT interrupts
 		// During D3 we only get RGND but same ISR can work for both states
 		//
 		Int4Isr();
-		if(mhl_cable_status == MHL_TV_OFF_CABLE_CONNECT)
-		{
+		if (mhl_cable_status == MHL_TV_OFF_CABLE_CONNECT) {
 			return;
 		}
-                //NAGSM_Android_SEL_Kernel_Aakash_20101214
+		//NAGSM_Android_SEL_Kernel_Aakash_20101214
 		tmp = ReadByteCBUS(0x08);
 		WriteByteCBUS(0x08, tmp);
 		tmp = ReadByteCBUS(0x1E);
-		WriteByteCBUS(0x1E, tmp);  
-                //NAGSM_Android_SEL_Kernel_Aakash_20101214
-	}
-	else if( TX_POWER_STATE_D0_MHL == fwPowerState ) //NAGSM_Android_SEL_Kernel_Aakash_20101214
+		WriteByteCBUS(0x1E, tmp);
+		//NAGSM_Android_SEL_Kernel_Aakash_20101214
+	} else if (TX_POWER_STATE_D0_MHL == fwPowerState)	//NAGSM_Android_SEL_Kernel_Aakash_20101214
 	{
 
 		//
@@ -628,25 +606,24 @@ void 	SiiMhlTxDeviceIsr( void )
 	Int1RsenIsr();
 
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // SiiMhlTxDriverTmdsControl
 //
 // Control the TMDS output. MhlTx uses this to support RAP content on and off.
 //
-void	SiiMhlTxDrvTmdsControl( bool enable )
+void SiiMhlTxDrvTmdsControl(bool enable)
 {
-	if( enable )
-	{
+	if (enable) {
 		SET_BIT(SA_TX_Page0_Primary, 0x80, 4);
 		TX_DEBUG_PRINT(("Drv: TMDS Output Enabled\n"));
-	}
-	else
-	{
+	} else {
 		CLR_BIT(SA_TX_Page0_Primary, 0x80, 4);
 		TX_DEBUG_PRINT(("Drv: TMDS Ouput Disabled\n"));
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // SiiMhlTxDrvNotifyEdidChange
@@ -655,7 +632,7 @@ void	SiiMhlTxDrvTmdsControl( bool enable )
 // achieved by toggling the HDMI HPD signal or by simply calling EDID read
 // function.
 //
-void	SiiMhlTxDrvNotifyEdidChange ( void )
+void SiiMhlTxDrvNotifyEdidChange(void)
 {
 	TX_DEBUG_PRINT(("Drv: SiiMhlTxDrvNotifyEdidChange\n"));
 	//
@@ -674,6 +651,7 @@ void	SiiMhlTxDrvNotifyEdidChange ( void )
 	SET_BIT(SA_TX_Page0_Primary, 0x79, 5);
 
 }
+
 //------------------------------------------------------------------------------
 // Function:    SiiMhlTxDrvSendCbusCommand
 //
@@ -688,9 +666,9 @@ void	SiiMhlTxDrvNotifyEdidChange ( void )
 //              FALSE   - write failed
 //------------------------------------------------------------------------------
 
-bool SiiMhlTxDrvSendCbusCommand ( cbus_req_t *pReq  )
+bool SiiMhlTxDrvSendCbusCommand(cbus_req_t * pReq)
 {
-	bool  success = TRUE;
+	bool success = TRUE;
 
 	byte i, startbit;
 
@@ -698,118 +676,112 @@ bool SiiMhlTxDrvSendCbusCommand ( cbus_req_t *pReq  )
 	// If not connected, return with error
 	//
 	//if( (TX_POWER_STATE_D0_MHL != fwPowerState ) || (0 == ReadByteCBUS(0x0a) || mscCmdInProgress))
-  if( (TX_POWER_STATE_D0_MHL != fwPowerState ) || (mscCmdInProgress))
-	{
-	    TX_DEBUG_PRINT(("Error: Drv: fwPowerState: %02X, CBUS[0x0A]: %02X or mscCmdInProgress = %d\n",
-
-				(int) fwPowerState,
-
-					(int) ReadByteCBUS(0x0a),
-					(int) mscCmdInProgress));
+	if ((TX_POWER_STATE_D0_MHL != fwPowerState) || (mscCmdInProgress)) {
+		TX_DEBUG_PRINT(("Error: Drv: fwPowerState: %02X, CBUS[0x0A]: %02X or mscCmdInProgress = %d\n", (int)fwPowerState, (int)ReadByteCBUS(0x0a), (int)mscCmdInProgress));
 
 		return FALSE;
 	}
 	// Now we are getting busy
-	mscCmdInProgress	= TRUE;
+	mscCmdInProgress = TRUE;
 
 	TX_DEBUG_PRINT(("Drv: Sending MSC command %02X, %02X, %02X, %02X\n",
-				(int)pReq->command,
-				(int)(pReq->offsetData),
-				(int)pReq->msgData[0],
-				(int)pReq->msgData[1]));
+			(int)pReq->command,
+			(int)(pReq->offsetData),
+			(int)pReq->msgData[0], (int)pReq->msgData[1]));
 
 	/****************************************************************************************/
 	/* Setup for the command - write appropriate registers and determine the correct        */
 	/*                         start bit.                                                   */
 	/****************************************************************************************/
 #ifdef MHL_CTL
-	if( pReq->command != MHL_WRITE_BURST)
-	{
+	if (pReq->command != MHL_WRITE_BURST) {
 #endif
-	// Set the offset and outgoing data byte right away
-	WriteByteCBUS( 0x13, pReq->offsetData); 	// set offset
-	WriteByteCBUS( 0x14, pReq->msgData[0] );
+		// Set the offset and outgoing data byte right away
+		WriteByteCBUS(0x13, pReq->offsetData);	// set offset
+		WriteByteCBUS(0x14, pReq->msgData[0]);
 #ifdef MHL_CTL
 	}
 #endif
 
 	startbit = 0x00;
-	switch ( pReq->command )
-	{
-		case MHL_SET_INT:	// Set one interrupt register = 0x60
-			WriteByteCBUS( (REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->offsetData + 0x20 ); 	// set offset
-			startbit = MSC_START_BIT_WRITE_REG;
-			break;
+	switch (pReq->command) {
+	case MHL_SET_INT:	// Set one interrupt register = 0x60
+		WriteByteCBUS((REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->offsetData + 0x20);	// set offset
+		startbit = MSC_START_BIT_WRITE_REG;
+		break;
 
-		case MHL_WRITE_STAT:	// Write one status register = 0x60 | 0x80
-			WriteByteCBUS( (REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->offsetData + 0x30 ); 	// set offset
-			startbit = MSC_START_BIT_WRITE_REG;
-			break;
+	case MHL_WRITE_STAT:	// Write one status register = 0x60 | 0x80
+		WriteByteCBUS((REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->offsetData + 0x30);	// set offset
+		startbit = MSC_START_BIT_WRITE_REG;
+		break;
 
-		case MHL_READ_DEVCAP:	// Read one device capability register = 0x61
-			startbit = MSC_START_BIT_READ_REG;
-			break;
+	case MHL_READ_DEVCAP:	// Read one device capability register = 0x61
+		startbit = MSC_START_BIT_READ_REG;
+		break;
 
-		case MHL_GET_STATE:			// 0x62 -
-		case MHL_GET_VENDOR_ID:		// 0x63 - for vendor id	
-		case MHL_SET_HPD:			// 0x64	- Set Hot Plug Detect in follower
-		case MHL_CLR_HPD:			// 0x65	- Clear Hot Plug Detect in follower
-		case MHL_GET_SC1_ERRORCODE:		// 0x69	- Get channel 1 command error code
-		//case MHL_GET_DDC_ERRORCODE:		// 0x6A	- Get DDC channel command error code.
-		case MHL_GET_MSC_ERRORCODE:		// 0x6B	- Get MSC command error code.
-		case MHL_GET_SC3_ERRORCODE:		// 0x6D	- Get channel 3 command error code.
-			WriteByteCBUS( (REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->command );
-			startbit = MSC_START_BIT_MSC_CMD;
-			break;
-    	case MHL_GET_DDC_ERRORCODE:		// 0x6A	- Get DDC channel command error code.
-			WriteByteCBUS( (REG_CBUS_PRI_ADDR_CMD & 0xFF), 0x00 );
-            		startbit = MSC_START_BIT_MSC_CMD;
-            break;
+	case MHL_GET_STATE:	// 0x62 -
+	case MHL_GET_VENDOR_ID:	// 0x63 - for vendor id 
+	case MHL_SET_HPD:	// 0x64 - Set Hot Plug Detect in follower
+	case MHL_CLR_HPD:	// 0x65 - Clear Hot Plug Detect in follower
+	case MHL_GET_SC1_ERRORCODE:	// 0x69 - Get channel 1 command error code
+		//case MHL_GET_DDC_ERRORCODE:           // 0x6A - Get DDC channel command error code.
+	case MHL_GET_MSC_ERRORCODE:	// 0x6B - Get MSC command error code.
+	case MHL_GET_SC3_ERRORCODE:	// 0x6D - Get channel 3 command error code.
+		WriteByteCBUS((REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->command);
+		startbit = MSC_START_BIT_MSC_CMD;
+		break;
+	case MHL_GET_DDC_ERRORCODE:	// 0x6A - Get DDC channel command error code.
+		WriteByteCBUS((REG_CBUS_PRI_ADDR_CMD & 0xFF), 0x00);
+		startbit = MSC_START_BIT_MSC_CMD;
+		break;
 
-		case MHL_MSC_MSG:
-			WriteByteCBUS( (REG_CBUS_PRI_WR_DATA_2ND & 0xFF), pReq->msgData[1] );
-			WriteByteCBUS( (REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->command );
-			startbit = MSC_START_BIT_VS_CMD;
-		#ifdef MHL_CTL
-			mscCmdInProgress = FALSE;
-		#endif
-			break;
+	case MHL_MSC_MSG:
+		WriteByteCBUS((REG_CBUS_PRI_WR_DATA_2ND & 0xFF),
+			      pReq->msgData[1]);
+		WriteByteCBUS((REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->command);
+		startbit = MSC_START_BIT_VS_CMD;
+#ifdef MHL_CTL
+		mscCmdInProgress = FALSE;
+#endif
+		break;
 
-		case MHL_WRITE_BURST:
-		#ifdef MHL_CTL
-			WriteByteCBUS( (REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->offsetData);
-		#else
-			WriteByteCBUS( (REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->offsetData + 0x40 );
-		#endif
-			WriteByteCBUS( (REG_MSC_WRITE_BURST_LEN & 0xFF), pReq->length -1 );
+	case MHL_WRITE_BURST:
+#ifdef MHL_CTL
+		WriteByteCBUS((REG_CBUS_PRI_ADDR_CMD & 0xFF), pReq->offsetData);
+#else
+		WriteByteCBUS((REG_CBUS_PRI_ADDR_CMD & 0xFF),
+			      pReq->offsetData + 0x40);
+#endif
+		WriteByteCBUS((REG_MSC_WRITE_BURST_LEN & 0xFF),
+			      pReq->length - 1);
 
-			// Now copy all bytes from array to local scratchpad
-			for ( i = 0; i < pReq->length; i++ )
-			{
-				WriteByteCBUS( (REG_CBUS_SCRATCHPAD_0 & 0xFF) + i, pReq->msgData[i] );
-			}
-			startbit = MSC_START_BIT_WRITE_BURST;
-		#ifdef MHL_CTL
-			mscCmdInProgress = FALSE;
-		#endif
-			break;
+		// Now copy all bytes from array to local scratchpad
+		for (i = 0; i < pReq->length; i++) {
+			WriteByteCBUS((REG_CBUS_SCRATCHPAD_0 & 0xFF) + i,
+				      pReq->msgData[i]);
+		}
+		startbit = MSC_START_BIT_WRITE_BURST;
+#ifdef MHL_CTL
+		mscCmdInProgress = FALSE;
+#endif
+		break;
 
-		default:
-			success = FALSE;
-			break;
+	default:
+		success = FALSE;
+		break;
 	}
 
 	/****************************************************************************************/
 	/* Trigger the CBUS command transfer using the determined start bit.                    */
 	/****************************************************************************************/
 
-	if ( success )
-	{
-		WriteByteCBUS( REG_CBUS_PRI_START & 0xFF, startbit );
+	if (success) {
+		WriteByteCBUS(REG_CBUS_PRI_START & 0xFF, startbit);
 	}
 
-	return( success );
+	return (success);
 }
+
 ////////////////////////////////////////////////////////////////////
 //
 // L O C A L    F U N C T I O N S
@@ -821,65 +793,64 @@ bool SiiMhlTxDrvSendCbusCommand ( cbus_req_t *pReq  )
 // The disconnection is determined by looking at RSEN LOW and applying
 // all MHL compliant disconnect timings and deglitch logic.
 //
-//	Look for interrupts on INTR_1 (Register 0x71)
-//		7 = RSVD		(reserved)
-//		6 = MDI_HPD		(interested)
-//		5 = RSEN CHANGED(interested)	
-//		4 = RSVD		(reserved)
-//		3 = RSVD		(reserved)
-//		2 = RSVD		(reserved)
-//		1 = RSVD		(reserved)
-//		0 = RSVD		(reserved)
+//      Look for interrupts on INTR_1 (Register 0x71)
+//              7 = RSVD                (reserved)
+//              6 = MDI_HPD             (interested)
+//              5 = RSEN CHANGED(interested)    
+//              4 = RSVD                (reserved)
+//              3 = RSVD                (reserved)
+//              2 = RSVD                (reserved)
+//              1 = RSVD                (reserved)
+//              0 = RSVD                (reserved)
 ////////////////////////////////////////////////////////////////////
 
-void	Int1RsenIsr( void )
+void Int1RsenIsr(void)
 {
-	byte		reg71 = I2C_ReadByte(SA_TX_Page0_Primary, 0x71);
-	byte		rsen  = I2C_ReadByte(SA_TX_Page0_Primary, 0x09) & BIT_2;
+	byte reg71 = I2C_ReadByte(SA_TX_Page0_Primary, 0x71);
+	byte rsen = I2C_ReadByte(SA_TX_Page0_Primary, 0x09) & BIT_2;
 
 	// Look at RSEN interrupt
-	if(reg71 & BIT_5)
-	{
-		TX_DEBUG_PRINT (("Drv: Got2 INTR_1: reg71 = %02X, rsen = %02X\n", (int) reg71, (int) rsen));
-		//pinCBusToggle = 1;	// for debug measurements. RSEN intr
+	if (reg71 & BIT_5) {
+		TX_DEBUG_PRINT(("Drv: Got2 INTR_1: reg71 = %02X, rsen = %02X\n",
+				(int)reg71, (int)rsen));
+		//pinCBusToggle = 1;    // for debug measurements. RSEN intr
 		//
 		// RSEN becomes LOW in SYS_STAT register 0x72:0x09[2]
-		// SYS_STAT	==> bit 7 = VLOW, 6:4 = MSEL, 3 = TSEL, 2 = RSEN, 1 = HPD, 0 = TCLK STABLE
+		// SYS_STAT     ==> bit 7 = VLOW, 6:4 = MSEL, 3 = TSEL, 2 = RSEN, 1 = HPD, 0 = TCLK STABLE
 		//
 		// Start countdown timer for deglitch
 		// Allow RSEN to stay low this much before reacting
 		//
-		if(rsen == 0x00)
-		{
-			if(TX_POWER_STATE_D0_MHL != fwPowerState)
-			{
-				TX_DEBUG_PRINT (("Drv: Got1 INTR_1: reg71 = %02X, rsen = %02X\n", (int) reg71, (int) rsen));
+		if (rsen == 0x00) {
+			if (TX_POWER_STATE_D0_MHL != fwPowerState) {
+				TX_DEBUG_PRINT(("Drv: Got1 INTR_1: reg71 = %02X, rsen = %02X\n", (int)reg71, (int)rsen));
 				I2C_WriteByte(SA_TX_Page0_Primary, 0x71, reg71);
 				return;
 			}
 
-			if(mhl_cable_status & MHL_1K_IMPEDANCE_VERIFIED)
-			{
-				TX_DEBUG_PRINT((KERN_ERR "RSEN Low and 1K impedance\n"));
+			if (mhl_cable_status & MHL_1K_IMPEDANCE_VERIFIED) {
+				TX_DEBUG_PRINT((KERN_ERR
+						"RSEN Low and 1K impedance\n"));
 				DelayMS(120);
-				if((I2C_ReadByte(SA_TX_Page0_Primary, 0x09) & BIT_2) == 0x00) 
-				{
-					TX_DEBUG_PRINT((KERN_ERR "Really RSEN Low\n"));
+				if ((I2C_ReadByte(SA_TX_Page0_Primary, 0x09) &
+				     BIT_2) == 0x00) {
+					TX_DEBUG_PRINT((KERN_ERR
+							"Really RSEN Low\n"));
 					//mhl_cable_status =MHL_INIT_POWER_OFF;
-					mhl_cable_status = MHL_TV_OFF_CABLE_CONNECT;
+					mhl_cable_status =
+					    MHL_TV_OFF_CABLE_CONNECT;
 					//FSA9480_MhlSwitchSel(0); 
 					//mhl_pwroff_request();
 					sii9244_pwroff_req();
+				} else {
+					TX_DEBUG_PRINT((KERN_ERR
+							"RSEN Stable\n"));
 				}
-				else
-				{
-					TX_DEBUG_PRINT((KERN_ERR "RSEN Stable\n"));
-				}
-			}
-			else
-			{
-				printk(KERN_ERR "%s: MHL Cable disconnect### 2\n", __func__);
-				mhl_cable_status =MHL_INIT_POWER_OFF;
+			} else {
+				printk(KERN_ERR
+				       "%s: MHL Cable disconnect### 2\n",
+				       __func__);
+				mhl_cable_status = MHL_INIT_POWER_OFF;
 				//FSA9480_MhlSwitchSel(0); 
 				//mhl_pwroff_request();
 				sii9244_pwroff_req();
@@ -887,9 +858,7 @@ void	Int1RsenIsr( void )
 			}
 			return;
 			//NAGSM_Android_SEL_Kernel_Aakash_20101214
-		}
-		else if(rsen == 0x04)
-		{
+		} else if (rsen == 0x04) {
 			mhl_cable_status |= MHL_RSEN_VERIFIED;
 
 #if defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_LGU)
@@ -901,8 +870,7 @@ void	Int1RsenIsr( void )
 		// Clear MDI_RSEN interrupt
 	}
 
-	if(reg71 & BIT_6)	
-	{
+	if (reg71 & BIT_6) {
 		byte cbusInt;
 		//HPD
 		printk("HPD \n");
@@ -910,23 +878,23 @@ void	Int1RsenIsr( void )
 		// Check if a SET_HPD came from the downstream device.
 		//
 		cbusInt = ReadByteCBUS(0x0D);
-		printk("HPD: cbusInt[%d] \n",cbusInt);
+		printk("HPD: cbusInt[%d] \n", cbusInt);
 
 		// CBUS_HPD status bit
-		if((BIT_6 & cbusInt) != dsHpdStatus)	
-		{
+		if ((BIT_6 & cbusInt) != dsHpdStatus) {
 			// Inform upper layer of change in Downstream HPD
-			SiiMhlTxNotifyDsHpdChange( cbusInt );
-			TX_DEBUG_PRINT(("Drv: Downstream HPD changed to: %02X\n", (int) cbusInt));
+			SiiMhlTxNotifyDsHpdChange(cbusInt);
+			TX_DEBUG_PRINT(("Drv: Downstream HPD changed to: %02X\n", (int)cbusInt));
 			// Remember
 			dsHpdStatus = (BIT_6 & cbusInt);
 		}
 
 	}
 
-  I2C_WriteByte(SA_TX_Page0_Primary, 0x71, reg71);
-  
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x71, reg71);
+
 }
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // DeglitchRsenLow
@@ -997,7 +965,7 @@ static void DeglitchRsenLow( void )
 //
 //
 ///////////////////////////////////////////////////////////////////////////
- void WriteInitialRegisterValues ( void )
+void WriteInitialRegisterValues(void)
 {
 	TX_DEBUG_PRINT(("Drv: WriteInitialRegisterValues\n"));
 	// Power Up
@@ -1023,33 +991,33 @@ static void DeglitchRsenLow( void )
 	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x31, 0x0A);	// Rx PLL BW ~ 4MHz
 	I2C_WriteByte(SA_TX_Page0_Primary, 0xA0, 0xD0);
 	I2C_WriteByte(SA_TX_Page0_Primary, 0xA1, 0xFC);	// Disable internal MHL driver
-       I2C_WriteByte(SA_TX_Page0_Primary, 0xA3, /*0xEB*/0xFB);
+	I2C_WriteByte(SA_TX_Page0_Primary, 0xA3, /*0xEB */ 0xFB);
 	I2C_WriteByte(SA_TX_Page0_Primary, 0xA6, 0x0C);
-	
 
 	I2C_WriteByte(SA_TX_Page0_Primary, 0x2B, 0x01);	// Enable HDCP Compliance safety
 
-	TX_DEBUG_PRINT( ("***** 0xA3 register Value: 0x%X\n", (int)I2C_ReadByte(SA_TX_Page0_Primary, 0xA3)) );
+	TX_DEBUG_PRINT(("***** 0xA3 register Value: 0x%X\n",
+			(int)I2C_ReadByte(SA_TX_Page0_Primary, 0xA3)));
 	//
 	// CBUS & Discovery
 	// CBUS discovery cycle time for each drive and float = 150us
 	//
 	ReadModifyWriteTPI(0x90, BIT_3 | BIT_2, BIT_3);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x91, 0xA5);		// Clear bit 6 (reg_skip_rgnd)
-
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x91, 0xA5);	// Clear bit 6 (reg_skip_rgnd)
 
 	// Changed from 66 to 65 for 94[1:0] = 01 = 5k reg_cbusmhl_pup_sel
-	//I2C_WriteByte(SA_TX_Page0_Primary, 0x94, 0x65);			// 1.8V CBUS VTH & GND threshold
-    I2C_WriteByte(SA_TX_Page0_Primary, 0x94, 0x77);			// 1.8V CBUS VTH & GND threshold
+	//I2C_WriteByte(SA_TX_Page0_Primary, 0x94, 0x65);                       // 1.8V CBUS VTH & GND threshold
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x94, 0x77);	// 1.8V CBUS VTH & GND threshold
 
 	//set bit 2 and 3, which is Initiator Timeout
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x31, I2C_ReadByte(SA_TX_CBUS_Primary, 0x31) | 0x0c);
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x31,
+		      I2C_ReadByte(SA_TX_CBUS_Primary, 0x31) | 0x0c);
 
-	//I2C_WriteByte(SA_TX_Page0_Primary, 0xA5, 0xAC);			// RGND Hysterisis.
-    I2C_WriteByte(SA_TX_Page0_Primary, 0xA5, 0xA0);			
+	//I2C_WriteByte(SA_TX_Page0_Primary, 0xA5, 0xAC);                       // RGND Hysterisis.
+	I2C_WriteByte(SA_TX_Page0_Primary, 0xA5, 0xA0);
 	TX_DEBUG_PRINT(("Drv: MHL 1.0 Compliant Clock\n"));
-	
+
 	// RGND & single discovery attempt (RGND blocking)
 	I2C_WriteByte(SA_TX_Page0_Primary, 0x95, 0x31);
 
@@ -1058,7 +1026,7 @@ static void DeglitchRsenLow( void )
 
 	// Use VBUS path of discovery state machine
 	I2C_WriteByte(SA_TX_Page0_Primary, 0x97, 0x00);
-	ReadModifyWriteTPI(0x95, BIT_6, BIT_6);		// Force USB ID switch to open
+	ReadModifyWriteTPI(0x95, BIT_6, BIT_6);	// Force USB ID switch to open
 
 	//
 	// For MHL compliance we need the following settings for register 93 and 94
@@ -1072,17 +1040,17 @@ static void DeglitchRsenLow( void )
 	// 93[5:4] = 00  reg_cbusidle_pup_sel[1:0] = open (default)
 	//
 
-	WriteByteTPI(0x92, 0x86);				//
+	WriteByteTPI(0x92, 0x86);	//
 	// change from CC to 8C to match 5K
-	WriteByteTPI(0x93, 0x8C);				// Disable CBUS pull-up during RGND measurement
+	WriteByteTPI(0x93, 0x8C);	// Disable CBUS pull-up during RGND measurement
 	//NAGSM_Android_SEL_Kernel_Aakash_20101214
- 	//ReadModifyWriteTPI(0x79, BIT_5 | BIT_4, BIT_4);	// Force upstream HPD to 0 when not in MHL mode.
+	//ReadModifyWriteTPI(0x79, BIT_5 | BIT_4, BIT_4);       // Force upstream HPD to 0 when not in MHL mode.
 	//ReadModifyWriteTPI(0x79, BIT_2, 0); //Set interrupt active low HML kenneth.kang
 
 	DelayMS(25);
-	ReadModifyWriteTPI(0x95, BIT_6, 0x00);		// Release USB ID switch
+	ReadModifyWriteTPI(0x95, BIT_6, 0x00);	// Release USB ID switch
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x90, 0x27);			// Enable CBUS discovery
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x90, 0x27);	// Enable CBUS discovery
 
 	CbusReset();
 
@@ -1094,61 +1062,65 @@ static void DeglitchRsenLow( void )
 	// HDMI Transcode mode enable
 	I2C_WriteByte(SA_TX_Page0_Primary, 0x0D, 0x1C);
 
- 	//I2C_WriteByte(SA_TX_Page0_Primary, 0x78, RGND_RDY_EN);
+	//I2C_WriteByte(SA_TX_Page0_Primary, 0x78, RGND_RDY_EN);
 }
+
 ///////////////////////////////////////////////////////////////////////////
 //
 //
 ///////////////////////////////////////////////////////////////////////////
-#define MHL_DEVICE_CATEGORY             0x02 //(MHL_DEV_CAT_SOURCE)
+#define MHL_DEVICE_CATEGORY             0x02	//(MHL_DEV_CAT_SOURCE)
 #define	MHL_LOGICAL_DEVICE_MAP			(MHL_DEV_LD_AUDIO | MHL_DEV_LD_VIDEO | MHL_DEV_LD_MEDIA | MHL_DEV_LD_GUI /*| MHL_DEV_LD_TUNER*/)
 #define MHL_ADOPTER_ID_H                0x02
-#define MHL_ADOPTER_ID_L                0x64 //(MHL_ADOPTER_ID_H + MHL_ADOPTER_ID_L = 0x264 = 612 LG Adopter ID
+#define MHL_ADOPTER_ID_L                0x64	//(MHL_ADOPTER_ID_H + MHL_ADOPTER_ID_L = 0x264 = 612 LG Adopter ID
 
-static void InitCBusRegs( void )
+static void InitCBusRegs(void)
 {
-	byte		regval;
+	byte regval;
 
 	TX_DEBUG_PRINT(("Drv: InitCBusRegs\n"));
 	// Increase DDC translation layer timer
 	//I2C_WriteByte(SA_TX_CBUS_Primary, 0x07, 0x36);
-  	I2C_WriteByte(SA_TX_CBUS_Primary, 0x07, 0x32); //for default DDC byte mode
-  
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x40, 0x03); 			// CBUS Drive Strength
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x42, 0x06); 			// CBUS DDC interface ignore segment pointer
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x07, 0x32);	//for default DDC byte mode
+
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x40, 0x03);	// CBUS Drive Strength
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x42, 0x06);	// CBUS DDC interface ignore segment pointer
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x36, 0x0C);
 
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x3D, 0xFD);	
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x3D, 0xFD);
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x1C, 0x00);
 
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x44, 0x02);
 
 	// Setup our devcap
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x80, 0 /* MHL_DEV_ACTIVE */); //reserved
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x80, 0 /* MHL_DEV_ACTIVE */ );	//reserved
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x81, MHL_VERSION);
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x82, MHL_DEVICE_CATEGORY);
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x83, MHL_ADOPTER_ID_H);  						
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x84, MHL_ADOPTER_ID_L);						
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x85, MHL_DEV_VID_LINK_SUPPRGB444 /* (MHL_DEV_VID_LINK_SUPPRGB444|MHL_DEV_VID_LINK_SUPPYCBCR444)*/ ); // HDMI Moduel does not support YCBCR444
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x83, MHL_ADOPTER_ID_H);
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x84, MHL_ADOPTER_ID_L);
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x85, MHL_DEV_VID_LINK_SUPPRGB444 /* (MHL_DEV_VID_LINK_SUPPRGB444|MHL_DEV_VID_LINK_SUPPYCBCR444) */ );	// HDMI Moduel does not support YCBCR444
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x86, MHL_DEV_AUD_LINK_2CH);
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x87, 0);										// not for source
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x87, 0);	// not for source
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x88, MHL_LOGICAL_DEVICE_MAP);
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x89, 0x0F);										// not for source
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8A, MHL_FEATURE_RCP_SUPPORT | MHL_FEATURE_RAP_SUPPORT|MHL_FEATURE_SP_SUPPORT);
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x89, 0x0F);	// not for source
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8A,
+		      MHL_FEATURE_RCP_SUPPORT | MHL_FEATURE_RAP_SUPPORT |
+		      MHL_FEATURE_SP_SUPPORT);
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8B, 0);
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8C, 0);										// reserved
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8C, 0);	// reserved
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8D, MHL_SCRATCHPAD_SIZE);
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8E, 0x44 ); //MHL_INT_AND_STATUS_SIZE);
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8F, 0);										//reserved
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8E, 0x44);	//MHL_INT_AND_STATUS_SIZE);
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x8F, 0);	//reserved
 
 	// Make bits 2,3 (initiator timeout) to 1,1 for register CBUS_LINK_CONTROL_2
-	regval = I2C_ReadByte(SA_TX_CBUS_Primary, REG_CBUS_LINK_CONTROL_2 );
+	regval = I2C_ReadByte(SA_TX_CBUS_Primary, REG_CBUS_LINK_CONTROL_2);
 	regval = (regval | 0x0C);
-	I2C_WriteByte(SA_TX_CBUS_Primary,REG_CBUS_LINK_CONTROL_2, regval);
+	I2C_WriteByte(SA_TX_CBUS_Primary, REG_CBUS_LINK_CONTROL_2, regval);
 
-	 // Clear legacy bit on Wolverine TX.
-    regval = I2C_ReadByte(SA_TX_CBUS_Primary, REG_MSC_TIMEOUT_LIMIT);
-    I2C_WriteByte(SA_TX_CBUS_Primary, REG_MSC_TIMEOUT_LIMIT, (regval & MSC_TIMEOUT_LIMIT_MSB_MASK));
+	// Clear legacy bit on Wolverine TX.
+	regval = I2C_ReadByte(SA_TX_CBUS_Primary, REG_MSC_TIMEOUT_LIMIT);
+	I2C_WriteByte(SA_TX_CBUS_Primary, REG_MSC_TIMEOUT_LIMIT,
+		      (regval & MSC_TIMEOUT_LIMIT_MSB_MASK));
 
 	// Set NMax to 1
 	I2C_WriteByte(SA_TX_CBUS_Primary, REG_CBUS_LINK_CONTROL_1, 0x01);
@@ -1160,21 +1132,22 @@ static void InitCBusRegs( void )
 // ForceUsbIdSwitchOpen
 //
 ///////////////////////////////////////////////////////////////////////////
-static void ForceUsbIdSwitchOpen ( void )
+static void ForceUsbIdSwitchOpen(void)
 {
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x90, 0x26);		// Disable CBUS discovery
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x90, 0x26);	// Disable CBUS discovery
 	ReadModifyWriteTPI(0x95, BIT_6, BIT_6);	// Force USB ID switch to open
 	WriteByteTPI(0x92, 0x86);
 	// Force HPD to 0 when not in MHL mode.
 	ReadModifyWriteTPI(0x79, BIT_5 | BIT_4, BIT_4);
 
 }
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // ReleaseUsbIdSwitchOpen
 //
 ///////////////////////////////////////////////////////////////////////////
-static void ReleaseUsbIdSwitchOpen ( void )
+static void ReleaseUsbIdSwitchOpen(void)
 {
 	DelayMS(50);
 	// Release USB ID switch
@@ -1199,32 +1172,31 @@ static void ReleaseUsbIdSwitchOpen ( void )
 //////////////////////////////////////////////////////////////////////////////
 void CbusWakeUpDelay(unsigned int ms0, unsigned int ms1)
 {
-  int flag = 0;
-  ktime_t t0, t1;
-  s64 ns0 = (ms0-ms1) * 1000000;
-  s64 ns1;
+	int flag = 0;
+	ktime_t t0, t1;
+	s64 ns0 = (ms0 - ms1) * 1000000;
+	s64 ns1;
 
-  if(!hrtimer_initialized) 
-  {
-    hrtimer_init(&hr_wake_timer, CLOCK_MONOTONIC,HRTIMER_MODE_REL);
-    hr_wake_timer.function = &hrtimer_wakeup_callback;
-    hrtimer_initialized = true;
-    first_timer = true;
-  }
-  t0 = ktime_get_real();  
-  do {
-    start_hrtimer_ms(1);
-    wait_event_interruptible(wake_wq,wakeup_time_expired);
-    t1 = ktime_sub(ktime_get_real(),t0);
-    ns1 = ktime_to_ns(t1) - ns0;
+	if (!hrtimer_initialized) {
+		hrtimer_init(&hr_wake_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+		hr_wake_timer.function = &hrtimer_wakeup_callback;
+		hrtimer_initialized = true;
+		first_timer = true;
+	}
+	t0 = ktime_get_real();
+	do {
+		start_hrtimer_ms(1);
+		wait_event_interruptible(wake_wq, wakeup_time_expired);
+		t1 = ktime_sub(ktime_get_real(), t0);
+		ns1 = ktime_to_ns(t1) - ns0;
 
-    if(ns1 >= 0)
-      flag = 1;
-  } while(!flag);	
+		if (ns1 >= 0)
+			flag = 1;
+	} while (!flag);
 }
 
 void CbusWakeUpPulseGenerator(void)
-{	
+{
 	//TX_DEBUG_PRINT(("Drv: CbusWakeUpPulseGenerator\n"));
 	if (!hrtimer_initialized) {
 		hrtimer_init(&hr_wake_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
@@ -1232,69 +1204,76 @@ void CbusWakeUpPulseGenerator(void)
 		hrtimer_initialized = true;
 		first_timer = true;
 	}
-		
 	//
 	// I2C method
 	//
 	//I2C_WriteByte(SA_TX_Page0_Primary, 0x92, (I2C_ReadByte(SA_TX_Page0_Primary, 0x92) | 0x10));
 
 	// Start the pulse
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) | 0xC0));
-//	DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );	// adjust for code path
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x96,
+		      (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) | 0xC0));
+//      DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );     // adjust for code path
 	//start_hrtimer_ms(19);
-        CbusWakeUpDelay(20,2);
+	CbusWakeUpDelay(20, 2);
 //        TX_DEBUG_PRINT(("%s\n",__func__));
 	//iiwait_event_interruptible(wake_wq, wakeup_time_expired);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) & 0x3F));
-//	DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );	// adjust for code path
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x96,
+		      (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) & 0x3F));
+//      DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );     // adjust for code path
 	//start_hrtimer_ms(19);
-	CbusWakeUpDelay(20,2);
+	CbusWakeUpDelay(20, 2);
 	//TX_DEBUG_PRINT(("%s\n",__func__));
 	//wait_event_interruptible(wake_wq, wakeup_time_expired);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) | 0xC0));
-//	DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );	// adjust for code path
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x96,
+		      (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) | 0xC0));
+//      DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );     // adjust for code path
 	//start_hrtimer_ms(19);
-	CbusWakeUpDelay(20,2);
+	CbusWakeUpDelay(20, 2);
 	//TX_DEBUG_PRINT(("%s\n",__func__));
 	//wait_event_interruptible(wake_wq, wakeup_time_expired);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) & 0x3F));
-//	DelayMS(T_SRC_WAKE_PULSE_WIDTH_2 );	// adjust for code path
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x96,
+		      (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) & 0x3F));
+//      DelayMS(T_SRC_WAKE_PULSE_WIDTH_2 );     // adjust for code path
 	//start_hrtimer_ms(59);
-	CbusWakeUpDelay(60,4);
+	CbusWakeUpDelay(60, 4);
 	//TX_DEBUG_PRINT(("%s\n",__func__));
 	//wait_event_interruptible(wake_wq, wakeup_time_expired);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) | 0xC0));
-//	DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );	// adjust for code path
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x96,
+		      (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) | 0xC0));
+//      DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );     // adjust for code path
 	//start_hrtimer_ms(19);
-	CbusWakeUpDelay(20,2);
-        //TX_DEBUG_PRINT(("%s\n",__func__));
+	CbusWakeUpDelay(20, 2);
+	//TX_DEBUG_PRINT(("%s\n",__func__));
 	//wait_event_interruptible(wake_wq, wakeup_time_expired);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) & 0x3F));
-//	DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );	// adjust for code path
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x96,
+		      (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) & 0x3F));
+//      DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );     // adjust for code path
 	//start_hrtimer_ms(19);
-	CbusWakeUpDelay(20,2);
-        //TX_DEBUG_PRINT(("%s\n",__func__));
+	CbusWakeUpDelay(20, 2);
+	//TX_DEBUG_PRINT(("%s\n",__func__));
 	//wait_event_interruptible(wake_wq, wakeup_time_expired);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) | 0xC0));
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x96,
+		      (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) | 0xC0));
 	//DelayMS(21);
-//	DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );	// adjust for code path
+//      DelayMS(T_SRC_WAKE_PULSE_WIDTH_1 );     // adjust for code path
 	//start_hrtimer_ms(19);
-	CbusWakeUpDelay(20,2);
+	CbusWakeUpDelay(20, 2);
 	//TX_DEBUG_PRINT(("%s\n",__func__));
 	//wait_event_interruptible(wake_wq, wakeup_time_expired);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) & 0x3F));
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x96,
+		      (I2C_ReadByte(SA_TX_Page0_Primary, 0x96) & 0x3F));
 
-//	DelayMS(T_SRC_WAKE_TO_DISCOVER);
+//      DelayMS(T_SRC_WAKE_TO_DISCOVER);
 	//start_hrtimer_ms(T_SRC_WAKE_TO_DISCOVER);
-	CbusWakeUpDelay(T_SRC_WAKE_TO_DISCOVER,2);
-        //TX_DEBUG_PRINT(("%s\n",__func__));
+	CbusWakeUpDelay(T_SRC_WAKE_TO_DISCOVER, 2);
+	//TX_DEBUG_PRINT(("%s\n",__func__));
 	//wait_event_interruptible(wake_wq, wakeup_time_expired);
 	//
 	// Toggle MHL discovery bit
@@ -1304,25 +1283,25 @@ void CbusWakeUpPulseGenerator(void)
 	//DISABLE_DISCOVERY;
 	//ENABLE_DISCOVERY;
 }
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // ApplyDdcAbortSafety
 //
 ///////////////////////////////////////////////////////////////////////////
-static	void	ApplyDdcAbortSafety(void)
+static void ApplyDdcAbortSafety(void)
 {
-	byte		bTemp, bPost;
+	byte bTemp, bPost;
 
 	/*TX_DEBUG_PRINT(("[%d] Drv: Do we need DDC Abort Safety\n",
-	(int) (HalTimerElapsed( ELAPSED_TIMER ) * MONITORING_PERIOD)));*/
+	   (int) (HalTimerElapsed( ELAPSED_TIMER ) * MONITORING_PERIOD))); */
 
 	WriteByteCBUS(0x29, 0xFF);
 	bTemp = ReadByteCBUS(0x29);
 	DelayMS(3);
 	bPost = ReadByteCBUS(0x29);
 
-	if ((bPost > (bTemp + 50)))
-	{
+	if ((bPost > (bTemp + 50))) {
 		TX_DEBUG_PRINT(("Drv: Applying DDC Abort Safety(SWWA 18958)\n"));
 
 		SET_BIT(SA_TX_Page0_Primary, 0x05, 3);
@@ -1337,6 +1316,7 @@ static	void	ApplyDdcAbortSafety(void)
 		MhlTxDrvProcessDisconnection();
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////
 // ProcessRgnd
 //
@@ -1348,9 +1328,9 @@ static	void	ApplyDdcAbortSafety(void)
 // In current chip a firmware driven slow wake up pulses are sent to the
 // sink to wake that and setup ourselves for full D0 operation.
 ///////////////////////////////////////////////////////////////////////////
-void	ProcessRgnd( void )
+void ProcessRgnd(void)
 {
-	byte		reg99RGNDRange;
+	byte reg99RGNDRange;
 	//
 	// Impedance detection has completed - process interrupt
 	//
@@ -1359,43 +1339,38 @@ void	ProcessRgnd( void )
 
 	/* Keeping DisableFSAinterrupt affects fast connect/disconnect */
 	/* But disabling fsa interrupts ... and 
-	removing the power adapter cable from the mhl active while cable is connected
-	gives multiple FSA interrupts .. Need to find a proper solution. */        
-	//DisableFSA9480Interrupts(); //Test //SEL_Subhransu_20110219		
+	   removing the power adapter cable from the mhl active while cable is connected
+	   gives multiple FSA interrupts .. Need to find a proper solution. */
+	//DisableFSA9480Interrupts(); //Test //SEL_Subhransu_20110219           
 	//
 	// Reg 0x99
 	// 00 or 11 means USB.
 	// 10 means 1K impedance (MHL)
 	// 01 means 2K impedance (MHL)
 	//
-	if (reg99RGNDRange == 0x00 || reg99RGNDRange == 0x03)	
-	{
-		TX_DEBUG_PRINT((" %d: USB impedance. Disable MHL discovery.\n", (int)reg99RGNDRange));
+	if (reg99RGNDRange == 0x00 || reg99RGNDRange == 0x03) {
+		TX_DEBUG_PRINT((" %d: USB impedance. Disable MHL discovery.\n",
+				(int)reg99RGNDRange));
 		CLR_BIT(SA_TX_Page0_Primary, 0x95, 5);
-		mhl_cable_status =MHL_INIT_POWER_OFF;
-		TX_DEBUG_PRINT((KERN_ERR "MHL_SEL to 0\n")); 
+		mhl_cable_status = MHL_INIT_POWER_OFF;
+		TX_DEBUG_PRINT((KERN_ERR "MHL_SEL to 0\n"));
 		//mhl_pwroff_request();
 		sii9244_pwroff_req();
-		//FSA9480_CheckAndHookAudioDock(); //Rajucm: Audio Dock Detection Algorithm	R1
-	}
-	else 	
-	{
+		//FSA9480_CheckAndHookAudioDock(); //Rajucm: Audio Dock Detection Algorithm     R1
+	} else {
 		mhl_cable_status |= MHL_1K_IMPEDANCE_VERIFIED;
-		if(0x01==reg99RGNDRange)
-		{
+		if (0x01 == reg99RGNDRange) {
 			TX_DEBUG_PRINT(("MHL 2K\n"));
-			mhl_cable_status =MHL_TV_OFF_CABLE_CONNECT;
+			mhl_cable_status = MHL_TV_OFF_CABLE_CONNECT;
 			printk(KERN_ERR "MHL Connection Fail Power off ###1\n");
 			//mhl_pwroff_request();
 			sii9244_pwroff_req();
-			return ;
-		}
-		else if(0x02==reg99RGNDRange)
-		{
+			return;
+		} else if (0x02 == reg99RGNDRange) {
 			TX_DEBUG_PRINT(("MHL 1K\n"));
 
 			DelayMS(T_SRC_VBUS_CBUS_TO_STABLE);
-			
+
 			// Discovery enabled
 			I2C_WriteByte(SA_TX_Page0_Primary, 0x90, 0x25);
 			//
@@ -1405,6 +1380,7 @@ void	ProcessRgnd( void )
 		}
 	}
 }
+
 ////////////////////////////////////////////////////////////////////
 // SwitchToD0
 // This function performs s/w as well as h/w state transitions.
@@ -1412,7 +1388,7 @@ void	ProcessRgnd( void )
 // Chip comes up in D2. Firmware must first bring it to full operation
 // mode in D0.
 ////////////////////////////////////////////////////////////////////
-void	SwitchToD0( void )
+void SwitchToD0(void)
 {
 	printk("%s\n", __func__);
 
@@ -1421,32 +1397,33 @@ void	SwitchToD0( void )
 	//
 	WriteInitialRegisterValues();
 	/*
-	ReadModifyWriteTPI(0x79, BIT_5 | BIT_4, BIT_4);
-	msleep(300);
-	printk("1: I2C_ReadByte(SA_TX_Page0_Primary, (0x74)); = 0x%x\n", I2C_ReadByte(SA_TX_Page0_Primary, (0x74)));
-	printk("1: GPIO_HPD : 0x%x\n",gpio_get_value(172));
-	printk("1: %s : REG81 : 0x%x\n", __func__, I2C_ReadByte(0x72, 0x81));
-	ReadModifyWriteTPI(0x79, BIT_5 | BIT_4, BIT_5 | BIT_4);
-	msleep(300);
-	printk("2: I2C_ReadByte(SA_TX_Page0_Primary, (0x74)); = 0x%x\n", I2C_ReadByte(SA_TX_Page0_Primary, (0x74)));
-	printk("2: GPIO_HPD : 0x%x\n",gpio_get_value(172));
-	printk("2: %s : REG81 : 0x%x\n", __func__, I2C_ReadByte(0x72, 0x81));
-	*/
+	   ReadModifyWriteTPI(0x79, BIT_5 | BIT_4, BIT_4);
+	   msleep(300);
+	   printk("1: I2C_ReadByte(SA_TX_Page0_Primary, (0x74)); = 0x%x\n", I2C_ReadByte(SA_TX_Page0_Primary, (0x74)));
+	   printk("1: GPIO_HPD : 0x%x\n",gpio_get_value(172));
+	   printk("1: %s : REG81 : 0x%x\n", __func__, I2C_ReadByte(0x72, 0x81));
+	   ReadModifyWriteTPI(0x79, BIT_5 | BIT_4, BIT_5 | BIT_4);
+	   msleep(300);
+	   printk("2: I2C_ReadByte(SA_TX_Page0_Primary, (0x74)); = 0x%x\n", I2C_ReadByte(SA_TX_Page0_Primary, (0x74)));
+	   printk("2: GPIO_HPD : 0x%x\n",gpio_get_value(172));
+	   printk("2: %s : REG81 : 0x%x\n", __func__, I2C_ReadByte(0x72, 0x81));
+	 */
 	// Setup interrupt masks for all those we are interested.
 	MASK_INTR_1_INTERRUPTS;
 	// Force Power State to ON
 	I2C_WriteByte(SA_TX_Page0_Primary, 0x90, 0x25);
 
 	fwPowerState = TX_POWER_STATE_D0_NO_MHL;
-  	mhl_cable_status =MHL_POWER_ON;
+	mhl_cable_status = MHL_POWER_ON;
 }
+
 ////////////////////////////////////////////////////////////////////
 // SwitchToD3
 //
 // This function performs s/w as well as h/w state transitions.
 //
 ////////////////////////////////////////////////////////////////////
-void	SwitchToD3( void )
+void SwitchToD3(void)
 {
 	//
 	// To allow RGND engine to operate correctly.
@@ -1457,16 +1434,15 @@ void	SwitchToD3( void )
 	//
 	// Disable CBUS pull-up during RGND measurement
 	//I2C_WriteByte(SA_TX_Page0_Primary, 0x93, 0x04);
-    ReadModifyWriteTPI(0x93, BIT_7 | BIT_6 | BIT_5 | BIT_4, 0);
+	ReadModifyWriteTPI(0x93, BIT_7 | BIT_6 | BIT_5 | BIT_4, 0);
 
-		ReadModifyWriteTPI(0x94, BIT_1 | BIT_0, 0);
+	ReadModifyWriteTPI(0x94, BIT_1 | BIT_0, 0);
 
 	// 1.8V CBUS VTH & GND threshold
 	//I2C_WriteByte(SA_TX_Page0_Primary, 0x94, 0x64);
 
-   	ReleaseUsbIdSwitchOpen();
-  	printk("TX_POWER_STATE_D3\n");
-
+	ReleaseUsbIdSwitchOpen();
+	printk("TX_POWER_STATE_D3\n");
 
 	// Change TMDS termination to high impedance on disconnection
 	// Bits 1:0 set to 11
@@ -1480,6 +1456,7 @@ void	SwitchToD3( void )
 	fwPowerState = TX_POWER_STATE_D3;
 
 }
+
 /*===========================================================================
   FUNCTION For_check_resen_int
 
@@ -1496,93 +1473,94 @@ void	SwitchToD3( void )
   None
 ===========================================================================*/
 #if 0
-static void For_check_resen_int (void) 
+static void For_check_resen_int(void)
 {
 	// Power Up
-	I2C_WriteByte(SA_TX_Page1_Primary, 0x3D, 0x3F);			// Power up CVCC 1.2V core
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x11, 0x01);			// Enable TxPLL Clock
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x12, 0x15);			// Enable Tx Clock Path & Equalizer
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x08, 0x35);			// Power Up TMDS Tx Core
+	I2C_WriteByte(SA_TX_Page1_Primary, 0x3D, 0x3F);	// Power up CVCC 1.2V core
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x11, 0x01);	// Enable TxPLL Clock
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x12, 0x15);	// Enable Tx Clock Path & Equalizer
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x08, 0x35);	// Power Up TMDS Tx Core
 
 	// Analog PLL Control
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x17, 0x03);			// PLL Calrefsel
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x1A, 0x20);			// VCO Cal
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x22, 0x8A);			// Auto EQ
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x23, 0x6A);			// Auto EQ
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x24, 0xAA);			// Auto EQ
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x25, 0xCA);			// Auto EQ
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x26, 0xEA);			// Auto EQ
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x4C, 0xA0);			// Manual zone control
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x4D, 0x00);			// PLL Mode Value
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x17, 0x03);	// PLL Calrefsel
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x1A, 0x20);	// VCO Cal
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x22, 0x8A);	// Auto EQ
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x23, 0x6A);	// Auto EQ
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x24, 0xAA);	// Auto EQ
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x25, 0xCA);	// Auto EQ
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x26, 0xEA);	// Auto EQ
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x4C, 0xA0);	// Manual zone control
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x4D, 0x00);	// PLL Mode Value
 
-	//I2C_WriteByte(SA_TX_Page0_Primary, 0x80, 0x34);			// Enable Rx PLL Clock Value
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x80, 0x24);			// Enable Rx PLL Clock Value	
+	//I2C_WriteByte(SA_TX_Page0_Primary, 0x80, 0x34);                       // Enable Rx PLL Clock Value
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x80, 0x24);	// Enable Rx PLL Clock Value    
 
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x45, 0x44);			// Rx PLL BW value from I2C
-	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x31, 0x0A);			// Rx PLL BW ~ 4MHz
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x45, 0x44);	// Rx PLL BW value from I2C
+	I2C_WriteByte(SA_TX_HDMI_RX_Primary, 0x31, 0x0A);	// Rx PLL BW ~ 4MHz
 	I2C_WriteByte(SA_TX_Page0_Primary, 0xA0, 0xD0);
-	I2C_WriteByte(SA_TX_Page0_Primary, 0xA1, 0xFC);			// Disable internal Mobile HD driver
+	I2C_WriteByte(SA_TX_Page0_Primary, 0xA1, 0xFC);	// Disable internal Mobile HD driver
 
 	I2C_WriteByte(SA_TX_Page0_Primary, 0xA3, 0xEB);
 	I2C_WriteByte(SA_TX_Page0_Primary, 0xA6, 0x0C);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x2B, 0x01);			// Enable HDCP Compliance workaround
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x2B, 0x01);	// Enable HDCP Compliance workaround
 
 	// CBUS & Discovery
 	ReadModifyWriteTPI(0x90, BIT_3 | BIT_2, BIT_3);	// CBUS discovery cycle time for each drive and float = 150us
 
 	I2C_WriteByte(SA_TX_Page0_Primary, 0x91, 0xA5);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x94, 0x66);			// 1.8V CBUS VTH & GND threshold
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x94, 0x66);	// 1.8V CBUS VTH & GND threshold
 
 	//set bit 2 and 3, which is Initiator Timeout
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x31, I2C_ReadByte(SA_TX_CBUS_Primary, 0x31) | 0x0c);
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x31,
+		      I2C_ReadByte(SA_TX_CBUS_Primary, 0x31) | 0x0c);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0xA5, 0xAC);			// RGND Hysterisis.
+	I2C_WriteByte(SA_TX_Page0_Primary, 0xA5, 0xAC);	// RGND Hysterisis.
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x95, 0x31);			// RGND & single discovery attempt (RGND blocking)
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x95, 0x31);	// RGND & single discovery attempt (RGND blocking)
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, 0x22);			// use 1K and 2K setting
-	//	I2C_WriteByte(SA_TX_Page0_Primary, 0x97, 0x03);			// Auto Heartbeat failure enable
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x96, 0x22);	// use 1K and 2K setting
+	//      I2C_WriteByte(SA_TX_Page0_Primary, 0x97, 0x03);                 // Auto Heartbeat failure enable
 
-	ReadModifyWriteTPI(0x95, BIT_6, BIT_6);		// Force USB ID switch to open
+	ReadModifyWriteTPI(0x95, BIT_6, BIT_6);	// Force USB ID switch to open
 
-	WriteByteTPI(0x92, 0x86);				//
-	WriteByteTPI(0x93, 0xCC);				// Disable CBUS pull-up during RGND measurement
+	WriteByteTPI(0x92, 0x86);	//
+	WriteByteTPI(0x93, 0xCC);	// Disable CBUS pull-up during RGND measurement
 
 	DelayMS(25);
-	ReadModifyWriteTPI(0x95, BIT_6, 0x00);		// Release USB ID switch
+	ReadModifyWriteTPI(0x95, BIT_6, 0x00);	// Release USB ID switch
 
-	ReadModifyWriteTPI(0x79, BIT_1 | BIT_2, 0); //Set interrupt active high
+	ReadModifyWriteTPI(0x79, BIT_1 | BIT_2, 0);	//Set interrupt active high
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x90, 0x27);			// Enable CBUS discovery
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x90, 0x27);	// Enable CBUS discovery
 
 	// Reset CBus to clear HPD
 	I2C_WriteByte(SA_TX_Page0_Primary, 0x05, 0x08);
 	DelayMS(2);
 	I2C_WriteByte(SA_TX_Page0_Primary, 0x05, 0x00);
 
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x1F, 0x02); 			// Heartbeat Max Fail Enable
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x07, DDC_XLTN_TIMEOUT_MAX_VAL | 0x06); 			// Increase DDC translation layer timer
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x40, 0x03); 			// CBUS Drive Strength
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x42, 0x06); 			// CBUS DDC interface ignore segment pointer
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x1F, 0x02);	// Heartbeat Max Fail Enable
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x07, DDC_XLTN_TIMEOUT_MAX_VAL | 0x06);	// Increase DDC translation layer timer
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x40, 0x03);	// CBUS Drive Strength
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x42, 0x06);	// CBUS DDC interface ignore segment pointer
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x36, 0x0C);
 
-	I2C_WriteByte(SA_TX_CBUS_Primary, 0x3D, 0xFD);	
+	I2C_WriteByte(SA_TX_CBUS_Primary, 0x3D, 0xFD);
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x1C, 0x00);
 
 	I2C_WriteByte(SA_TX_CBUS_Primary, 0x44, 0x02);
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x05, 0x04); 		// Enable Auto soft reset on SCDT = 0
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x05, 0x04);	// Enable Auto soft reset on SCDT = 0
 
-	I2C_WriteByte(SA_TX_Page0_Primary, 0x0D, 0x1C); 			// HDMI Transcode mode enable
+	I2C_WriteByte(SA_TX_Page0_Primary, 0x0D, 0x1C);	// HDMI Transcode mode enable
 
 	UNMASK_INTR_4_INTERRUPTS;
 
 	//I2C_WriteByte(SA_TX_Page0_Primary, 0x78, BIT_6) 
 	SiI9244_startTPI();
 	WriteByteTPI(TPI_INTERRUPT_ENABLE_REG, 0x02);
-	//ReadModifyWriteTPI(TPI_INTERRUPT_ENABLE_REG, 0x03, 	0x03);	 //enable HPD and RSEN interrupt
+	//ReadModifyWriteTPI(TPI_INTERRUPT_ENABLE_REG, 0x03,    0x03);   //enable HPD and RSEN interrupt
 
 }
 #endif
@@ -1590,70 +1568,66 @@ static void For_check_resen_int (void)
 // Int4Isr
 //
 //
-//	Look for interrupts on INTR4 (Register 0x74)
-//		7 = RSVD		(reserved)
-//		6 = RGND Rdy	(interested)
-//		5 = VBUS Low	(ignore)	
-//		4 = CBUS LKOUT	(interested)
-//		3 = USB EST		(interested)
-//		2 = MHL EST		(interested)
-//		1 = RPWR5V Change	(ignore)
-//		0 = SCDT Change	(interested during D0)
+//      Look for interrupts on INTR4 (Register 0x74)
+//              7 = RSVD                (reserved)
+//              6 = RGND Rdy    (interested)
+//              5 = VBUS Low    (ignore)        
+//              4 = CBUS LKOUT  (interested)
+//              3 = USB EST             (interested)
+//              2 = MHL EST             (interested)
+//              1 = RPWR5V Change       (ignore)
+//              0 = SCDT Change (interested during D0)
 ////////////////////////////////////////////////////////////////////
-static	void	Int4Isr( void )
+static void Int4Isr(void)
 {
-	byte		reg74;
+	byte reg74;
 
 	reg74 = I2C_ReadByte(SA_TX_Page0_Primary, (0x74));	// read status
 
-	printk(KERN_ERR "[MHL] Int4Isr : REG74 : %x\n",(int)reg74);
+	printk(KERN_ERR "[MHL] Int4Isr : REG74 : %x\n", (int)reg74);
 
 	// When I2C is inoperational (say in D3) and a previous interrupt brought us here, do nothing.
-	if(0xFF == reg74)
-	{
+	if (0xFF == reg74) {
 		printk(KERN_ERR "RETURN (0xFF == reg74)\n");
 		return;
 	}
 
-	if(reg74 & BIT_2) // MHL_EST_INT
-	{        
+	if (reg74 & BIT_2)	// MHL_EST_INT
+	{
 
-		if((I2C_ReadByte(SA_TX_Page0_Primary, 0x09) & BIT_2) == 0x00) {
-			printk(KERN_ERR "[MHL] RSEN is low - status incorrect\n");
+		if ((I2C_ReadByte(SA_TX_Page0_Primary, 0x09) & BIT_2) == 0x00) {
+			printk(KERN_ERR
+			       "[MHL] RSEN is low - status incorrect\n");
 			//mhl_pwroff_request();
 			//sii9244_pwroff_req();
 			sii9244_pwroff_req_rsen_incorrect();
 			return;
 		}
 
-		MASK_CBUS1_INTERRUPTS; 
+		MASK_CBUS1_INTERRUPTS;
 		MASK_CBUS2_INTERRUPTS;
-		MhlTxDrvProcessConnection(); 
+		MhlTxDrvProcessConnection();
 	}
-
 	// process USB_EST interrupt
-	else if(reg74 & BIT_3) // MHL_DISC_FAIL_INT
+	else if (reg74 & BIT_3)	// MHL_DISC_FAIL_INT
 	{
-		if(mhl_cable_status == (MHL_1K_IMPEDANCE_VERIFIED|MHL_POWER_ON))//|MHL_RSEN_VERIFIED))
+		if (mhl_cable_status == (MHL_1K_IMPEDANCE_VERIFIED | MHL_POWER_ON))	//|MHL_RSEN_VERIFIED))
 		{
-			mhl_cable_status =MHL_TV_OFF_CABLE_CONNECT;
+			mhl_cable_status = MHL_TV_OFF_CABLE_CONNECT;
 			printk(KERN_ERR "MHL Connection Fail Power off ###2\n");
 			//mhl_pwroff_request();
 			sii9244_pwroff_req();
-		}
-		else
-		{
+		} else {
 			/*                                                                                   */
-		     if (TX_POWER_STATE_D3 != fwPowerState){   
-		    	printk("%s:MHL_DISC_FAIL_INT \n",__func__);
-		    	MhlTxDrvProcessDisconnection();
-		    }
+			if (TX_POWER_STATE_D3 != fwPowerState) {
+				printk("%s:MHL_DISC_FAIL_INT \n", __func__);
+				MhlTxDrvProcessDisconnection();
+			}
 		}
 		return;
 	}
 
-	if((TX_POWER_STATE_D3 == fwPowerState) && (reg74 & BIT_6))
-	{
+	if ((TX_POWER_STATE_D3 == fwPowerState) && (reg74 & BIT_6)) {
 		// process RGND interrupt
 		// Switch to full power mode.
 		SwitchToD0();
@@ -1666,10 +1640,8 @@ static	void	Int4Isr( void )
 		//
 		ProcessRgnd();
 	}
-
 	// CBUS Lockout interrupt?
-	if (reg74 & BIT_4)
-	{
+	if (reg74 & BIT_4) {
 		TX_DEBUG_PRINT(("Drv: CBus Lockout\n"));
 
 		ForceUsbIdSwitchOpen();
@@ -1677,31 +1649,30 @@ static	void	Int4Isr( void )
 	}
 	I2C_WriteByte(SA_TX_Page0_Primary, (0x74), reg74);	// clear all interrupts
 
-
 }
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // MhlTxDrvProcessConnection
 //
 ///////////////////////////////////////////////////////////////////////////
-void MhlTxDrvProcessConnection ( void )
+void MhlTxDrvProcessConnection(void)
 {
-	bool	mhlConnected = TRUE;
+	bool mhlConnected = TRUE;
 
-	TX_DEBUG_PRINT (("Drv: MHL Cable Connected. CBUS:0x0A = %02X\n", (int) ReadByteCBUS(0x0a)));
-	if( TX_POWER_STATE_D0_MHL == fwPowerState )
-	{
+	TX_DEBUG_PRINT(("Drv: MHL Cable Connected. CBUS:0x0A = %02X\n",
+			(int)ReadByteCBUS(0x0a)));
+	if (TX_POWER_STATE_D0_MHL == fwPowerState) {
 		TX_DEBUG_PRINT(("POWER_STATE_D0_MHL == fwPowerState\n"));
 		return;
 	}
-
 	//
-	// Discovery over-ride: reg_disc_ovride	
+	// Discovery over-ride: reg_disc_ovride 
 	//
 	I2C_WriteByte(SA_TX_Page0_Primary, 0xA0, 0x10);
 	fwPowerState = TX_POWER_STATE_D0_MHL;
 
-	TX_DEBUG_PRINT(("%s:TX_POWER_STATE_D0_MHL\n",__func__));
+	TX_DEBUG_PRINT(("%s:TX_POWER_STATE_D0_MHL\n", __func__));
 
 	// Increase DDC translation layer timer (byte mode)
 	// Setting DDC Byte Mode
@@ -1711,12 +1682,11 @@ void MhlTxDrvProcessConnection ( void )
 	// Enable segment pointer safety
 	SET_BIT(SA_TX_CBUS_Primary, 0x44, 1);
 
-
 	// Un-force HPD (it was kept low, now propagate to source
 	CLR_BIT(SA_TX_Page0_Primary, 0x79, 4);
 
 	// Enable TMDS
-	SiiMhlTxDrvTmdsControl( TRUE );
+	SiiMhlTxDrvTmdsControl(TRUE);
 
 	// Keep the discovery enabled. Need RGND interrupt
 	// SET_BIT(SA_TX_Page0_Primary, 0x90, 0);
@@ -1725,19 +1695,21 @@ void MhlTxDrvProcessConnection ( void )
 	// Notify upper layer of cable connection
 	SiiMhlTxNotifyConnection(mhlConnected = TRUE);
 }
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // MhlTxDrvProcessDisconnection
 //
 ///////////////////////////////////////////////////////////////////////////
-void MhlTxDrvProcessDisconnection ( void )
+void MhlTxDrvProcessDisconnection(void)
 {
-	bool	mhlConnected = FALSE;
+	bool mhlConnected = FALSE;
 
-	TX_DEBUG_PRINT (("Drv: MhlTxDrvProcessDisconnection\n"));
+	TX_DEBUG_PRINT(("Drv: MhlTxDrvProcessDisconnection\n"));
 
 	// clear all interrupts
-	I2C_WriteByte(SA_TX_Page0_Primary, (0x74), I2C_ReadByte(SA_TX_Page0_Primary, (0x74)));
+	I2C_WriteByte(SA_TX_Page0_Primary, (0x74),
+		      I2C_ReadByte(SA_TX_Page0_Primary, (0x74)));
 
 	I2C_WriteByte(SA_TX_Page0_Primary, 0xA0, 0xD0);
 
@@ -1748,23 +1720,22 @@ void MhlTxDrvProcessDisconnection ( void )
 	CbusReset();
 
 	// Disable TMDS
-	SiiMhlTxDrvTmdsControl( FALSE );
+	SiiMhlTxDrvTmdsControl(FALSE);
 
-	if( TX_POWER_STATE_D0_MHL == fwPowerState )
-	{
+	if (TX_POWER_STATE_D0_MHL == fwPowerState) {
 		// Notify upper layer of cable connection
 		SiiMhlTxNotifyConnection(mhlConnected = FALSE);
 	}
-
 	// Now put chip in sleep mode
 	SwitchToD3();
 }
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // CbusReset
 //
 ///////////////////////////////////////////////////////////////////////////
-void	CbusReset(void)
+void CbusReset(void)
 {
 	SET_BIT(SA_TX_Page0_Primary, 0x05, 3);
 	DelayMS(2);
@@ -1776,75 +1747,68 @@ void	CbusReset(void)
 	UNMASK_CBUS1_INTERRUPTS;
 	UNMASK_CBUS2_INTERRUPTS;
 }
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // CBusProcessErrors
 //
 //
 ///////////////////////////////////////////////////////////////////////////
-static byte CBusProcessErrors( byte intStatus )
+static byte CBusProcessErrors(byte intStatus)
 {
-    byte result          = 0;
-    byte mscAbortReason  = 0;
-	byte ddcAbortReason  = 0;
+	byte result = 0;
+	byte mscAbortReason = 0;
+	byte ddcAbortReason = 0;
 
-    /* At this point, we only need to look at the abort interrupts. */
+	/* At this point, we only need to look at the abort interrupts. */
 
-    intStatus &=  (BIT_MSC_ABORT | BIT_MSC_XFR_ABORT);
+	intStatus &= (BIT_MSC_ABORT | BIT_MSC_XFR_ABORT);
 
-    if ( intStatus )
-    {
-//      result = ERROR_CBUS_ABORT;		// No Retry will help
+	if (intStatus) {
+//      result = ERROR_CBUS_ABORT;              // No Retry will help
 
-        /* If transfer abort or MSC abort, clear the abort reason register. */
-		if( intStatus & BIT_DDC_ABORT )
-		{
-			result = ddcAbortReason = ReadByteCBUS((byte) REG_DDC_ABORT_REASON );
-			TX_DEBUG_PRINT( ("CBUS DDC ABORT happened, reason:: %02X\n", (int)(ddcAbortReason)));
+		/* If transfer abort or MSC abort, clear the abort reason register. */
+		if (intStatus & BIT_DDC_ABORT) {
+			result = ddcAbortReason =
+			    ReadByteCBUS((byte) REG_DDC_ABORT_REASON);
+			TX_DEBUG_PRINT(("CBUS DDC ABORT happened, reason:: %02X\n", (int)(ddcAbortReason)));
 		}
 
-        if ( intStatus & BIT_MSC_XFR_ABORT )
-        {
-			result = mscAbortReason = ReadByteCBUS((byte) REG_PRI_XFR_ABORT_REASON );
+		if (intStatus & BIT_MSC_XFR_ABORT) {
+			result = mscAbortReason =
+			    ReadByteCBUS((byte) REG_PRI_XFR_ABORT_REASON);
 
-			TX_DEBUG_PRINT( ("CBUS:: MSC Transfer ABORTED. Clearing 0x0D\n"));
-			WriteByteCBUS((byte) REG_PRI_XFR_ABORT_REASON, 0xFF );
+			TX_DEBUG_PRINT(("CBUS:: MSC Transfer ABORTED. Clearing 0x0D\n"));
+			WriteByteCBUS((byte) REG_PRI_XFR_ABORT_REASON, 0xFF);
 		}
-		if ( intStatus & BIT_MSC_ABORT )
-		{
-			TX_DEBUG_PRINT( ("CBUS:: MSC Peer sent an ABORT. Clearing 0x0E\n"));
-			WriteByteCBUS((byte) REG_CBUS_PRI_FWR_ABORT_REASON, 0xFF );
-        }
+		if (intStatus & BIT_MSC_ABORT) {
+			TX_DEBUG_PRINT(("CBUS:: MSC Peer sent an ABORT. Clearing 0x0E\n"));
+			WriteByteCBUS((byte) REG_CBUS_PRI_FWR_ABORT_REASON,
+				      0xFF);
+		}
+		// Now display the abort reason.
 
-        // Now display the abort reason.
+		if (mscAbortReason != 0) {
+			TX_DEBUG_PRINT(("CBUS:: Reason for ABORT is ....0x%02X = ", (int)mscAbortReason));
 
-        if ( mscAbortReason != 0 )
-        {
-            TX_DEBUG_PRINT( ("CBUS:: Reason for ABORT is ....0x%02X = ", (int)mscAbortReason ));
-
-            if ( mscAbortReason & CBUSABORT_BIT_REQ_MAXFAIL)
-            {
-                TX_DEBUG_PRINT( ("Requestor MAXFAIL - retry threshold exceeded\n"));
-            }
-            if ( mscAbortReason & CBUSABORT_BIT_PROTOCOL_ERROR)
-            {
-                TX_DEBUG_PRINT( ("Protocol Error\n"));
-            }
-            if ( mscAbortReason & CBUSABORT_BIT_REQ_TIMEOUT)
-            {
-                TX_DEBUG_PRINT( ("Requestor translation layer timeout\n"));
-            }
-            if ( mscAbortReason & CBUSABORT_BIT_PEER_ABORTED)
-            {
-                TX_DEBUG_PRINT( ("Peer sent an abort\n"));
-            }
-            if ( mscAbortReason & CBUSABORT_BIT_UNDEFINED_OPCODE)
-            {
-                TX_DEBUG_PRINT( ("Undefined opcode\n"));
-            }
-        }
-    }
-    return( result );
+			if (mscAbortReason & CBUSABORT_BIT_REQ_MAXFAIL) {
+				TX_DEBUG_PRINT(("Requestor MAXFAIL - retry threshold exceeded\n"));
+			}
+			if (mscAbortReason & CBUSABORT_BIT_PROTOCOL_ERROR) {
+				TX_DEBUG_PRINT(("Protocol Error\n"));
+			}
+			if (mscAbortReason & CBUSABORT_BIT_REQ_TIMEOUT) {
+				TX_DEBUG_PRINT(("Requestor translation layer timeout\n"));
+			}
+			if (mscAbortReason & CBUSABORT_BIT_PEER_ABORTED) {
+				TX_DEBUG_PRINT(("Peer sent an abort\n"));
+			}
+			if (mscAbortReason & CBUSABORT_BIT_UNDEFINED_OPCODE) {
+				TX_DEBUG_PRINT(("Undefined opcode\n"));
+			}
+		}
+	}
+	return (result);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -1859,20 +1823,20 @@ static byte CBusProcessErrors( byte intStatus )
 // and respond at leisure.
 //
 // Look for interrupts on CBUS:CBUS_INTR_STATUS [0xC8:0x08]
-//		7 = RSVD			(reserved)
-//		6 = MSC_RESP_ABORT	(interested)
-//		5 = MSC_REQ_ABORT	(interested)	
-//		4 = MSC_REQ_DONE	(interested)
-//		3 = MSC_MSG_RCVD	(interested)
-//		2 = DDC_ABORT		(interested)
-//		1 = RSVD			(reserved)
-//		0 = rsvd			(reserved)
+//              7 = RSVD                        (reserved)
+//              6 = MSC_RESP_ABORT      (interested)
+//              5 = MSC_REQ_ABORT       (interested)    
+//              4 = MSC_REQ_DONE        (interested)
+//              3 = MSC_MSG_RCVD        (interested)
+//              2 = DDC_ABORT           (interested)
+//              1 = RSVD                        (reserved)
+//              0 = rsvd                        (reserved)
 ///////////////////////////////////////////////////////////////////////////
-static void MhlCbusIsr( void )
+static void MhlCbusIsr(void)
 {
-	byte		cbusInt;
-	byte     gotData[4];	// Max four status and int registers.
-	byte		i;
+	byte cbusInt;
+	byte gotData[4];	// Max four status and int registers.
+	byte i;
 
 	//
 	// Main CBUS interrupts on CBUS_INTR_STATUS
@@ -1882,64 +1846,55 @@ static void MhlCbusIsr( void )
 	printk("%s\n", __func__);
 
 	// When I2C is inoperational (say in D3) and a previous interrupt brought us here, do nothing.
-	if(cbusInt == 0xFF)
-	{
+	if (cbusInt == 0xFF) {
 		return;
 	}
-	if( cbusInt )
-	{
-	    TX_DEBUG_PRINT(("Drv: CBUS INTR_1: %d\n", (int) cbusInt));
+	if (cbusInt) {
+		TX_DEBUG_PRINT(("Drv: CBUS INTR_1: %d\n", (int)cbusInt));
 	}
-
 	// Look for DDC_ABORT
-	if (cbusInt & BIT_2)
-	{
+	if (cbusInt & BIT_2) {
 		ApplyDdcAbortSafety();
 	}
 	// MSC_MSG (RCP/RAP)
-	if((cbusInt & BIT_3))
-	{
-	    TX_DEBUG_PRINT(("Drv: MSC_MSG Received: %02X\n", (int) cbusInt));
+	if ((cbusInt & BIT_3)) {
+		TX_DEBUG_PRINT(("Drv: MSC_MSG Received: %02X\n", (int)cbusInt));
 		//
 		// Two bytes arrive at registers 0x18 and 0x19
 		//
-		SiiMhlTxGotMhlMscMsg( ReadByteCBUS( 0x18 ), ReadByteCBUS( 0x19 ) );
+		SiiMhlTxGotMhlMscMsg(ReadByteCBUS(0x18), ReadByteCBUS(0x19));
 	}
-  #if 0
+#if 0
 	// MSC_REQ_DONE received.
-	if(cbusInt & BIT_4)
-	{
-	    TX_DEBUG_PRINT(("Drv: MSC_REQ_DONE: %02X\n", (int) cbusInt));
+	if (cbusInt & BIT_4) {
+		TX_DEBUG_PRINT(("Drv: MSC_REQ_DONE: %02X\n", (int)cbusInt));
 
 		mscCmdInProgress = FALSE;
 
-		SiiMhlTxMscCommandDone( ReadByteCBUS( 0x16 ) );
+		SiiMhlTxMscCommandDone(ReadByteCBUS(0x16));
 	}
-  #endif
-	if((cbusInt & BIT_5) || (cbusInt & BIT_6))	// MSC_REQ_ABORT or MSC_RESP_ABORT
+#endif
+	if ((cbusInt & BIT_5) || (cbusInt & BIT_6))	// MSC_REQ_ABORT or MSC_RESP_ABORT
 	{
 		gotData[0] = CBusProcessErrors(cbusInt);
 	}
-	if(cbusInt)
-	{
+	if (cbusInt) {
 		//
 		// Clear all interrupts that were raised even if we did not process
 		//
 		WriteByteCBUS(0x08, cbusInt);
 
-		TX_DEBUG_PRINT(("Drv: Clear CBUS INTR_1: %02X\n", (int) cbusInt));
+		TX_DEBUG_PRINT(("Drv: Clear CBUS INTR_1: %02X\n",
+				(int)cbusInt));
 	}
-
-  // MSC_REQ_DONE received.
-	if(cbusInt & BIT_4)
-	{
-		TX_DEBUG_PRINT(("Drv: MSC_REQ_DONE: %02X\n", (int) cbusInt));
+	// MSC_REQ_DONE received.
+	if (cbusInt & BIT_4) {
+		TX_DEBUG_PRINT(("Drv: MSC_REQ_DONE: %02X\n", (int)cbusInt));
 
 		mscCmdInProgress = FALSE;
 
-		SiiMhlTxMscCommandDone( ReadByteCBUS( 0x16 ) );
+		SiiMhlTxMscCommandDone(ReadByteCBUS(0x16));
 	}
-  
 	//
 	// Clear all interrupts that were raised even if we did not process
 	//
@@ -1953,77 +1908,66 @@ static void MhlCbusIsr( void )
 	//   0 = msc_mr_write_burst. We received WRITE_BURST
 	//
 	cbusInt = ReadByteCBUS(0x1E);
-	if( cbusInt )
-	{
-	    TX_DEBUG_PRINT(("Drv: CBUS INTR_2: %x\n", (int) cbusInt));
+	if (cbusInt) {
+		TX_DEBUG_PRINT(("Drv: CBUS INTR_2: %x\n", (int)cbusInt));
 	}
-
 #ifdef MHL_CTL
-	if(cbusInt & BIT_0 )
-	{
-	    TX_DEBUG_PRINT(("Drv: INT Received: %x\n", (int) cbusInt));
+	if (cbusInt & BIT_0) {
+		TX_DEBUG_PRINT(("Drv: INT Received: %x\n", (int)cbusInt));
 		printk("MHL_INT_DSCR_CHG\n");
 		SiiMhlTxReadScratchpad();
 	}
 #endif
 
-	if(cbusInt & BIT_2)
-	{
-	    TX_DEBUG_PRINT(("Drv: INT Received: %x\n", (int) cbusInt));
+	if (cbusInt & BIT_2) {
+		TX_DEBUG_PRINT(("Drv: INT Received: %x\n", (int)cbusInt));
 
 		// We are interested only in first two bytes.
-		SiiMhlTxGotMhlIntr( ReadByteCBUS( 0xA0 ), ReadByteCBUS( 0xA1) );
+		SiiMhlTxGotMhlIntr(ReadByteCBUS(0xA0), ReadByteCBUS(0xA1));
 
-   		for(i = 0; i < 4; i++)
-		{
+		for (i = 0; i < 4; i++) {
 			// Clear all
-			WriteByteCBUS( (0xA0 + i), ReadByteCBUS( 0xA0 + i ));
+			WriteByteCBUS((0xA0 + i), ReadByteCBUS(0xA0 + i));
 		}
 	}
-	if(cbusInt & BIT_3)
-	{
-	    TX_DEBUG_PRINT(("Drv: STATUS Received: %x\n", (int) cbusInt));
+	if (cbusInt & BIT_3) {
+		TX_DEBUG_PRINT(("Drv: STATUS Received: %x\n", (int)cbusInt));
 
 		// We are interested only in first two bytes.
-		SiiMhlTxGotMhlStatus( ReadByteCBUS( 0xB0 ), ReadByteCBUS( 0xB1) );
+		SiiMhlTxGotMhlStatus(ReadByteCBUS(0xB0), ReadByteCBUS(0xB1));
 
-		for(i = 0; i < 4; i++)
-		{
+		for (i = 0; i < 4; i++) {
 			// Clear all
-			WriteByteCBUS( (0xB0 + i), ReadByteCBUS( 0xB0 + i ));
+			WriteByteCBUS((0xB0 + i), ReadByteCBUS(0xB0 + i));
 		}
 	}
-	if(cbusInt)
-	{
+	if (cbusInt) {
 		//
 		// Clear all interrupts that were raised even if we did not process
 		//
 		WriteByteCBUS(0x1E, cbusInt);
 
-	    TX_DEBUG_PRINT(("Drv: Clear CBUS INTR_2: %02X\n", (int) cbusInt));
+		TX_DEBUG_PRINT(("Drv: Clear CBUS INTR_2: %02X\n",
+				(int)cbusInt));
 	}
-
-  #if 0
+#if 0
 	//
 	// Check if a SET_HPD came from the downstream device.
 	//
 	cbusInt = ReadByteCBUS(0x0D);
 
 	// CBUS_HPD status bit
-	if((BIT_6 & cbusInt) != dsHpdStatus)
-	{
-			// Inform upper layer of change in Downstream HPD
-			SiiMhlTxNotifyDsHpdChange( cbusInt );
-		    TX_DEBUG_PRINT(("Drv: Downstream HPD changed to: %02X\n", (int) cbusInt));
+	if ((BIT_6 & cbusInt) != dsHpdStatus) {
+		// Inform upper layer of change in Downstream HPD
+		SiiMhlTxNotifyDsHpdChange(cbusInt);
+		TX_DEBUG_PRINT(("Drv: Downstream HPD changed to: %02X\n",
+				(int)cbusInt));
 
-			// Remember
-			dsHpdStatus = (BIT_6 & cbusInt);
+		// Remember
+		dsHpdStatus = (BIT_6 & cbusInt);
 	}
-  #endif
+#endif
 }
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // SiiMhlTxInitialize
@@ -2035,43 +1979,42 @@ static void MhlCbusIsr( void )
 // Only a small circuit in the chip observes the impedance variations to see if
 // processor should be interrupted to continue MHL discovery process or not.
 //
-// interruptDriven		If TRUE, MhlTx component will not look at its status
-//						registers in a polled manner from timer handler 
-//						(SiiMhlTxGetEvents). It will expect that all device 
-//						events will result in call to the function 
-//						SiiMhlTxDeviceIsr() by host's hardware or software 
-//						(a master interrupt handler in host software can call
-//						it directly). interruptDriven == TRUE also implies that
-//						the MhlTx component shall make use of AppDisableInterrupts()
-//						and AppRestoreInterrupts() for any critical section work to
-//						prevent concurrency issues.
+// interruptDriven              If TRUE, MhlTx component will not look at its status
+//                                              registers in a polled manner from timer handler 
+//                                              (SiiMhlTxGetEvents). It will expect that all device 
+//                                              events will result in call to the function 
+//                                              SiiMhlTxDeviceIsr() by host's hardware or software 
+//                                              (a master interrupt handler in host software can call
+//                                              it directly). interruptDriven == TRUE also implies that
+//                                              the MhlTx component shall make use of AppDisableInterrupts()
+//                                              and AppRestoreInterrupts() for any critical section work to
+//                                              prevent concurrency issues.
 //
-//						When interruptDriven == FALSE, MhlTx component will do
-//						all chip status analysis via looking at its register
-//						when called periodically into the function
-//						SiiMhlTxGetEvents() described below.
+//                                              When interruptDriven == FALSE, MhlTx component will do
+//                                              all chip status analysis via looking at its register
+//                                              when called periodically into the function
+//                                              SiiMhlTxGetEvents() described below.
 //
-// pollIntervalMs		This number should be higher than 0 and lower than 
-//						51 milliseconds for effective operation of the firmware.
-//						A higher number will only imply a slower response to an 
-//						event on MHL side which can lead to violation of a 
-//						connection disconnection related timing or a slower 
-//						response to RCP messages.
+// pollIntervalMs               This number should be higher than 0 and lower than 
+//                                              51 milliseconds for effective operation of the firmware.
+//                                              A higher number will only imply a slower response to an 
+//                                              event on MHL side which can lead to violation of a 
+//                                              connection disconnection related timing or a slower 
+//                                              response to RCP messages.
 //
 //
 //
 //
 //void SiiMhlTxInitialize( bool interruptDriven, byte pollIntervalMs )
-void SiiMhlTxInitialize( void )
+void SiiMhlTxInitialize(void)
 {
-	TX_DEBUG_PRINT( ("MhlTx: SiiMhlTxInitialize\n") );
+	TX_DEBUG_PRINT(("MhlTx: SiiMhlTxInitialize\n"));
 
-	MhlTxResetStates( );
+	MhlTxResetStates();
 
-	SiiMhlTxChipInitialize ();
-	mhl_cable_status =MHL_POWER_ON;			//NAGSM_Android_SEL_Kernel_Aakash_20101214
+	SiiMhlTxChipInitialize();
+	mhl_cable_status = MHL_POWER_ON;	//NAGSM_Android_SEL_Kernel_Aakash_20101214
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // 
@@ -2096,33 +2039,30 @@ void SiiMhlTxInitialize( void )
 // such as RCPK or RCPE.
 //
 //
-// *event		MhlTx returns a value in this field when function completes execution.
-// 				If this field is 0, the next parameter is undefined.
-//				The following values may be returned.
+// *event               MhlTx returns a value in this field when function completes execution.
+//                              If this field is 0, the next parameter is undefined.
+//                              The following values may be returned.
 //
 //
-void SiiMhlTxGetEvents( byte *event, byte *eventParameter )
+void SiiMhlTxGetEvents(byte * event, byte * eventParameter)
 {
- 
-  SiiMhlTxDeviceIsr();
-  if(pwroff_requested)
-  {
-    return;
-  }
 
-	if(mhl_cable_status == MHL_TV_OFF_CABLE_CONNECT)
-	{
-		return ;
+	SiiMhlTxDeviceIsr();
+	if (pwroff_requested) {
+		return;
 	}
 
-	MhlTxDriveStates( );
+	if (mhl_cable_status == MHL_TV_OFF_CABLE_CONNECT) {
+		return;
+	}
+
+	MhlTxDriveStates();
 
 	*event = MHL_TX_EVENT_NONE;
 	*eventParameter = 0;
 
-	if( mhlTxConfig.mhlConnectionEvent )
-	{
-		TX_DEBUG_PRINT( ("MhlTx: SiiMhlTxGetEvents mhlConnectionEvent\n") );
+	if (mhlTxConfig.mhlConnectionEvent) {
+		TX_DEBUG_PRINT(("MhlTx: SiiMhlTxGetEvents mhlConnectionEvent\n"));
 
 		// Consume the message
 		mhlTxConfig.mhlConnectionEvent = FALSE;
@@ -2130,18 +2070,15 @@ void SiiMhlTxGetEvents( byte *event, byte *eventParameter )
 		//
 		// Let app know the connection went away.
 		//
-		*event          = mhlTxConfig.mhlConnected;
-		*eventParameter	= mhlTxConfig.mscFeatureFlag;
+		*event = mhlTxConfig.mhlConnected;
+		*eventParameter = mhlTxConfig.mscFeatureFlag;
 
 		// If connection has been lost, reset all state flags.
-		if(MHL_TX_EVENT_DISCONNECTION == mhlTxConfig.mhlConnected)
-		{
-			MhlTxResetStates( );
+		if (MHL_TX_EVENT_DISCONNECTION == mhlTxConfig.mhlConnected) {
+			MhlTxResetStates();
 		}
-	}
-	else if( mhlTxConfig.mscMsgArrived )
-	{
-		TX_DEBUG_PRINT( ("MhlTx: SiiMhlTxGetEvents MSC MSG Arrived\n") );
+	} else if (mhlTxConfig.mscMsgArrived) {
+		TX_DEBUG_PRINT(("MhlTx: SiiMhlTxGetEvents MSC MSG Arrived\n"));
 
 		// Consume the message
 		mhlTxConfig.mscMsgArrived = FALSE;
@@ -2149,85 +2086,82 @@ void SiiMhlTxGetEvents( byte *event, byte *eventParameter )
 		//
 		// Map sub-command to an event id
 		//
-		switch(mhlTxConfig.mscMsgSubCommand)
-		{
-			case	MHL_MSC_MSG_RAP:
-				// RAP is fully handled here.
-				//
-				// Handle RAP sub-commands here itself
-				//
-				if( MHL_RAP_CONTENT_ON == mhlTxConfig.mscMsgData)
-				{
-					SiiMhlTxDrvTmdsControl( TRUE );
-				}
-				else if( MHL_RAP_CONTENT_OFF == mhlTxConfig.mscMsgData)
-				{
-					SiiMhlTxDrvTmdsControl( FALSE );
+		switch (mhlTxConfig.mscMsgSubCommand) {
+		case MHL_MSC_MSG_RAP:
+			// RAP is fully handled here.
+			//
+			// Handle RAP sub-commands here itself
+			//
+			if (MHL_RAP_CONTENT_ON == mhlTxConfig.mscMsgData) {
+				SiiMhlTxDrvTmdsControl(TRUE);
+			} else if (MHL_RAP_CONTENT_OFF ==
+				   mhlTxConfig.mscMsgData) {
+				SiiMhlTxDrvTmdsControl(FALSE);
 
-				}
-				// Always RAPK to the peer
-				SiiMhlTxRapkSend( );
-				break;
+			}
+			// Always RAPK to the peer
+			SiiMhlTxRapkSend();
+			break;
 
-			case	MHL_MSC_MSG_RCP:
-		#ifdef MHL_CTL
-			if((0x41<mhlTxConfig.mscMsgData) && (mhlTxConfig.mscMsgData<0x65)) // expanding Key range for PLAY CD , STOP CD , PAUSE CD Key
+		case MHL_MSC_MSG_RCP:
+#ifdef MHL_CTL
+			if ((0x41 < mhlTxConfig.mscMsgData) && (mhlTxConfig.mscMsgData < 0x65))	// expanding Key range for PLAY CD , STOP CD , PAUSE CD Key
 			{
-		#endif
+#endif
 				// If we get a RCP key that we do NOT support, send back RCPE
 				// Do not notify app layer.
-				if(((int)mhlTxConfig.mscMsgData < MHL_MAX_RCP_KEY_CODE)
-					&& (MHL_LOGICAL_DEVICE_MAP & rcpSupportTable [mhlTxConfig.mscMsgData]) )
-				{
-					*event          = MHL_TX_EVENT_RCP_RECEIVED;
-					*eventParameter = mhlTxConfig.mscMsgData; // key code
-			               rcp_cbus_uevent(*eventParameter);	
-			         printk("Key Code:%x \n",(int)mhlTxConfig.mscMsgData);
-				     SiiMhlTxRcpkSend(mhlTxConfig.mscMsgData);	// MHL_CTL, RCP ACK...right after app key process...but just test here
-				}
-				else
-				{				    
-  					printk("Key Code Error:%x \n",(int)mhlTxConfig.mscMsgData);
-          			mhlTxConfig.mscSaveRcpKeyCode = mhlTxConfig.mscMsgData;
-					SiiMhlTxRcpeSend( 0x01 );
-				}
-		#ifdef MHL_CTL
-			}
-			else
-			{
-				if(MHLRCPtoKeyboard(mhlTxConfig.mscMsgData) > 0)
-				{
+				if (((int)mhlTxConfig.mscMsgData <
+				     MHL_MAX_RCP_KEY_CODE)
+				    && (MHL_LOGICAL_DEVICE_MAP &
+					rcpSupportTable[mhlTxConfig.
+							mscMsgData])) {
+					*event = MHL_TX_EVENT_RCP_RECEIVED;
+					*eventParameter = mhlTxConfig.mscMsgData;	// key code
+					rcp_cbus_uevent(*eventParameter);
+					printk("Key Code:%x \n",
+					       (int)mhlTxConfig.mscMsgData);
 					SiiMhlTxRcpkSend(mhlTxConfig.mscMsgData);	// MHL_CTL, RCP ACK...right after app key process...but just test here
+				} else {
+					printk("Key Code Error:%x \n",
+					       (int)mhlTxConfig.mscMsgData);
+					mhlTxConfig.mscSaveRcpKeyCode =
+					    mhlTxConfig.mscMsgData;
+					SiiMhlTxRcpeSend(0x01);
 				}
-				else
-				{
-					SiiMhlTxRcpeSend( 0x01 );
+#ifdef MHL_CTL
+			} else {
+				if (MHLRCPtoKeyboard(mhlTxConfig.mscMsgData) >
+				    0) {
+					SiiMhlTxRcpkSend(mhlTxConfig.mscMsgData);	// MHL_CTL, RCP ACK...right after app key process...but just test here
+				} else {
+					SiiMhlTxRcpeSend(0x01);
 				}
 			}
-			#endif
-				break;
+#endif
+			break;
 
-			case	MHL_MSC_MSG_RCPK:
-				*event = MHL_TX_EVENT_RCPK_RECEIVED;
-        		*eventParameter = mhlTxConfig.mscMsgData; // key code
-				break;
+		case MHL_MSC_MSG_RCPK:
+			*event = MHL_TX_EVENT_RCPK_RECEIVED;
+			*eventParameter = mhlTxConfig.mscMsgData;	// key code
+			break;
 
-			case	MHL_MSC_MSG_RCPE:
-				*event = MHL_TX_EVENT_RCPE_RECEIVED;
-        		*eventParameter = mhlTxConfig.mscMsgData; // status code
-				break;
+		case MHL_MSC_MSG_RCPE:
+			*event = MHL_TX_EVENT_RCPE_RECEIVED;
+			*eventParameter = mhlTxConfig.mscMsgData;	// status code
+			break;
 
-			case	MHL_MSC_MSG_RAPK:
-				// Do nothing if RAPK comes
-				break;
+		case MHL_MSC_MSG_RAPK:
+			// Do nothing if RAPK comes
+			break;
 
-			default:
-				// Any freak value here would continue with no event to app
-				break;
+		default:
+			// Any freak value here would continue with no event to app
+			break;
 		}
 
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // MhlTxDriveStates
@@ -2238,31 +2172,31 @@ void SiiMhlTxGetEvents( byte *event, byte *eventParameter )
 // It is called in interrupt context to meet some MHL specified timings, therefore,
 // it should not have to call app layer and do negligible processing, no printks.
 //
-static	void	MhlTxDriveStates( void )
+static void MhlTxDriveStates(void)
 {
 
-	switch( mhlTxConfig.mscState )
-	{
-		case MSC_STATE_BEGIN:
-      printk("MSC_STATE_BEGIN \n");
-			SiiMhlTxReadDevcap( MHL_DEV_CATEGORY_OFFSET );
-			break;
-		case MSC_STATE_POW_DONE:
-			//
-			// Send out Read Devcap for MHL_DEV_FEATURE_FLAG_OFFSET
-			// to check if it supports RCP/RAP etc
-			//
-			printk("MSC_STATE_POW_DONE \n");
-			SiiMhlTxReadDevcap( MHL_DEV_FEATURE_FLAG_OFFSET );
-			break;
-		case MSC_STATE_IDLE:
-		case MSC_STATE_RCP_READY:
-			break;
-		default:
-			break;
+	switch (mhlTxConfig.mscState) {
+	case MSC_STATE_BEGIN:
+		printk("MSC_STATE_BEGIN \n");
+		SiiMhlTxReadDevcap(MHL_DEV_CATEGORY_OFFSET);
+		break;
+	case MSC_STATE_POW_DONE:
+		//
+		// Send out Read Devcap for MHL_DEV_FEATURE_FLAG_OFFSET
+		// to check if it supports RCP/RAP etc
+		//
+		printk("MSC_STATE_POW_DONE \n");
+		SiiMhlTxReadDevcap(MHL_DEV_FEATURE_FLAG_OFFSET);
+		break;
+	case MSC_STATE_IDLE:
+	case MSC_STATE_RCP_READY:
+		break;
+	default:
+		break;
 
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // SiiMhlTxMscCommandDone
@@ -2272,31 +2206,29 @@ static	void	MhlTxDriveStates( void )
 // It is called in interrupt context to meet some MHL specified timings, therefore,
 // it should not have to call app layer and do negligible processing, no printks.
 //
-void	SiiMhlTxMscCommandDone( byte data1 )
+void SiiMhlTxMscCommandDone(byte data1)
 {
-	TX_DEBUG_PRINT( ("MhlTx: SiiMhlTxMscCommandDone. data1 = %02X\n", (int) data1) );
+	TX_DEBUG_PRINT(("MhlTx: SiiMhlTxMscCommandDone. data1 = %02X\n",
+			(int)data1));
 
-	if(( MHL_READ_DEVCAP == mhlTxConfig.mscLastCommand ) && 
-			(MHL_DEV_CATEGORY_OFFSET == mhlTxConfig.mscLastOffset))
-	{
+	if ((MHL_READ_DEVCAP == mhlTxConfig.mscLastCommand) &&
+	    (MHL_DEV_CATEGORY_OFFSET == mhlTxConfig.mscLastOffset)) {
 		// We are done reading POW. Next we read Feature Flag
-		mhlTxConfig.mscState	= MSC_STATE_POW_DONE;
+		mhlTxConfig.mscState = MSC_STATE_POW_DONE;
 
-		AppVbusControl( (bool) ( data1 & MHL_DEV_CATEGORY_POW_BIT) );
+		AppVbusControl((bool) (data1 & MHL_DEV_CATEGORY_POW_BIT));
 
 		//
 		// Send out Read Devcap for MHL_DEV_FEATURE_FLAG_OFFSET
 		// to check if it supports RCP/RAP etc
 		//
-	}
-	else if((MHL_READ_DEVCAP == mhlTxConfig.mscLastCommand) &&
-				(MHL_DEV_FEATURE_FLAG_OFFSET == mhlTxConfig.mscLastOffset))
-	{
+	} else if ((MHL_READ_DEVCAP == mhlTxConfig.mscLastCommand) &&
+		   (MHL_DEV_FEATURE_FLAG_OFFSET == mhlTxConfig.mscLastOffset)) {
 		// We are done reading Feature Flag. Let app know we are done.
-		mhlTxConfig.mscState	= MSC_STATE_RCP_READY;
+		mhlTxConfig.mscState = MSC_STATE_RCP_READY;
 
 		// Remember features of the peer
-		mhlTxConfig.mscFeatureFlag	= data1;
+		mhlTxConfig.mscFeatureFlag = data1;
 
 		// Now we can entertain App commands for RCP
 		// Let app know this state
@@ -2306,23 +2238,22 @@ void	SiiMhlTxMscCommandDone( byte data1 )
 		// These variables are used to remember if we issued a READ_DEVCAP
 		// Since we are done, reset them.
 		mhlTxConfig.mscLastCommand = 0;
-		mhlTxConfig.mscLastOffset  = 0;
+		mhlTxConfig.mscLastOffset = 0;
 
-		TX_DEBUG_PRINT( ("MhlTx: Peer's Feature Flag = %02X\n\n", (int) data1) );
-	}
-	else if(MHL_MSC_MSG_RCPE == mhlTxConfig.mscMsgLastCommand)
-	{
+		TX_DEBUG_PRINT(("MhlTx: Peer's Feature Flag = %02X\n\n",
+				(int)data1));
+	} else if (MHL_MSC_MSG_RCPE == mhlTxConfig.mscMsgLastCommand) {
 		//
 		// RCPE is always followed by an RCPK with original key code that came.
 		//
-		if( SiiMhlTxRcpkSend( mhlTxConfig.mscSaveRcpKeyCode ) )
-		{
+		if (SiiMhlTxRcpkSend(mhlTxConfig.mscSaveRcpKeyCode)) {
 			// Once the command has been sent out successfully, forget this case.
 			mhlTxConfig.mscMsgLastCommand = 0;
-			mhlTxConfig.mscMsgLastData    = 0;
+			mhlTxConfig.mscMsgLastData = 0;
 		}
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // SiiMhlTxGotMhlMscMsg
@@ -2338,13 +2269,14 @@ void	SiiMhlTxMscCommandDone( byte data1 )
 //
 // Application shall not call this function.
 //
-void	SiiMhlTxGotMhlMscMsg( byte subCommand, byte cmdData )
+void SiiMhlTxGotMhlMscMsg(byte subCommand, byte cmdData)
 {
 	// Remeber the event.
-	mhlTxConfig.mscMsgArrived		= TRUE;
-	mhlTxConfig.mscMsgSubCommand	= subCommand;
-	mhlTxConfig.mscMsgData			= cmdData;
+	mhlTxConfig.mscMsgArrived = TRUE;
+	mhlTxConfig.mscMsgSubCommand = subCommand;
+	mhlTxConfig.mscMsgData = cmdData;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // SiiMhlTxGotMhlIntr
@@ -2354,37 +2286,37 @@ void	SiiMhlTxGotMhlMscMsg( byte subCommand, byte cmdData )
 // It is called in interrupt context to meet some MHL specified timings, therefore,
 // it should not have to call app layer and do negligible processing, no printks.
 //
-void	SiiMhlTxGotMhlIntr( byte intr_0, byte intr_1 )
+void SiiMhlTxGotMhlIntr(byte intr_0, byte intr_1)
 {
-	TX_DEBUG_PRINT( ("MhlTx: INTERRUPT Arrived. %02X, %02X\n", (int) intr_0, (int) intr_1) );
+	TX_DEBUG_PRINT(("MhlTx: INTERRUPT Arrived. %02X, %02X\n", (int)intr_0,
+			(int)intr_1));
 
 	//
 	// Handle DCAP_CHG INTR here
 	//
-	if(MHL_INT_DCAP_CHG & intr_0)
-	{
-		SiiMhlTxReadDevcap( MHL_DEV_CATEGORY_OFFSET );
+	if (MHL_INT_DCAP_CHG & intr_0) {
+		SiiMhlTxReadDevcap(MHL_DEV_CATEGORY_OFFSET);
 	}
 #ifdef MHL_CTL
-	if(MHL_INT_REQ_WRT & intr_0)
-	{
+	if (MHL_INT_REQ_WRT & intr_0) {
 		//                                                     
 		printk("MHL_INT_REQ_WRT\n");
-		SiiMhlTxWritePeerRegister(MHL_SET_INT, MHL_SET_INT_RCHANGE_OFFSET, MHL_INT_GRT_WRT);
+		SiiMhlTxWritePeerRegister(MHL_SET_INT,
+					  MHL_SET_INT_RCHANGE_OFFSET,
+					  MHL_INT_GRT_WRT);
 	}
-	if(MHL_INT_DSCR_CHG & intr_0)
-	{
+	if (MHL_INT_DSCR_CHG & intr_0) {
 		printk("MHL_INT_DSCR_CHG\n");
 		SiiMhlTxReadScratchpad();
 	}
 #endif
-	else if(MHL_INT_EDID_CHG & intr_1)
-	{
+	else if (MHL_INT_EDID_CHG & intr_1) {
 		// force upstream source to read the EDID again.
 		// Most likely by appropriate togggling of HDMI HPD
-		SiiMhlTxDrvNotifyEdidChange ( );
+		SiiMhlTxDrvNotifyEdidChange();
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // SiiMhlTxGotMhlStatus
@@ -2394,23 +2326,24 @@ void	SiiMhlTxGotMhlIntr( byte intr_0, byte intr_1 )
 // It is called in interrupt context to meet some MHL specified timings, therefore,
 // it should not have to call app layer and do negligible processing, no printks.
 //
-void	SiiMhlTxGotMhlStatus( byte status_0, byte status_1 )
+void SiiMhlTxGotMhlStatus(byte status_0, byte status_1)
 {
-	TX_DEBUG_PRINT( ("MhlTx: STATUS Arrived. %02X, %02X\n", (int) status_0, (int) status_1) );
+	TX_DEBUG_PRINT(("MhlTx: STATUS Arrived. %02X, %02X\n", (int)status_0,
+			(int)status_1));
 	//
 	// Handle DCAP_RDY STATUS here itself
 	//
-	if(MHL_STATUS_DCAP_RDY & status_0)
-	{
-	//		MhlTxDriveStates( );
-	//		SiiMhlTxReadDevcap( MHL_DEV_CATEGORY_OFFSET );
-    mhlTxConfig.mscState	 = MSC_STATE_BEGIN;
+	if (MHL_STATUS_DCAP_RDY & status_0) {
+		//              MhlTxDriveStates( );
+		//              SiiMhlTxReadDevcap( MHL_DEV_CATEGORY_OFFSET );
+		mhlTxConfig.mscState = MSC_STATE_BEGIN;
 	}
 	// status_1 has the PATH_EN etc. Not yet implemented
 	// Remeber the event.
 	mhlTxConfig.status_0 = status_0;
 	mhlTxConfig.status_1 = status_1;
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // SiiMhlTxRcpSend
@@ -2425,17 +2358,16 @@ void	SiiMhlTxGotMhlStatus( byte status_0, byte status_1 )
 // (MHL_FEATURE_SP_SUPPORT & mhlTxConfig.mscFeatureFlag))
 //
 //
-bool SiiMhlTxRcpSend( byte rcpKeyCode )
+bool SiiMhlTxRcpSend(byte rcpKeyCode)
 {
 	//
 	// If peer does not support do not send RCP or RCPK/RCPE commands
 	//
-	if((0 == (MHL_FEATURE_RCP_SUPPORT & mhlTxConfig.mscFeatureFlag)) ||
-		(MSC_STATE_RCP_READY != mhlTxConfig.mscState))
-	{
-		return	FALSE;
+	if ((0 == (MHL_FEATURE_RCP_SUPPORT & mhlTxConfig.mscFeatureFlag)) ||
+	    (MSC_STATE_RCP_READY != mhlTxConfig.mscState)) {
+		return FALSE;
 	}
-	return	( MhlTxSendMscMsg ( MHL_MSC_MSG_RCP, rcpKeyCode ) );
+	return (MhlTxSendMscMsg(MHL_MSC_MSG_RCP, rcpKeyCode));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2444,9 +2376,9 @@ bool SiiMhlTxRcpSend( byte rcpKeyCode )
 //
 // This function sends RCPK to the peer device. 
 //
-bool SiiMhlTxRcpkSend( byte rcpKeyCode )
+bool SiiMhlTxRcpkSend(byte rcpKeyCode)
 {
-	return	( MhlTxSendMscMsg ( MHL_MSC_MSG_RCPK, rcpKeyCode ) );
+	return (MhlTxSendMscMsg(MHL_MSC_MSG_RCPK, rcpKeyCode));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2455,9 +2387,9 @@ bool SiiMhlTxRcpkSend( byte rcpKeyCode )
 //
 // This function sends RAPK to the peer device. 
 //
-static	bool SiiMhlTxRapkSend( void )
+static bool SiiMhlTxRapkSend(void)
 {
-	return	( MhlTxSendMscMsg ( MHL_MSC_MSG_RAPK, 0 ) );
+	return (MhlTxSendMscMsg(MHL_MSC_MSG_RAPK, 0));
 }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -2470,10 +2402,11 @@ static	bool SiiMhlTxRapkSend( void )
 // When successful, MhlTx internally sends RCPK with original (last known)
 // keycode.
 //
-bool SiiMhlTxRcpeSend( byte rcpeErrorCode )
+bool SiiMhlTxRcpeSend(byte rcpeErrorCode)
 {
-	return( MhlTxSendMscMsg ( MHL_MSC_MSG_RCPE, rcpeErrorCode ) );
+	return (MhlTxSendMscMsg(MHL_MSC_MSG_RCPE, rcpeErrorCode));
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // SiiMhlTxReadDevcap
@@ -2483,28 +2416,28 @@ bool SiiMhlTxRcpeSend( byte rcpeErrorCode )
 //
 // The value of devcap should be obtained by making a call to SiiMhlTxGetEvents()
 //
-// offset		Which byte in devcap register is required to be read. 0..0x0E
+// offset               Which byte in devcap register is required to be read. 0..0x0E
 //
-bool SiiMhlTxReadDevcap( byte offset )
+bool SiiMhlTxReadDevcap(byte offset)
 {
-	cbus_req_t	req;
+	cbus_req_t req;
 	//
 	// Send MHL_READ_DEVCAP command
 	//
-	req.command     = mhlTxConfig.mscLastCommand = MHL_READ_DEVCAP;
-	req.offsetData  = mhlTxConfig.mscLastOffset  = offset;
-	return(SiiMhlTxDrvSendCbusCommand( &req  ));
+	req.command = mhlTxConfig.mscLastCommand = MHL_READ_DEVCAP;
+	req.offsetData = mhlTxConfig.mscLastOffset = offset;
+	return (SiiMhlTxDrvSendCbusCommand(&req));
 }
 
 #ifdef MHL_CTL
 bool SiiMhlTxWritePeerRegister(byte command, byte offset, byte value)
 {
-	cbus_req_t	req;
+	cbus_req_t req;
 
-	req.command     = mhlTxConfig.mscLastCommand = command;
-	req.offsetData  = mhlTxConfig.mscLastOffset  = offset;
+	req.command = mhlTxConfig.mscLastCommand = command;
+	req.offsetData = mhlTxConfig.mscLastOffset = offset;
 	req.msgData[0] = value;
-	return(SiiMhlTxDrvSendCbusCommand( &req  ));
+	return (SiiMhlTxDrvSendCbusCommand(&req));
 }
 
 void SiiMhlTxReadScratchpad(void)
@@ -2513,26 +2446,27 @@ void SiiMhlTxReadScratchpad(void)
 
 	memset(mhlTxConfig.mscScratchpadData, 0x00, MHD_SCRATCHPAD_SIZE);
 
-	for(m_idx=0; m_idx<(MHD_SCRATCHPAD_SIZE/2); m_idx++)
-	{
-		mhlTxConfig.mscScratchpadData[m_idx] = ReadByteCBUS(0xC0+m_idx);
-		printk("%s, [%d] %x\n", __func__, m_idx, mhlTxConfig.mscScratchpadData[m_idx]);
+	for (m_idx = 0; m_idx < (MHD_SCRATCHPAD_SIZE / 2); m_idx++) {
+		mhlTxConfig.mscScratchpadData[m_idx] =
+		    ReadByteCBUS(0xC0 + m_idx);
+		printk("%s, [%d] %x\n", __func__, m_idx,
+		       mhlTxConfig.mscScratchpadData[m_idx]);
 	}
 
 	// TODO : clear scratchpad register
 	MhlControl();
 }
 
-void SiiMhlTxWriteScratchpad(byte *wdata)
+void SiiMhlTxWriteScratchpad(byte * wdata)
 {
-	cbus_req_t	req;
+	cbus_req_t req;
 	printk("%s\n", __func__);
 
-	req.command   = /*mhlTxConfig.mscLastCommand =*/ MHL_WRITE_BURST;
-	req.offsetData  = /*mhlTxConfig.mscLastOffset  =*/ 0x40;
-	req.length = MHD_MAX_BUFFER_SIZE;					// TODO : temerally... in fact, must be the size of remote scratchpad....
-	memcpy(req.msgData,wdata,MHD_MAX_BUFFER_SIZE);	// TODO : must use pdatabytes
-	SiiMhlTxDrvSendCbusCommand( &req );
+	req.command = /*mhlTxConfig.mscLastCommand = */ MHL_WRITE_BURST;
+	req.offsetData = /*mhlTxConfig.mscLastOffset  = */ 0x40;
+	req.length = MHD_MAX_BUFFER_SIZE;	// TODO : temerally... in fact, must be the size of remote scratchpad....
+	memcpy(req.msgData, wdata, MHD_MAX_BUFFER_SIZE);	// TODO : must use pdatabytes
+	SiiMhlTxDrvSendCbusCommand(&req);
 }
 
 void MhlControl(void)
@@ -2553,262 +2487,280 @@ void MhlControl(void)
 
 	category = mhlTxConfig.mscScratchpadData[0];
 
-	if(category == 0x01)
-	{
-		command =  mhlTxConfig.mscScratchpadData[1];
-		if(command == 0x01)			// Magic Motion Remote Controller -> absolute position, button
+	if (category == 0x01) {
+		command = mhlTxConfig.mscScratchpadData[1];
+		if (command == 0x01)	// Magic Motion Remote Controller -> absolute position, button
 		{
 			action = mhlTxConfig.mscScratchpadData[2];
-			x_position = (int)((mhlTxConfig.mscScratchpadData[3] <<8) | mhlTxConfig.mscScratchpadData[4]);
-			y_position = (int)((mhlTxConfig.mscScratchpadData[5] <<8) | mhlTxConfig.mscScratchpadData[6]);
+			x_position =
+			    (int)((mhlTxConfig.
+				   mscScratchpadData[3] << 8) | mhlTxConfig.
+				  mscScratchpadData[4]);
+			y_position =
+			    (int)((mhlTxConfig.
+				   mscScratchpadData[5] << 8) | mhlTxConfig.
+				  mscScratchpadData[6]);
 
-			if((0 < tvCtl_x) && (0 < tvCtl_y))
-			{
-				x_position = x_position*MAGIC_CANVAS_X/tvCtl_x;
-				y_position = y_position*MAGIC_CANVAS_Y/tvCtl_y;
+			if ((0 < tvCtl_x) && (0 < tvCtl_y)) {
+				x_position =
+				    x_position * MAGIC_CANVAS_X / tvCtl_x;
+				y_position =
+				    y_position * MAGIC_CANVAS_Y / tvCtl_y;
 
-				if(x_position>MAGIC_CANVAS_X) x_position = MAGIC_CANVAS_X;
-				if(y_position>MAGIC_CANVAS_Y) y_position = MAGIC_CANVAS_Y;
+				if (x_position > MAGIC_CANVAS_X)
+					x_position = MAGIC_CANVAS_X;
+				if (y_position > MAGIC_CANVAS_Y)
+					y_position = MAGIC_CANVAS_Y;
 			}
 
-			if(action == 0x01)	r_action = 1;
-			else if(action == 0x02) r_action = 0;
-			else return;
+			if (action == 0x01)
+				r_action = 1;
+			else if (action == 0x02)
+				r_action = 0;
+			else
+				return;
 
-			#if 0
+#if 0
 			mhl_ts_input(x_position, y_position, r_action);
-			#else
+#else
 			{
 				char mbuf[120];
 
 				memset(mbuf, 0, sizeof(mbuf));
-				printk("%s ->magic RC, action:%d, (%d,%d) ",__func__,r_action,x_position,y_position);
-				sprintf(mbuf, "MHL_CTL action=%04d, x_pos=%04d, y_pos=%04d", r_action,x_position,y_position);
-			       hdmi_common_send_uevent(mbuf);
+				printk("%s ->magic RC, action:%d, (%d,%d) ",
+				       __func__, r_action, x_position,
+				       y_position);
+				sprintf(mbuf,
+					"MHL_CTL action=%04d, x_pos=%04d, y_pos=%04d",
+					r_action, x_position, y_position);
+				hdmi_common_send_uevent(mbuf);
 			}
-			#endif
-		}
-		else if(command == 0x02)		// mouse -> relative position + mouse button
+#endif
+		} else if (command == 0x02)	// mouse -> relative position + mouse button
 		{
 			action = mhlTxConfig.mscScratchpadData[2];
 
 			r_lval = 0;
 			r_uval = 0;
-			r_lval = (signed char) mhlTxConfig.mscScratchpadData[4];
-			r_uval = (signed char) mhlTxConfig.mscScratchpadData[3];
-			x_position = (int)((r_uval<<8) | r_lval);
+			r_lval = (signed char)mhlTxConfig.mscScratchpadData[4];
+			r_uval = (signed char)mhlTxConfig.mscScratchpadData[3];
+			x_position = (int)((r_uval << 8) | r_lval);
 
 			r_lval = 0;
 			r_uval = 0;
-			r_lval = (signed char) mhlTxConfig.mscScratchpadData[6];
-			r_uval = (signed char) mhlTxConfig.mscScratchpadData[5];
-			y_position = (int)((r_uval<<8) | r_lval);
+			r_lval = (signed char)mhlTxConfig.mscScratchpadData[6];
+			r_uval = (signed char)mhlTxConfig.mscScratchpadData[5];
+			y_position = (int)((r_uval << 8) | r_lval);
 
-			printk("%s -> mouse, action:%d, (%d,%d) \n",__func__, action,x_position,y_position);
+			printk("%s -> mouse, action:%d, (%d,%d) \n", __func__,
+			       action, x_position, y_position);
 
-			if(((x_position> 100) || (x_position< -100)) ||((y_position> 100) || (y_position< -100)))
+			if (((x_position > 100) || (x_position < -100))
+			    || ((y_position > 100) || (y_position < -100)))
 				fdr = 5;
-			else if(((-30 < x_position) && (x_position < 30)) && ((-30 < y_position) && (y_position < 30)))
+			else if (((-30 < x_position) && (x_position < 30))
+				 && ((-30 < y_position) && (y_position < 30)))
 				fdr = 1;
 			else
 				fdr = 3;
 
 			fdr = 7;
-			x_position = fdr*x_position;
-			y_position = fdr*y_position;
+			x_position = fdr * x_position;
+			y_position = fdr * y_position;
 
-			if(action == 0x00)	// cursor
+			if (action == 0x00)	// cursor
 			{
 				mhl_ms_ptr(x_position, y_position);
 				return;
 			}
 
-			if((action == 0x03)) r_action = 1;
-			else if((action == 0x02)) r_action = 0;
-			else return;
+			if ((action == 0x03))
+				r_action = 1;
+			else if ((action == 0x02))
+				r_action = 0;
+			else
+				return;
 
 			mhl_ms_ptr(x_position, y_position);
 			mhl_ms_btn(r_action);
-		}
-		else if(command == 0x03)		// keyboard -> keycode includeing MENU/HOME/BACK
+		} else if (command == 0x03)	// keyboard -> keycode includeing MENU/HOME/BACK
 		{
-		    
+
 			action = mhlTxConfig.mscScratchpadData[2];
-			keyCode = ((mhlTxConfig.mscScratchpadData[3] <<8) | mhlTxConfig.mscScratchpadData[4]);
+			keyCode =
+			    ((mhlTxConfig.
+			      mscScratchpadData[3] << 8) | mhlTxConfig.
+			     mscScratchpadData[4]);
 
-			printk("%s ->magic RC, action:%d, keyCode:%d \n",__func__,r_action,keyCode);
+			printk("%s ->magic RC, action:%d, keyCode:%d \n",
+			       __func__, r_action, keyCode);
 
-			if((keyCode == KEY_F11) || (keyCode == KEY_F12))	// F11:ZoomIn, F12:ZoomOut
+			if ((keyCode == KEY_F11) || (keyCode == KEY_F12))	// F11:ZoomIn, F12:ZoomOut
 			{
 				char mbuf[120];
 
-				if(action == 0x01)
-				{
-					if(keyCode == KEY_F11) r_action = 1;
-					else r_action = 0;
+				if (action == 0x01) {
+					if (keyCode == KEY_F11)
+						r_action = 1;
+					else
+						r_action = 0;
 
 					x_position = 9999;
 					y_position = 9999;
 					memset(mbuf, 0, sizeof(mbuf));
-					printk("%s ->magic RC change keycode for ZOOM, action:%d, (%d,%d) \n",__func__,r_action,x_position,y_position);
-					sprintf(mbuf, "MHL_CTL action=%04d, x_pos=%04d, y_pos=%04d", r_action,x_position,y_position);
+					printk
+					    ("%s ->magic RC change keycode for ZOOM, action:%d, (%d,%d) \n",
+					     __func__, r_action, x_position,
+					     y_position);
+					sprintf(mbuf,
+						"MHL_CTL action=%04d, x_pos=%04d, y_pos=%04d",
+						r_action, x_position,
+						y_position);
 
-				       hdmi_common_send_uevent(mbuf);
+					hdmi_common_send_uevent(mbuf);
 				}
 				return;
 			}
-			
-#ifndef MHL_I_ICS_COMMON // This Macro is not defined.
-			if( keyCode == KEY_HOME )
+#ifndef MHL_I_ICS_COMMON	// This Macro is not defined.
+			if (keyCode == KEY_HOME)
 				keyCode = KEY_HOMEPAGE;
-#endif// temporary Fixing for HOME KEY fake change 20120412
+#endif // temporary Fixing for HOME KEY fake change 20120412
 
-			if(action == 0x01)
-			{
+			if (action == 0x01) {
 				r_action = 1;
 
-				if((kbd_key_pressed[0]>>8) == 0x00)
-				{
-					if(((kbd_key_pressed[1] >>8) == 0x01) && ((kbd_key_pressed[1]&0xFF) == keyCode))
-					{
-						printk("%s -> keyboard, duplicated pressed, %x \n",__func__, keyCode);
+				if ((kbd_key_pressed[0] >> 8) == 0x00) {
+					if (((kbd_key_pressed[1] >> 8) == 0x01)
+					    && ((kbd_key_pressed[1] & 0xFF) ==
+						keyCode)) {
+						printk
+						    ("%s -> keyboard, duplicated pressed, %x \n",
+						     __func__, keyCode);
 						return;
 					}
 					kbd_key_pressed[0] = (0x0100 | keyCode);
-				}
-				else
-				{
-					if((kbd_key_pressed[1] >>8) == 0x01)
-					{
-						printk("%s -> keyboard, duplicated pressed, %x \n",__func__, keyCode);
+				} else {
+					if ((kbd_key_pressed[1] >> 8) == 0x01) {
+						printk
+						    ("%s -> keyboard, duplicated pressed, %x \n",
+						     __func__, keyCode);
 						return;
 					}
 					kbd_key_pressed[1] = (0x0100 | keyCode);
 				}
 
 #if 0
-				if(kbd_key_pressed == 0x01)
-				{
-					printk("%s -> keyboard, duplicated pressed, %d \n",__func__, keyCode);
+				if (kbd_key_pressed == 0x01) {
+					printk
+					    ("%s -> keyboard, duplicated pressed, %d \n",
+					     __func__, keyCode);
 					return;
-				}
-				else
-				{
+				} else {
 					kbd_key_pressed = 0x01;
 				}
 #endif
-			}
-			else if(action == 0x02)
-			{
+			} else if (action == 0x02) {
 				r_action = 0;
 
-				if(((kbd_key_pressed[0]>>8) == 0x01) && ((kbd_key_pressed[0]&0xFF) == keyCode))
-				{
+				if (((kbd_key_pressed[0] >> 8) == 0x01)
+				    && ((kbd_key_pressed[0] & 0xFF) ==
+					keyCode)) {
 					kbd_key_pressed[0] = 0x0000;
-					mhl_kbd_key(keyCode,r_action);
+					mhl_kbd_key(keyCode, r_action);
 					return;
 				}
-				if(((kbd_key_pressed[1]>>8) == 0x01) && ((kbd_key_pressed[1]&0xFF) == keyCode))
-				{
+				if (((kbd_key_pressed[1] >> 8) == 0x01)
+				    && ((kbd_key_pressed[1] & 0xFF) ==
+					keyCode)) {
 					kbd_key_pressed[1] = 0x0000;
-					mhl_kbd_key(keyCode,r_action);
+					mhl_kbd_key(keyCode, r_action);
 					return;
 				}
 
-				printk("%s -> keyboard, duplicated released, %x \n",__func__, keyCode);
+				printk
+				    ("%s -> keyboard, duplicated released, %x \n",
+				     __func__, keyCode);
 				return;
 
-
 #if 0
-				if(kbd_key_pressed == 0x00)
-				{
-					printk("%s -> keyboard, duplicated released, %d \n",__func__, keyCode);
+				if (kbd_key_pressed == 0x00) {
+					printk
+					    ("%s -> keyboard, duplicated released, %d \n",
+					     __func__, keyCode);
 					return;
-				}
-				else
-				{
+				} else {
 					kbd_key_pressed = 0x00;
 				}
 #endif
-			}
-			else return;
+			} else
+				return;
 
-			mhl_kbd_key(keyCode,r_action);
-		}
-		else
-		{
+			mhl_kbd_key(keyCode, r_action);
+		} else {
 			TX_DEBUG_PRINT(("MhlControl : not defined message\n"));
 		}
-	}
-	else if(category == 0x02)
-	{
-		command =  mhlTxConfig.mscScratchpadData[1];
+	} else if (category == 0x02) {
+		command = mhlTxConfig.mscScratchpadData[1];
 		action = mhlTxConfig.mscScratchpadData[2];
 
-		if(command > 0x03)
-		{
+		if (command > 0x03) {
 			TX_DEBUG_PRINT(("MhlControl : not defined message\n"));
 			return;
 		}
 
-		if(command == 0x01)	// TV magic motion remote controller
+		if (command == 0x01)	// TV magic motion remote controller
 		{
-			if(action == 0x01)
-			{
-				tmp_x = (int)((mhlTxConfig.mscScratchpadData[3] <<8) | mhlTxConfig.mscScratchpadData[4]);
-				tmp_y = (int)((mhlTxConfig.mscScratchpadData[5] <<8) | mhlTxConfig.mscScratchpadData[6]);
+			if (action == 0x01) {
+				tmp_x =
+				    (int)((mhlTxConfig.
+					   mscScratchpadData[3] << 8) |
+					  mhlTxConfig.mscScratchpadData[4]);
+				tmp_y =
+				    (int)((mhlTxConfig.
+					   mscScratchpadData[5] << 8) |
+					  mhlTxConfig.mscScratchpadData[6]);
 
-				printk("%s -> TV control canvas (%d, %d) \n",__func__, tmp_x, tmp_y);
-				if((((MAGIC_CANVAS_X/2) < tmp_x) && (tmp_x < 2*MAGIC_CANVAS_X))
-					&& (((MAGIC_CANVAS_Y/2) < tmp_y) && (tmp_y < 2*MAGIC_CANVAS_Y)))
-				{
+				printk("%s -> TV control canvas (%d, %d) \n",
+				       __func__, tmp_x, tmp_y);
+				if ((((MAGIC_CANVAS_X / 2) < tmp_x)
+				     && (tmp_x < 2 * MAGIC_CANVAS_X))
+				    && (((MAGIC_CANVAS_Y / 2) < tmp_y)
+					&& (tmp_y < 2 * MAGIC_CANVAS_Y))) {
 					tvCtl_x = tmp_x;
 					tvCtl_y = tmp_y;
-				}
-				else
-				{
+				} else {
 					tvCtl_x = MAGIC_CANVAS_X;
 					tvCtl_y = MAGIC_CANVAS_Y;
 				}
 			}
-		}
-		else if(command == 0x02)	// mouse
+		} else if (command == 0x02)	// mouse
 		{
-			if(action == 0x02)
-			{
+			if (action == 0x02) {
 				mhl_ms_hide_cursor();
-				printk("%s -> mouse UNPLUGGED.\n",__func__);
-			}
-			else;
-		}
-		else if(command == 0x03)	// keyboard
+				printk("%s -> mouse UNPLUGGED.\n", __func__);
+			} else;
+		} else if (command == 0x03)	// keyboard
 		{
 			kbd_key_pressed[0] = 0x0000;
 			kbd_key_pressed[1] = 0x0000;
 
-			if(action == 0x01)
-			{
+			if (action == 0x01) {
 				mhl_writeburst_uevent(1);
-				printk("%s -> keyboard PLUGGED.\n",__func__);
-			}
-			else if(action == 0x02)
-			{
+				printk("%s -> keyboard PLUGGED.\n", __func__);
+			} else if (action == 0x02) {
 				mhl_writeburst_uevent(2);
-				printk("%s -> keyboard UNPLUGGED.\n",__func__);
-			}
-			else;
-		}
-		else;
+				printk("%s -> keyboard UNPLUGGED.\n", __func__);
+			} else;
+		} else;
 
-		memcpy(plugResp, mhlTxConfig.mscScratchpadData, MHD_MAX_BUFFER_SIZE);
+		memcpy(plugResp, mhlTxConfig.mscScratchpadData,
+		       MHD_MAX_BUFFER_SIZE);
 		plugResp[3] = 0x01;
 		plugResp[4] = 0x00;
 		plugResp[5] = 0x00;
 		plugResp[6] = 0x00;
 		SiiMhlTxWriteScratchpad(plugResp);
-	}
-	else
-	{
+	} else {
 		TX_DEBUG_PRINT(("MhlControl : not defined message\n"));
 		return;
 	}
@@ -2823,45 +2775,44 @@ void MhlControl(void)
 //
 // The value of devcap should be obtained by making a call to SiiMhlTxGetEvents()
 //
-// offset		Which byte in devcap register is required to be read. 0..0x0E
+// offset               Which byte in devcap register is required to be read. 0..0x0E
 //
-static bool MhlTxSendMscMsg ( byte command, byte cmdData )
+static bool MhlTxSendMscMsg(byte command, byte cmdData)
 {
-	cbus_req_t	req;
-	byte		ccode;
+	cbus_req_t req;
+	byte ccode;
 
 	//
 	// Send MSC_MSG command
 	//
-	req.command     = MHL_MSC_MSG;
+	req.command = MHL_MSC_MSG;
 
-	req.msgData[0]  = mhlTxConfig.mscMsgLastCommand = command;
-	req.msgData[1]  = mhlTxConfig.mscMsgLastData    = cmdData;
+	req.msgData[0] = mhlTxConfig.mscMsgLastCommand = command;
+	req.msgData[1] = mhlTxConfig.mscMsgLastData = cmdData;
 
-	ccode = SiiMhlTxDrvSendCbusCommand( &req  );
-	return( (bool) ccode );
+	ccode = SiiMhlTxDrvSendCbusCommand(&req);
+	return ((bool) ccode);
 
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // 
 // SiiMhlTxNotifyConnection
 //
 //
-void	SiiMhlTxNotifyConnection( bool mhlConnected )
+void SiiMhlTxNotifyConnection(bool mhlConnected)
 {
 	//printk("SiiMhlTxNotifyConnection %01X\n", (int) mhlConnected );
 	mhlTxConfig.mhlConnectionEvent = TRUE;
 
-  	mhlTxConfig.mscState	 = MSC_STATE_IDLE;
-	if(mhlConnected)
-	{
+	mhlTxConfig.mscState = MSC_STATE_IDLE;
+	if (mhlConnected) {
 		mhlTxConfig.mhlConnected = MHL_TX_EVENT_CONNECTION;
-	}
-	else
-	{
+	} else {
 		mhlTxConfig.mhlConnected = MHL_TX_EVENT_DISCONNECTION;
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // SiiMhlTxNotifyDsHpdChange
@@ -2869,23 +2820,21 @@ void	SiiMhlTxNotifyConnection( bool mhlConnected )
 //
 // Turn the content off or on based on what we got.
 //
-void	SiiMhlTxNotifyDsHpdChange( byte dsHpdStatus )
+void SiiMhlTxNotifyDsHpdChange(byte dsHpdStatus)
 {
-	if( 0 == dsHpdStatus )
-	{
-	    TX_DEBUG_PRINT(("MhlTx: Disable TMDS\n"));
-		SiiMhlTxDrvTmdsControl( FALSE );
+	if (0 == dsHpdStatus) {
+		TX_DEBUG_PRINT(("MhlTx: Disable TMDS\n"));
+		SiiMhlTxDrvTmdsControl(FALSE);
 		TX_DEBUG_PRINT(("MhlTx: Disable TMDS : CBUS RESET\n"));
 		CbusReset();
 		InitCBusRegs();
-		
-	}
-	else
-	{
-	    TX_DEBUG_PRINT(("MhlTx: Enable TMDS\n"));
-		SiiMhlTxDrvTmdsControl( TRUE );
+
+	} else {
+		TX_DEBUG_PRINT(("MhlTx: Enable TMDS\n"));
+		SiiMhlTxDrvTmdsControl(TRUE);
 	}
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // MhlTxResetStates
@@ -2893,22 +2842,26 @@ void	SiiMhlTxNotifyDsHpdChange( byte dsHpdStatus )
 // Application picks up mhl connection and rcp events at periodic intervals.
 // Interrupt handler feeds these variables. Reset them on disconnection. 
 //
-static void	MhlTxResetStates( void )
+static void MhlTxResetStates(void)
 {
-  /*                                                           */
-  memset(&mhlTxConfig, 0, sizeof(mhlTx_config_t));
-  printk("fwPowerState=%x,mscCmdInProgress=%x,dsHpdStatus=%x,mhl_cable_status=%x\n",fwPowerState,mscCmdInProgress,dsHpdStatus,mhl_cable_status);
+	/*                                                           */
+	memset(&mhlTxConfig, 0, sizeof(mhlTx_config_t));
+	printk
+	    ("fwPowerState=%x,mscCmdInProgress=%x,dsHpdStatus=%x,mhl_cable_status=%x\n",
+	     fwPowerState, mscCmdInProgress, dsHpdStatus, mhl_cable_status);
 	fwPowerState = TX_POWER_STATE_FIRST_INIT;
-  mscCmdInProgress = 0;
-  dsHpdStatus = 0;
-  mhl_cable_status = MHL_INIT_POWER_OFF;
-  printk("fwPowerState=%x,mscCmdInProgress=%x,dsHpdStatus=%x,mhl_cable_status=%x\n",fwPowerState,mscCmdInProgress,dsHpdStatus,mhl_cable_status);
-  /*                                                           */
+	mscCmdInProgress = 0;
+	dsHpdStatus = 0;
+	mhl_cable_status = MHL_INIT_POWER_OFF;
+	printk
+	    ("fwPowerState=%x,mscCmdInProgress=%x,dsHpdStatus=%x,mhl_cable_status=%x\n",
+	     fwPowerState, mscCmdInProgress, dsHpdStatus, mhl_cable_status);
+	/*                                                           */
 
-	mhlTxConfig.mhlConnectionEvent	= FALSE;
-	mhlTxConfig.mhlConnected		= MHL_TX_EVENT_DISCONNECTION;
-	mhlTxConfig.mscMsgArrived		= FALSE;
-	mhlTxConfig.mscState			= MSC_STATE_IDLE;
+	mhlTxConfig.mhlConnectionEvent = FALSE;
+	mhlTxConfig.mhlConnected = MHL_TX_EVENT_DISCONNECTION;
+	mhlTxConfig.mscMsgArrived = FALSE;
+	mhlTxConfig.mscState = MSC_STATE_IDLE;
 }
 
 #define	APP_DEMO_RCP_SEND_KEY_CODE 0x44
@@ -2920,261 +2873,262 @@ static void	MhlTxResetStates( void )
 // This function is supposed to provide a demo code to elicit how to call RCP
 // API function.
 //
-void	AppRcpDemo( byte event, byte eventParameter)
+void AppRcpDemo(byte event, byte eventParameter)
 {
-	byte		rcpKeyCode;
+	byte rcpKeyCode;
 
-//	printk("App: Got event = %02X, eventParameter = %02X\n", (int)event, (int)eventParameter);
+//      printk("App: Got event = %02X, eventParameter = %02X\n", (int)event, (int)eventParameter);
 
-	switch( event )
-	{
-		case	MHL_TX_EVENT_DISCONNECTION:
-			printk("App: Got event = MHL_TX_EVENT_DISCONNECTION\n");
+	switch (event) {
+	case MHL_TX_EVENT_DISCONNECTION:
+		printk("App: Got event = MHL_TX_EVENT_DISCONNECTION\n");
+		break;
+
+	case MHL_TX_EVENT_CONNECTION:
+		printk("App: Got event = MHL_TX_EVENT_CONNECTION\n");
+		break;
+
+	case MHL_TX_EVENT_RCP_READY:
+		// Demo RCP key code PLAY
+		rcpKeyCode = APP_DEMO_RCP_SEND_KEY_CODE;
+		printk
+		    ("App: Got event = MHL_TX_EVENT_RCP_READY...Sending RCP (%02X)\n",
+		     (int)rcpKeyCode);
+		break;
+
+	case MHL_TX_EVENT_RCP_RECEIVED:
+		//
+		// Check if we got an RCP. Application can perform the operation here
+		// and send RCPK or RCPE. For now, we send the RCPK
+		//
+		printk("App: Received an RCP key code = %02X\n",
+		       eventParameter);
+
+		switch (eventParameter) {
+
+		case MHD_RCP_CMD_SELECT:
+			TX_DEBUG_PRINT(("\nSelect received\n\n"));	//, (int)eventParameter ));
 			break;
 
-		case	MHL_TX_EVENT_CONNECTION:
-			printk("App: Got event = MHL_TX_EVENT_CONNECTION\n");
+		case MHD_RCP_CMD_UP:
+			TX_DEBUG_PRINT(("\nUp received\n\n"));	//, (int)eventParameter ));
 			break;
 
-		case	MHL_TX_EVENT_RCP_READY:
-			// Demo RCP key code PLAY
-			rcpKeyCode = APP_DEMO_RCP_SEND_KEY_CODE;
-			printk("App: Got event = MHL_TX_EVENT_RCP_READY...Sending RCP (%02X)\n", (int) rcpKeyCode);
+		case MHD_RCP_CMD_DOWN:
+			TX_DEBUG_PRINT(("\nDown received\n\n"));	//, (int)eventParameter ));
 			break;
 
-		case	MHL_TX_EVENT_RCP_RECEIVED:
-			//
-			// Check if we got an RCP. Application can perform the operation here
-			// and send RCPK or RCPE. For now, we send the RCPK
-			//
-			printk("App: Received an RCP key code = %02X\n", eventParameter );
-
-      switch(eventParameter)
-      {
-
-        case MHD_RCP_CMD_SELECT:
-          TX_DEBUG_PRINT(( "\nSelect received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_UP:
-          TX_DEBUG_PRINT(( "\nUp received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_DOWN:
-          TX_DEBUG_PRINT(( "\nDown received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_LEFT:
-          TX_DEBUG_PRINT(( "\nLeft received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_RIGHT:
-          TX_DEBUG_PRINT(( "\nRight received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_RIGHT_UP:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_RIGHT_UP\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_RIGHT_DOWN:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_RIGHT_DOWN \n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_LEFT_UP:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_LEFT_UP\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_LEFT_DOWN:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_LEFT_DOWN\n\n"));//, (int)eventParameter ));
-        break;      
-
-        case MHD_RCP_CMD_ROOT_MENU:
-          TX_DEBUG_PRINT(( "\nRoot Menu received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_SETUP_MENU:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_SETUP_MENU\n\n"));//, (int)eventParameter ));
-        break;      
-
-        case MHD_RCP_CMD_CONTENTS_MENU:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_CONTENTS_MENU\n\n"));//, (int)eventParameter ));
-        break;      
-
-        case MHD_RCP_CMD_FAVORITE_MENU:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_FAVORITE_MENU\n\n"));//, (int)eventParameter ));
-        break;            
-
-        case MHD_RCP_CMD_EXIT:
-          TX_DEBUG_PRINT(( "\nExit received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_0:
-          TX_DEBUG_PRINT(( "\nNumber 0 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_1:
-          TX_DEBUG_PRINT(( "\nNumber 1 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_2:
-          TX_DEBUG_PRINT(( "\nNumber 2 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_3:
-          TX_DEBUG_PRINT(( "\nNumber 3 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_4:
-          TX_DEBUG_PRINT(( "\nNumber 4 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_5:
-          TX_DEBUG_PRINT(( "\nNumber 5 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_6:
-          TX_DEBUG_PRINT(( "\nNumber 6 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_7:
-          TX_DEBUG_PRINT(( "\nNumber 7 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_8:
-          TX_DEBUG_PRINT(( "\nNumber 8 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_NUM_9:
-          TX_DEBUG_PRINT(( "\nNumber 9 received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_DOT:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_DOT\n\n"));//, (int)eventParameter ));
-        break;          
-
-        case MHD_RCP_CMD_ENTER:
-          TX_DEBUG_PRINT(( "\nEnter received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_CLEAR:
-          TX_DEBUG_PRINT(( "\nClear received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_CH_UP:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_CH_UP\n\n"));//, (int)eventParameter ));
-        break; 
-
-        case MHD_RCP_CMD_CH_DOWN:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_CH_DOWN\n\n"));//, (int)eventParameter ));
-        break;       
-
-        case MHD_RCP_CMD_PRE_CH:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_PRE_CH\n\n"));//, (int)eventParameter ));
-        break;           
-
-        case MHD_RCP_CMD_SOUND_SELECT:
-          TX_DEBUG_PRINT(( "\nSound Select received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_INPUT_SELECT:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_INPUT_SELECT\n\n"));//, (int)eventParameter ));
-        break;    
-
-        case MHD_RCP_CMD_SHOW_INFO:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_SHOW_INFO\n\n"));//, (int)eventParameter ));
-        break;     
-
-        case MHD_RCP_CMD_HELP:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_HELP\n\n"));//, (int)eventParameter ));
-        break;   
-
-        case MHD_RCP_CMD_PAGE_UP:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_PAGE_UP\n\n"));//, (int)eventParameter ));
-        break;  
-
-        case MHD_RCP_CMD_PAGE_DOWN:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_PAGE_DOWN\n\n"));//, (int)eventParameter ));
-        break;             
-
-        case MHD_RCP_CMD_VOL_UP:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_VOL_UP\n\n"));//, (int)eventParameter ));
-        break;             
-
-        case MHD_RCP_CMD_VOL_DOWN:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_VOL_DOWN\n\n"));//, (int)eventParameter ));
-        break;             
-
-        case MHD_RCP_CMD_MUTE:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_MUTE\n\n"));//, (int)eventParameter ));
-        break;             
-                
-        case MHD_RCP_CMD_PLAY:
-          TX_DEBUG_PRINT(( "\nPlay received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_STOP:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_STOP\n\n"));//, (int)eventParameter ));
-        break;   
-
-        case MHD_RCP_CMD_PAUSE:
-          TX_DEBUG_PRINT(( "\nPause received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_RECORD:
-          TX_DEBUG_PRINT(( "\n MHD_RCP_CMD_RECORD\n\n"));//, (int)eventParameter ));
-        break;   
-
-        case MHD_RCP_CMD_FAST_FWD:
-          TX_DEBUG_PRINT(( "\nFastfwd received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_REWIND:
-          TX_DEBUG_PRINT(( "\nRewind received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_EJECT:
-          TX_DEBUG_PRINT(( "\nEject received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_FWD:
-          TX_DEBUG_PRINT(( "\nForward received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_BKWD:
-          TX_DEBUG_PRINT(( "\nBackward received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_PLAY_FUNC:
-          TX_DEBUG_PRINT(( "\nPlay Function received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_PAUSE_PLAY_FUNC:
-          TX_DEBUG_PRINT(( "\nPause_Play Function received\n\n"));//, (int)eventParameter ));
-        break;
-
-        case MHD_RCP_CMD_STOP_FUNC:
-          TX_DEBUG_PRINT(( "\nStop Function received\n\n"));//, (int)eventParameter ));
-        break;
-
-        default:
-
-        break;
-      }
-      
-			rcpKeyCode = eventParameter;
-			SiiMhlTxRcpkSend(rcpKeyCode);
+		case MHD_RCP_CMD_LEFT:
+			TX_DEBUG_PRINT(("\nLeft received\n\n"));	//, (int)eventParameter ));
 			break;
 
-		case	MHL_TX_EVENT_RCPK_RECEIVED:
-			printk("App: Received an RCPK = %02X\n",(int)eventParameter);
+		case MHD_RCP_CMD_RIGHT:
+			TX_DEBUG_PRINT(("\nRight received\n\n"));	//, (int)eventParameter ));
 			break;
 
-		case	MHL_TX_EVENT_RCPE_RECEIVED:
-			printk("App: Received an RCPE = %02X\n",(int)eventParameter);
+		case MHD_RCP_CMD_RIGHT_UP:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_RIGHT_UP\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_RIGHT_DOWN:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_RIGHT_DOWN \n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_LEFT_UP:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_LEFT_UP\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_LEFT_DOWN:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_LEFT_DOWN\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_ROOT_MENU:
+			TX_DEBUG_PRINT(("\nRoot Menu received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_SETUP_MENU:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_SETUP_MENU\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_CONTENTS_MENU:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_CONTENTS_MENU\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_FAVORITE_MENU:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_FAVORITE_MENU\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_EXIT:
+			TX_DEBUG_PRINT(("\nExit received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_0:
+			TX_DEBUG_PRINT(("\nNumber 0 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_1:
+			TX_DEBUG_PRINT(("\nNumber 1 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_2:
+			TX_DEBUG_PRINT(("\nNumber 2 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_3:
+			TX_DEBUG_PRINT(("\nNumber 3 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_4:
+			TX_DEBUG_PRINT(("\nNumber 4 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_5:
+			TX_DEBUG_PRINT(("\nNumber 5 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_6:
+			TX_DEBUG_PRINT(("\nNumber 6 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_7:
+			TX_DEBUG_PRINT(("\nNumber 7 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_8:
+			TX_DEBUG_PRINT(("\nNumber 8 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_NUM_9:
+			TX_DEBUG_PRINT(("\nNumber 9 received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_DOT:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_DOT\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_ENTER:
+			TX_DEBUG_PRINT(("\nEnter received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_CLEAR:
+			TX_DEBUG_PRINT(("\nClear received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_CH_UP:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_CH_UP\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_CH_DOWN:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_CH_DOWN\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_PRE_CH:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_PRE_CH\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_SOUND_SELECT:
+			TX_DEBUG_PRINT(("\nSound Select received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_INPUT_SELECT:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_INPUT_SELECT\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_SHOW_INFO:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_SHOW_INFO\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_HELP:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_HELP\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_PAGE_UP:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_PAGE_UP\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_PAGE_DOWN:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_PAGE_DOWN\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_VOL_UP:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_VOL_UP\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_VOL_DOWN:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_VOL_DOWN\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_MUTE:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_MUTE\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_PLAY:
+			TX_DEBUG_PRINT(("\nPlay received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_STOP:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_STOP\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_PAUSE:
+			TX_DEBUG_PRINT(("\nPause received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_RECORD:
+			TX_DEBUG_PRINT(("\n MHD_RCP_CMD_RECORD\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_FAST_FWD:
+			TX_DEBUG_PRINT(("\nFastfwd received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_REWIND:
+			TX_DEBUG_PRINT(("\nRewind received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_EJECT:
+			TX_DEBUG_PRINT(("\nEject received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_FWD:
+			TX_DEBUG_PRINT(("\nForward received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_BKWD:
+			TX_DEBUG_PRINT(("\nBackward received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_PLAY_FUNC:
+			TX_DEBUG_PRINT(("\nPlay Function received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_PAUSE_PLAY_FUNC:
+			TX_DEBUG_PRINT(("\nPause_Play Function received\n\n"));	//, (int)eventParameter ));
+			break;
+
+		case MHD_RCP_CMD_STOP_FUNC:
+			TX_DEBUG_PRINT(("\nStop Function received\n\n"));	//, (int)eventParameter ));
 			break;
 
 		default:
+
 			break;
+		}
+
+		rcpKeyCode = eventParameter;
+		SiiMhlTxRcpkSend(rcpKeyCode);
+		break;
+
+	case MHL_TX_EVENT_RCPK_RECEIVED:
+		printk("App: Received an RCPK = %02X\n", (int)eventParameter);
+		break;
+
+	case MHL_TX_EVENT_RCPE_RECEIVED:
+		printk("App: Received an RCPE = %02X\n", (int)eventParameter);
+		break;
+
+	default:
+		break;
 	}
 }
 
@@ -3191,18 +3145,16 @@ void	AppRcpDemo( byte event, byte eventParameter)
 //
 // Application module must provide this function.
 //
-void	AppVbusControl( bool powerOn )
+void AppVbusControl(bool powerOn)
 {
-	if( powerOn )
-	{
-		printk("App: Peer's POW bit is set. Turn the VBUS power OFF here.\n");
-	}
-	else
-	{
-		printk("App: Peer's POW bit is cleared. Turn the VBUS power ON here.\n");
+	if (powerOn) {
+		printk
+		    ("App: Peer's POW bit is set. Turn the VBUS power OFF here.\n");
+	} else {
+		printk
+		    ("App: Peer's POW bit is cleared. Turn the VBUS power ON here.\n");
 	}
 }
-
 
 /*===========================================================================
   FUNCTION SiI9244_interrupt_event
@@ -3221,88 +3173,85 @@ When SiI9244 H/W interrupt happen, call this event function
 ===========================================================================*/
 void SiI9244_interrupt_event(void)
 {
-  byte    event;
-  byte    eventParameter;
-  byte    flag;
+	byte event;
+	byte eventParameter;
+	byte flag;
 
-
-  //TX_DEBUG_PRINT(("Start PinTxInt Pin Init : %d \n",(int)PinTxInt));
-	do 
-	{
+	//TX_DEBUG_PRINT(("Start PinTxInt Pin Init : %d \n",(int)PinTxInt));
+	do {
 		//
 		// Look for any events that might have occurred.
 		//
 		flag = 0;
-		SiiMhlTxGetEvents( &event, &eventParameter );
-                
-        if(!pwroff_requested)
-		{
-		if( MHL_TX_EVENT_NONE != event )
-		{
-			AppRcpDemo( event, eventParameter);
-		}
-		if(mhl_cable_status == MHL_TV_OFF_CABLE_CONNECT)
-		{
-			byte tmp;
-			tmp = I2C_ReadByte(SA_TX_Page0_Primary, (0x74));   // read status
-			I2C_WriteByte(SA_TX_Page0_Primary, (0x74), tmp);   // clear all interrupts
-			tmp = I2C_ReadByte(SA_TX_Page0_Primary, 0x71);
-			I2C_WriteByte(SA_TX_Page0_Primary, 0x71, tmp);
+		SiiMhlTxGetEvents(&event, &eventParameter);
 
-			tmp = ReadByteCBUS(0x08);
-			WriteByteCBUS(0x08, tmp);  
-
-			tmp = ReadByteCBUS(0x1E);
-			WriteByteCBUS(0x1E, tmp);    
-			TX_DEBUG_PRINT(("mhl_cable_status == MHL_TV_OFF_CABLE_CONNECT\n"));
-
-			return ;
-		}
-		else if(((fwPowerState == TX_POWER_STATE_D0_MHL)||(fwPowerState == TX_POWER_STATE_D0_NO_MHL))&& 
-		mhl_cable_status) //NAGSM_Android_SEL_Kernel_Aakash_20101214
-		{
-			byte tmp;
-			tmp = I2C_ReadByte(SA_TX_Page0_Primary, (0x74));   // read status
-			flag |= (tmp&INTR_4_DESIRED_MASK);	  
-			printk("#1 (0x74) flag: %x\n",(int) flag );
-
-			//I2C_WriteByte(SA_TX_Page0_Primary, (0x74), tmp);   // clear all interrupts
-			tmp = I2C_ReadByte(SA_TX_Page0_Primary, 0x71);
-			//I2C_WriteByte(SA_TX_Page0_Primary, 0x71, tmp);
-			flag |= (tmp&INTR_1_DESIRED_MASK);
-			printk("#1 (0x71) flag: %x\n",(int) flag );
-
-			if(mhlTxConfig.mhlConnected == MHL_TX_EVENT_DISCONNECTION)//(mhlTxConfig_status()== MHL_TX_EVENT_DISCONNECTION)//
-			{
-				tmp = ReadByteCBUS(0x08);
-				printk("#2 (ReadByteCBUS(0x08)) Temp: %x\n",(int) tmp );
-				WriteByteCBUS(0x08, tmp);  
-				tmp = ReadByteCBUS(0x1E);
-				printk("#2 (ReadByteCBUS(0x1E)) Temp: %x\n",(int) tmp );
-				WriteByteCBUS(0x1E, tmp);    
-
+		if (!pwroff_requested) {
+			if (MHL_TX_EVENT_NONE != event) {
+				AppRcpDemo(event, eventParameter);
 			}
-			else
-			{
+			if (mhl_cable_status == MHL_TV_OFF_CABLE_CONNECT) {
+				byte tmp;
+				tmp = I2C_ReadByte(SA_TX_Page0_Primary, (0x74));	// read status
+				I2C_WriteByte(SA_TX_Page0_Primary, (0x74), tmp);	// clear all interrupts
+				tmp = I2C_ReadByte(SA_TX_Page0_Primary, 0x71);
+				I2C_WriteByte(SA_TX_Page0_Primary, 0x71, tmp);
+
 				tmp = ReadByteCBUS(0x08);
-				flag |= (tmp&INTR_CBUS1_DESIRED_MASK);
-				printk("#1 (ReadByteCBUS(0x08)) Temp: %x\n",(int) flag );
+				WriteByteCBUS(0x08, tmp);
+
 				tmp = ReadByteCBUS(0x1E);
-				flag |= (tmp&INTR_CBUS2_DESIRED_MASK);
-				printk("#1 (ReadByteCBUS(0x1E)) Temp: %x\n",(int) flag );              
+				WriteByteCBUS(0x1E, tmp);
+				TX_DEBUG_PRINT(("mhl_cable_status == MHL_TV_OFF_CABLE_CONNECT\n"));
+
+				return;
+			} else if (((fwPowerState == TX_POWER_STATE_D0_MHL) || (fwPowerState == TX_POWER_STATE_D0_NO_MHL)) && mhl_cable_status)	//NAGSM_Android_SEL_Kernel_Aakash_20101214
+			{
+				byte tmp;
+				tmp = I2C_ReadByte(SA_TX_Page0_Primary, (0x74));	// read status
+				flag |= (tmp & INTR_4_DESIRED_MASK);
+				printk("#1 (0x74) flag: %x\n", (int)flag);
+
+				//I2C_WriteByte(SA_TX_Page0_Primary, (0x74), tmp);   // clear all interrupts
+				tmp = I2C_ReadByte(SA_TX_Page0_Primary, 0x71);
+				//I2C_WriteByte(SA_TX_Page0_Primary, 0x71, tmp);
+				flag |= (tmp & INTR_1_DESIRED_MASK);
+				printk("#1 (0x71) flag: %x\n", (int)flag);
+
+				if (mhlTxConfig.mhlConnected == MHL_TX_EVENT_DISCONNECTION)	//(mhlTxConfig_status()== MHL_TX_EVENT_DISCONNECTION)//
+				{
+					tmp = ReadByteCBUS(0x08);
+					printk
+					    ("#2 (ReadByteCBUS(0x08)) Temp: %x\n",
+					     (int)tmp);
+					WriteByteCBUS(0x08, tmp);
+					tmp = ReadByteCBUS(0x1E);
+					printk
+					    ("#2 (ReadByteCBUS(0x1E)) Temp: %x\n",
+					     (int)tmp);
+					WriteByteCBUS(0x1E, tmp);
+
+				} else {
+					tmp = ReadByteCBUS(0x08);
+					flag |= (tmp & INTR_CBUS1_DESIRED_MASK);
+					printk
+					    ("#1 (ReadByteCBUS(0x08)) Temp: %x\n",
+					     (int)flag);
+					tmp = ReadByteCBUS(0x1E);
+					flag |= (tmp & INTR_CBUS2_DESIRED_MASK);
+					printk
+					    ("#1 (ReadByteCBUS(0x1E)) Temp: %x\n",
+					     (int)flag);
+				}
+				if ((flag == 0xFA) || (flag == 0xFF))
+					flag = 0;
 			}
-			if((flag == 0xFA)||(flag == 0xFF))
-			flag = 0;
 		}
-		}
-		if(pwroff_requested)
-		{
+		if (pwroff_requested) {
 			pwroff_requested = 0;
 			flag = 0;
 		}
-	}while(flag);
-    printk("#$$$$$$$$$$$$$$$ flag: %x\n",(int) flag );
+	} while (flag);
+	printk("#$$$$$$$$$$$$$$$ flag: %x\n", (int)flag);
 }
 
 EXPORT_SYMBOL(SiI9244_interrupt_event);
-

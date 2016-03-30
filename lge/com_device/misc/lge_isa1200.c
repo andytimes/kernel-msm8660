@@ -47,7 +47,6 @@
 
 #include <../../../drivers/staging/android/timed_output.h>
 
-
 #include "../../include/lge_isa1200.h"
 
 #if defined(CONFIG_MACH_LGE_325_BOARD_VZW)
@@ -86,9 +85,11 @@ static bool lge_is_one_gpio_mode_or_not(struct lge_isa1200_context *context)
 #ifdef CONFIG_DEBUG_FS
 static int lge_isa1200_read_reg(struct i2c_client *client, u8 addr)
 {
-	s32 value = i2c_smbus_read_byte_data (client, addr);
+	s32 value = i2c_smbus_read_byte_data(client, addr);
 
-	dev_dbg(&client->dev, "%s %02x:%02x (negative value means error code)\n", __func__, addr, value);
+	dev_dbg(&client->dev,
+		"%s %02x:%02x (negative value means error code)\n", __func__,
+		addr, value);
 
 	return value;
 }
@@ -122,32 +123,39 @@ static int lge_isa1200_hw_init(struct lge_isa1200_context *context)
 
 #ifdef DEBUG
 	value = lge_isa1200_read_reg(client, LGE_ISA1200_HCTRL1);
-	dev_dbg(context->dev.dev, "%s() reg[%02x]=0x%02x\n", __func__, LGE_ISA1200_HCTRL1, value);
+	dev_dbg(context->dev.dev, "%s() reg[%02x]=0x%02x\n", __func__,
+		LGE_ISA1200_HCTRL1, value);
 #endif
 
 	if (context->pdata->init_seq) {
 		int i;
-		struct isa1200_reg_seq *init_seq=context->pdata->init_seq;
+		struct isa1200_reg_seq *init_seq = context->pdata->init_seq;
 
-		for (i=0; i<init_seq->number_of_reg_cmd_list; i++) {
-			lge_isa1200_write_reg(client, init_seq->reg_cmd_list[i].addr, init_seq->reg_cmd_list[i].data);
+		for (i = 0; i < init_seq->number_of_reg_cmd_list; i++) {
+			lge_isa1200_write_reg(client,
+					      init_seq->reg_cmd_list[i].addr,
+					      init_seq->reg_cmd_list[i].data);
 		}
 	} else {
-		dev_err(context->dev.dev, "%s() no initialization sequence\n", __func__);
+		dev_err(context->dev.dev, "%s() no initialization sequence\n",
+			__func__);
 	}
 
 #ifdef DEBUG
 	value = lge_isa1200_read_reg(client, LGE_ISA1200_HCTRL1);
-	dev_dbg(context->dev.dev, "%s() reg[%02x]=0x%02x\n", __func__, LGE_ISA1200_HCTRL1, value);
+	dev_dbg(context->dev.dev, "%s() reg[%02x]=0x%02x\n", __func__,
+		LGE_ISA1200_HCTRL1, value);
 
 	value = lge_isa1200_read_reg(client, LGE_ISA1200_HCTRL3);
-	dev_dbg(context->dev.dev, "%s() reg[%02x]=0x%02x\n", __func__, LGE_ISA1200_HCTRL3, value);
+	dev_dbg(context->dev.dev, "%s() reg[%02x]=0x%02x\n", __func__,
+		LGE_ISA1200_HCTRL3, value);
 #endif
 
 	return 0;
 }
 
-static int lge_isa1200_hw_vib_on_off(struct lge_isa1200_context *context, bool on_off)
+static int lge_isa1200_hw_vib_on_off(struct lge_isa1200_context *context,
+				     bool on_off)
 {
 	struct i2c_client *client = context->client;
 
@@ -159,35 +167,40 @@ static int lge_isa1200_hw_vib_on_off(struct lge_isa1200_context *context, bool o
 	}
 #endif
 
-	if (on_off)	{
+	if (on_off) {
 		//if (context->pdata->power) context->pdata->power(true);
-		if (context->pdata->clock) context->pdata->clock(true, atomic_read(&(context->vibe_level)));
+		if (context->pdata->clock)
+			context->pdata->clock(true,
+					      atomic_read(&
+							  (context->
+							   vibe_level)));
 #ifndef CONFIG_PRE_INITIAL_CODE
 		gpio_set_value_cansleep(context->pdata->gpio_hen, 1);
 		lge_isa1200_hw_init(context);
 #endif
 #if defined(CONFIG_MACH_LGE_325_BOARD_VZW) || defined(CONFIG_MACH_LGE_325_BOARD_LGU)
-		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL1, 0x40 );	/* [7:0] PWM High Duty(PWM Gen) 0-6B-D6 */
-		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x8a );						/* [7]Haptic Drive Enable Mode */
+		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL1, 0x40);	/* [7:0] PWM High Duty(PWM Gen) 0-6B-D6 */
+		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x8a);	/* [7]Haptic Drive Enable Mode */
 #else
-		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL5, atomic_read(&(context->vibe_level)) );	/* [7:0] PWM High Duty(PWM Gen) 0-6B-D6 */
-		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x10 + (on_off<<7));						/* [7]Haptic Drive Enable Mode */
+		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL5, atomic_read(&(context->vibe_level)));	/* [7:0] PWM High Duty(PWM Gen) 0-6B-D6 */
+		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x10 + (on_off << 7));	/* [7]Haptic Drive Enable Mode */
 #endif
 	} else {
 #ifdef CONFIG_PRE_INITIAL_CODE
-		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x10 + (on_off<<7));            /* [7]Haptic Drive Enable Mode */
+		lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x10 + (on_off << 7));	/* [7]Haptic Drive Enable Mode */
 #else
-		if(gpio_get_value_cansleep(context->pdata->gpio_hen)) {
+		if (gpio_get_value_cansleep(context->pdata->gpio_hen)) {
 #if defined(CONFIG_MACH_LGE_325_BOARD_VZW) || defined(CONFIG_MACH_LGE_325_BOARD_LGU)
 
-			lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x1a);			  /* [7]Haptic Drive Enable Mode */
+			lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x1a);	/* [7]Haptic Drive Enable Mode */
 #else
-			lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x10 + (on_off<<7));            /* [7]Haptic Drive Enable Mode */
+			lge_isa1200_write_reg(client, LGE_ISA1200_HCTRL0, 0x10 + (on_off << 7));	/* [7]Haptic Drive Enable Mode */
 #endif
 		}
 		gpio_set_value_cansleep(context->pdata->gpio_hen, 0);
 #endif
-		if (context->pdata->clock) context->pdata->clock(false, 0);
+		if (context->pdata->clock)
+			context->pdata->clock(false, 0);
 		//if (context->pdata->power) context->pdata->power(false);
 	}
 
@@ -196,16 +209,19 @@ static int lge_isa1200_hw_vib_on_off(struct lge_isa1200_context *context, bool o
 
 static void lge_isa1200_vibrator_work_func(struct work_struct *work)
 {
-	struct lge_isa1200_context *context = container_of(work, struct lge_isa1200_context, work);
+	struct lge_isa1200_context *context =
+	    container_of(work, struct lge_isa1200_context, work);
 
 	dev_dbg(context->dev.dev, "%s()\n", __func__);
 
 	lge_isa1200_hw_vib_on_off(context, context->enable);
 }
 
-static enum hrtimer_restart lge_isa1200_vibrator_timer_func(struct hrtimer *timer)
+static enum hrtimer_restart lge_isa1200_vibrator_timer_func(struct hrtimer
+							    *timer)
 {
-	struct lge_isa1200_context *context = container_of(timer, struct lge_isa1200_context, timer);
+	struct lge_isa1200_context *context =
+	    container_of(timer, struct lge_isa1200_context, timer);
 
 	dev_dbg(context->dev.dev, "%s()\n", __func__);
 
@@ -213,7 +229,7 @@ static enum hrtimer_restart lge_isa1200_vibrator_timer_func(struct hrtimer *time
 #if 0
 	schedule_work(&context->work);
 #else
-	queue_work(local_workqueue,&context->work);
+	queue_work(local_workqueue, &context->work);
 #endif
 
 	return HRTIMER_NORESTART;
@@ -221,7 +237,8 @@ static enum hrtimer_restart lge_isa1200_vibrator_timer_func(struct hrtimer *time
 
 static int lge_isa1200_vibrator_get_time(struct timed_output_dev *dev)
 {
-	struct lge_isa1200_context *context = container_of(dev, struct lge_isa1200_context, dev);
+	struct lge_isa1200_context *context =
+	    container_of(dev, struct lge_isa1200_context, dev);
 
 	dev_info(dev->dev, "%s()\n", __func__);
 
@@ -234,7 +251,8 @@ static int lge_isa1200_vibrator_get_time(struct timed_output_dev *dev)
 
 static void lge_isa1200_vibrator_enable(struct timed_output_dev *dev, int value)
 {
-	struct lge_isa1200_context *context = container_of(dev, struct lge_isa1200_context, dev);
+	struct lge_isa1200_context *context =
+	    container_of(dev, struct lge_isa1200_context, dev);
 /*
 	int ret;
 */
@@ -251,9 +269,12 @@ static void lge_isa1200_vibrator_enable(struct timed_output_dev *dev, int value)
 	cancel_work_sync(&context->work);
 
 	if (value > 0) {
-		if  (value > context->pdata->max_timeout) value = context->pdata->max_timeout;
+		if (value > context->pdata->max_timeout)
+			value = context->pdata->max_timeout;
 
-		hrtimer_start(&context->timer, ktime_set(value / 1000, (value % 1000) * 1000000), HRTIMER_MODE_REL);
+		hrtimer_start(&context->timer,
+			      ktime_set(value / 1000, (value % 1000) * 1000000),
+			      HRTIMER_MODE_REL);
 
 		context->enable = true;
 	} else {
@@ -265,36 +286,44 @@ static void lge_isa1200_vibrator_enable(struct timed_output_dev *dev, int value)
 #if 0
 	schedule_work(&context->work);
 #else
-	queue_work(local_workqueue,&context->work);
+	queue_work(local_workqueue, &context->work);
 #endif
 }
 
-static ssize_t lge_isa1200_vibrator_amp_show(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t lge_isa1200_vibrator_amp_show(struct device *dev,
+					     struct device_attribute *attr,
+					     char *buf)
 {
-	struct timed_output_dev *dev_ =(struct timed_output_dev *)dev_get_drvdata(dev);
-	struct lge_isa1200_context *context = container_of(dev_, struct lge_isa1200_context, dev);
+	struct timed_output_dev *dev_ =
+	    (struct timed_output_dev *)dev_get_drvdata(dev);
+	struct lge_isa1200_context *context =
+	    container_of(dev_, struct lge_isa1200_context, dev);
 
 	dev_info(dev, "%s()\n", __func__);
 
-    return sprintf(buf, "%d\n", atomic_read(&(context->vibe_level)));
+	return sprintf(buf, "%d\n", atomic_read(&(context->vibe_level)));
 }
 
-static ssize_t lge_isa1200_vibrator_amp_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+static ssize_t lge_isa1200_vibrator_amp_store(struct device *dev,
+					      struct device_attribute *attr,
+					      const char *buf, size_t size)
 {
-	struct timed_output_dev *dev_ =(struct timed_output_dev *)dev_get_drvdata(dev);
-	struct lge_isa1200_context *vib = container_of(dev_, struct lge_isa1200_context, dev);
-    int gain;
+	struct timed_output_dev *dev_ =
+	    (struct timed_output_dev *)dev_get_drvdata(dev);
+	struct lge_isa1200_context *vib =
+	    container_of(dev_, struct lge_isa1200_context, dev);
+	int gain;
 
 	dev_dbg(dev, "%s(%s)\n", __func__, buf);
 
-    sscanf(buf, "%d", &gain);
+	sscanf(buf, "%d", &gain);
 
-    /* TODO range check */
+	/* TODO range check */
 	dev_dbg(dev, "vib_gain is set by value=%d\n", gain);
 
-    atomic_set(&vib->vibe_level, gain);
+	atomic_set(&vib->vibe_level, gain);
 
-    return size;
+	return size;
 }
 
 #ifdef CONFIG_DEBUG_FS
@@ -327,16 +356,15 @@ static int get_parameters(char *buf, long int *param1, int num_of_par)
 				return -EINVAL;
 
 			token = strsep(&buf, " ");
-			}
-		else
+		} else
 			return -EINVAL;
 	}
 	return 0;
 }
 
-
 static ssize_t codec_debug_write(struct file *filp,
-	const char __user *ubuf, size_t cnt, loff_t *ppos)
+				 const char __user * ubuf, size_t cnt,
+				 loff_t * ppos)
 {
 	char *access_str = filp->private_data;
 	char lbuf[32];
@@ -351,41 +379,64 @@ static ssize_t codec_debug_write(struct file *filp,
 		return -EFAULT;
 	lbuf[cnt] = '\0';
 
-  if (!strcmp(access_str, "poke")) {
+	if (!strcmp(access_str, "poke")) {
 		rc = get_parameters(lbuf, param, 2);
 
-      switch(param[0]){
-        case 1:
-        {
-          //mount -t debugfs debugfs /sys/kernel/debug;echo 1 0 > /sys/kernel/debug/lgvib/poke
-          int reg = 0;
-          int val = 0;
-          struct i2c_client *client = context_for_debugfs->client;
+		switch (param[0]) {
+		case 1:
+			{
+				//mount -t debugfs debugfs /sys/kernel/debug;echo 1 0 > /sys/kernel/debug/lgvib/poke
+				int reg = 0;
+				int val = 0;
+				struct i2c_client *client =
+				    context_for_debugfs->client;
 
-          printk(KERN_INFO "LGE:%s() reg read 0x%x(%d)\n", __func__, (int)param[1], (int)param[1]);
+				printk(KERN_INFO "LGE:%s() reg read 0x%x(%d)\n",
+				       __func__, (int)param[1], (int)param[1]);
 
-          //debug read
-          reg = 0x30; val = lge_isa1200_read_reg(client,reg); printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n", __func__, reg, val, val);
-          reg = 0x31; val = lge_isa1200_read_reg(client,reg); printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n", __func__, reg, val, val);
-          reg = 0x32; val = lge_isa1200_read_reg(client,reg); printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n", __func__, reg, val, val);
-          reg = 0x33; val = lge_isa1200_read_reg(client,reg); printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n", __func__, reg, val, val);
-          reg = 0x34; val = lge_isa1200_read_reg(client,reg); printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n", __func__, reg, val, val);
-          reg = 0x35; val = lge_isa1200_read_reg(client,reg); printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n", __func__, reg, val, val);
-          reg = 0x36; val = lge_isa1200_read_reg(client,reg); printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n", __func__, reg, val, val);
-        }
-        break;
-        case 2:
-        {
-          //                                                                                             
-          //lge_isa1200_write_reg(client, 0x35, (unsigned char)param[1]);    // [7:0] PWM High Duty(PWM Gen) 0-6B-D6
-        }
-        case 3:
-        {
-          //                                                                                            
-          //lge_isa1200_write_reg(client, 0x30, VAL_0x30+(param[1]<<7));    	// [7]Haptic Drive Enable Mode
-        }
-        break;
-      }
+				//debug read
+				reg = 0x30;
+				val = lge_isa1200_read_reg(client, reg);
+				printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n",
+				       __func__, reg, val, val);
+				reg = 0x31;
+				val = lge_isa1200_read_reg(client, reg);
+				printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n",
+				       __func__, reg, val, val);
+				reg = 0x32;
+				val = lge_isa1200_read_reg(client, reg);
+				printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n",
+				       __func__, reg, val, val);
+				reg = 0x33;
+				val = lge_isa1200_read_reg(client, reg);
+				printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n",
+				       __func__, reg, val, val);
+				reg = 0x34;
+				val = lge_isa1200_read_reg(client, reg);
+				printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n",
+				       __func__, reg, val, val);
+				reg = 0x35;
+				val = lge_isa1200_read_reg(client, reg);
+				printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n",
+				       __func__, reg, val, val);
+				reg = 0x36;
+				val = lge_isa1200_read_reg(client, reg);
+				printk(KERN_INFO "LGE:%s() 0x%x:0x%x(%d)\n",
+				       __func__, reg, val, val);
+			}
+			break;
+		case 2:
+			{
+				//                                                                                             
+				//lge_isa1200_write_reg(client, 0x35, (unsigned char)param[1]);    // [7:0] PWM High Duty(PWM Gen) 0-6B-D6
+			}
+		case 3:
+			{
+				//                                                                                            
+				//lge_isa1200_write_reg(client, 0x30, VAL_0x30+(param[1]<<7));        // [7]Haptic Drive Enable Mode
+			}
+			break;
+		}
 
 	}
 
@@ -404,35 +455,38 @@ static const struct file_operations codec_debug_ops = {
 #endif
 
 #if defined(CONFIG_MACH_LGE_325_BOARD_VZW)
-static ssize_t charger_logo_show(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t charger_logo_show(struct device *dev,
+				 struct device_attribute *attr, char *buf)
 {
-	int r=0;
+	int r = 0;
 
-//	printk("[isa1200] charger_logo_show()\n");
+//      printk("[isa1200] charger_logo_show()\n");
 	r = sprintf(buf, "%s", chargerLogo);
 
 	return r;
 }
 
-static ssize_t charger_logo_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+static ssize_t charger_logo_store(struct device *dev,
+				  struct device_attribute *attr,
+				  const char *buf, size_t size)
 {
 	chargerLogo[0] = 'a';
 
-//	printk("[isa1200] charger_logo_store()\n");
+//      printk("[isa1200] charger_logo_store()\n");
 	sscanf(buf, "%s", chargerLogo);
 
 	return size;
 }
 #endif
 
-
-static DEVICE_ATTR(amp, S_IRUGO | S_IWUSR, lge_isa1200_vibrator_amp_show, lge_isa1200_vibrator_amp_store);
+static DEVICE_ATTR(amp, S_IRUGO | S_IWUSR, lge_isa1200_vibrator_amp_show,
+		   lge_isa1200_vibrator_amp_store);
 #if defined(CONFIG_MACH_LGE_325_BOARD_VZW)
 static DEVICE_ATTR(charger_logo, 0755, charger_logo_show, charger_logo_store);
 #endif
 
 static int __devinit lge_isa1200_probe(struct i2c_client *client,
-			const struct i2c_device_id *id)
+				       const struct i2c_device_id *id)
 {
 	struct lge_isa1200_context *context;
 	struct lge_isa1200_platform_data *pdata;
@@ -440,10 +494,9 @@ static int __devinit lge_isa1200_probe(struct i2c_client *client,
 
 	dev_info(&client->dev, "%s()\n", __func__);
 
-	if (!i2c_check_functionality(client->adapter,
-			I2C_FUNC_SMBUS_BYTE_DATA)) {
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
 		dev_err(&client->dev, "%s: no support for i2c read/write"
-				"byte data\n", __func__);
+			"byte data\n", __func__);
 		return -EIO;
 	}
 
@@ -476,12 +529,14 @@ static int __devinit lge_isa1200_probe(struct i2c_client *client,
 	/* gpio initialization */
 	if (lge_is_one_gpio_mode_or_not(context)) {
 
-		dev_err(&client->dev, "%s: lge_is_one_gpio_mode_or_not gpio_hen=%d\n", __func__, pdata->gpio_hen);
+		dev_err(&client->dev,
+			"%s: lge_is_one_gpio_mode_or_not gpio_hen=%d\n",
+			__func__, pdata->gpio_hen);
 
 		ret = gpio_request(pdata->gpio_hen, "gpio_hen");
 		if (ret) {
 			dev_err(&client->dev, "%s: gpio %d request failed\n",
-					__func__, pdata->gpio_hen);
+				__func__, pdata->gpio_hen);
 			goto fail_2;
 		}
 		gpio_direction_output(pdata->gpio_hen, 0);
@@ -491,8 +546,7 @@ static int __devinit lge_isa1200_probe(struct i2c_client *client,
 		goto fail_2;
 	}
 
-
-    atomic_set(&context->vibe_level, pdata->default_vib_strength);
+	atomic_set(&context->vibe_level, pdata->default_vib_strength);
 
 	/* register timed output device */
 	context->dev.name = pdata->vibrator_name;
@@ -501,36 +555,40 @@ static int __devinit lge_isa1200_probe(struct i2c_client *client,
 	context->dev.get_time = lge_isa1200_vibrator_get_time;
 
 	ret = timed_output_dev_register(&context->dev);
-	if (ret < 0) goto fail_3;
+	if (ret < 0)
+		goto fail_3;
 
 #if !defined(CONFIG_MACH_LGE_325_BOARD_VZW) && !defined(CONFIG_MACH_LGE_325_BOARD_LGU)
-    /* turn off vibrator (initialization) */
+	/* turn off vibrator (initialization) */
 	lge_isa1200_hw_vib_on_off(context, false);
 #endif
-
 
 #ifdef CONFIG_PRE_INITIAL_CODE
 	lge_isa1200_hw_init(context);
 #endif
 
 	ret = device_create_file(context->dev.dev, &dev_attr_amp);
-	if (ret < 0) goto fail_4;
+	if (ret < 0)
+		goto fail_4;
 
 #if defined(CONFIG_MACH_LGE_325_BOARD_VZW)
 	ret = device_create_file(context->dev.dev, &dev_attr_charger_logo);
-	if (ret < 0) goto fail_4;
+	if (ret < 0)
+		goto fail_4;
 #endif
 
 	context_for_debugfs = context;
 
 #ifdef CONFIG_DEBUG_FS
-        debugfs_timpani_dent = debugfs_create_dir("lgvib", 0);
-        if (!IS_ERR(debugfs_timpani_dent)) {
-          debugfs_poke = debugfs_create_file("poke",
-          S_IFREG | S_IRUGO, debugfs_timpani_dent,
-          (void *) "poke", &codec_debug_ops);
+	debugfs_timpani_dent = debugfs_create_dir("lgvib", 0);
+	if (!IS_ERR(debugfs_timpani_dent)) {
+		debugfs_poke = debugfs_create_file("poke",
+						   S_IFREG | S_IRUGO,
+						   debugfs_timpani_dent,
+						   (void *)"poke",
+						   &codec_debug_ops);
 
-        }
+	}
 #endif
 
 	return 0;
@@ -540,7 +598,7 @@ fail_4:
 fail_3:
 	gpio_free(context->pdata->gpio_hen);
 fail_2:
-#if 0 /*                                        */
+#if 0				/*                                        */
 	mutex_destroy(&context->mutex);
 #endif
 	i2c_set_clientdata(client, NULL);
@@ -569,7 +627,7 @@ static int __devexit lge_isa1200_remove(struct i2c_client *client)
 
 	gpio_free(context->pdata->gpio_hen);
 
-#if 0 /*                                        */
+#if 0				/*                                        */
 	mutex_destroy(&context->mutex);
 #endif
 	i2c_set_clientdata(client, NULL);
@@ -584,12 +642,9 @@ static int lge_isa1200_suspend(struct i2c_client *client, pm_message_t mesg)
 #if defined(CONFIG_MACH_LGE_325_BOARD_VZW)
 	struct lge_isa1200_context *context = i2c_get_clientdata(client);
 
-	if(chargerLogo[0] == 'a')
-	{
+	if (chargerLogo[0] == 'a') {
 		printk("[isa1200] half booting suspend %s\n", chargerLogo);
-	}
-	else
-	{
+	} else {
 		printk("[isa1200] booting suspend %s\n", chargerLogo);
 		hrtimer_cancel(&context->timer);
 		cancel_work_sync(&context->work);
@@ -599,7 +654,7 @@ static int lge_isa1200_suspend(struct i2c_client *client, pm_message_t mesg)
 		gpio_set_value_cansleep(context->pdata->gpio_hen, 0);
 #endif
 	}
-#else	//                             
+#else //
 	struct lge_isa1200_context *context = i2c_get_clientdata(client);
 
 	hrtimer_cancel(&context->timer);
@@ -610,7 +665,7 @@ static int lge_isa1200_suspend(struct i2c_client *client, pm_message_t mesg)
 #ifdef CONFIG_PRE_INITIAL_CODE
 	gpio_set_value_cansleep(context->pdata->gpio_hen, 0);
 #endif
-#endif	//                             
+#endif //
 	return 0;
 }
 
@@ -626,8 +681,8 @@ static int lge_isa1200_resume(struct i2c_client *client)
 #endif
 
 static struct i2c_device_id lge_isa1200_idtable[] = {
-	{ "lge_isa1200", 0 }, // TODO slave id 0?
-	{ },
+	{"lge_isa1200", 0},	// TODO slave id 0?
+	{},
 };
 
 MODULE_DEVICE_TABLE(i2c, lge_isa1200_idtable);
@@ -637,20 +692,20 @@ static struct i2c_driver lge_isa1200_driver = {
 	.remove = __devexit_p(lge_isa1200_remove),
 #ifdef CONFIG_PM
 	.suspend = lge_isa1200_suspend,
-	.resume	 = lge_isa1200_resume,
+	.resume = lge_isa1200_resume,
 #endif
 	.id_table = lge_isa1200_idtable,
 	.driver = {
-		.name = "lge_isa1200",
-	},
+		   .name = "lge_isa1200",
+		   },
 };
 
 static int __init lge_isa1200_init(void)
 {
 	pr_debug("%s", __func__);
 
-	local_workqueue = create_workqueue("lge_isa1200") ;
-	if(!local_workqueue)
+	local_workqueue = create_workqueue("lge_isa1200");
+	if (!local_workqueue)
 		return -ENOMEM;
 	return i2c_add_driver(&lge_isa1200_driver);
 }
@@ -658,7 +713,7 @@ static int __init lge_isa1200_init(void)
 static void __exit lge_isa1200_exit(void)
 {
 	pr_debug("%s", __func__);
-	if(local_workqueue)
+	if (local_workqueue)
 		destroy_workqueue(local_workqueue);
 	local_workqueue = NULL;
 
@@ -672,4 +727,3 @@ module_exit(lge_isa1200_exit);
 MODULE_AUTHOR("Yoon Gi Souk <gisouk.yoon@lge.com>");
 MODULE_DESCRIPTION("LGE ISA1200 driver");
 MODULE_LICENSE("GPL");
-

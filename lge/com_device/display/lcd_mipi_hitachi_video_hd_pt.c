@@ -28,13 +28,13 @@ static struct msm_panel_info pinfo;
 static struct mipi_dsi_phy_ctrl dsi_video_mode_phy_db = {
 	/* 720*1280, RGB888, 4 Lane 60 fps video mode */
 #if defined(DSI_BIT_CLK_370MHZ)
-	{0x03, 0x01, 0x01, 0x00},		/* regulator */
-	{0x66, 0x26, 0x18, 0x00, 0x1A, 0x8F, 0x1E, 0x8C, 0x1A, 0x03, 0x04}, 	/* timing */
-	{0x7f, 0x00, 0x00, 0x00},		/* phy ctrl */
-	{0xee, 0x03, 0x86, 0x03},		/* strength */
+	{0x03, 0x01, 0x01, 0x00},	/* regulator */
+	{0x66, 0x26, 0x18, 0x00, 0x1A, 0x8F, 0x1E, 0x8C, 0x1A, 0x03, 0x04},	/* timing */
+	{0x7f, 0x00, 0x00, 0x00},	/* phy ctrl */
+	{0xee, 0x03, 0x86, 0x03},	/* strength */
 	{0x41, 0x70, 0x31, 0xDA, 0x00, 0x50, 0x48, 0x63,
 	 0x31, 0x0f, 0x03, 0x05, 0x14, 0x03, 0x03, 0x03,
-	 0x54, 0x06, 0x10, 0x04, 0x03 },
+	 0x54, 0x06, 0x10, 0x04, 0x03},
 #endif
 };
 
@@ -47,7 +47,7 @@ static int __init mipi_video_hitachi_wvga_pt_init(void)
 		return 0;
 #endif
 
-	pinfo.xres = 768;		//ori 720
+	pinfo.xres = 768;	//ori 720
 	pinfo.yres = 1024;	//ori 1280
 	pinfo.type = MIPI_VIDEO_PANEL;
 	pinfo.pdest = DISPLAY_1;
@@ -68,13 +68,12 @@ static int __init mipi_video_hitachi_wvga_pt_init(void)
 	pinfo.lcdc.underflow_clr = 0xff;	/* blue */
 	pinfo.lcdc.hsync_skew = 0;
 #if defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_LGU)
-	if(lge_bd_rev >= LGE_REV_C){
+	if (lge_bd_rev >= LGE_REV_C) {
 #else
-	if(lge_bd_rev >= LGE_REV_A){
+	if (lge_bd_rev >= LGE_REV_A) {
 #endif
 		pinfo.bl_max = 0xFF;
-	}
-	else{
+	} else {
 		pinfo.bl_max = 0x7F;
 	}
 	pinfo.bl_min = 0;
@@ -105,19 +104,18 @@ static int __init mipi_video_hitachi_wvga_pt_init(void)
 	pinfo.mipi.frame_rate = 60;
 #endif
 
-	pinfo.mipi.stream = 0; /* dma_p */
+	pinfo.mipi.stream = 0;	/* dma_p */
 	pinfo.mipi.mdp_trigger = DSI_CMD_TRIGGER_SW;
 	pinfo.mipi.dma_trigger = DSI_CMD_TRIGGER_SW;
 
 	pinfo.mipi.dsi_phy_db = &dsi_video_mode_phy_db;
 
 	ret = mipi_hitachi_device_register(&pinfo, MIPI_DSI_PRIM,
-						MIPI_DSI_PANEL_WVGA_PT);
+					   MIPI_DSI_PANEL_WVGA_PT);
 	if (ret)
 		printk(KERN_ERR "%s: failed to register device!\n", __func__);
 
 	return ret;
 }
-
 
 module_init(mipi_video_hitachi_wvga_pt_init);

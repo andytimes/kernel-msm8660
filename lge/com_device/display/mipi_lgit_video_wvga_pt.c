@@ -18,7 +18,7 @@
 
 #include "../../../drivers/video/msm/msm_fb.h"
 #include "../../../drivers/video/msm/mipi_dsi.h"
-#if 0 /*                                                       */
+#if 0				/*                                                       */
 #include "mipi_lgit.h"
 #else
 #include "lcd_mipi_lgit.h"
@@ -36,18 +36,18 @@ static struct mipi_dsi_phy_ctrl dsi_video_mode_phy_db = {
 #if	defined(DSI_BIT_CLK_337MHZ)
 	/* 480*800, RGB888, 2 Lane 54 fps cmd mode */
 	/* regulator */
-	{0x03, 0x01,0x01, 0x00},	/* Fixed values */
+	{0x03, 0x01, 0x01, 0x00},	/* Fixed values */
 	/* timing */
 	{0x66, 0x26, 0x15, 0x00, 0x17, 0x8C, 0x1E, 0x8B,
-		0x17, 0x03, 0x04},
+	 0x17, 0x03, 0x04},
 	/* phy ctrl */
 	{0x7f, 0x00, 0x00, 0x00},	/* Fixed values */
 	/* strength */
 	{0xee, 0x03, 0x86, 0x03},	/* Fixed values */
 	/* pll control */
 	{0x41, 0x50, 0x31, 0xDA, 0x00, 0x50, 0x48, 0x63,
-		0x31, 0x0f, 0x07, 0x05, 0x14, 0x03, 0x03, 0x03,
-		0x54, 0x06, 0x10, 0x04, 0x03 },
+	 0x31, 0x0f, 0x07, 0x05, 0x14, 0x03, 0x03, 0x03,
+	 0x54, 0x06, 0x10, 0x04, 0x03},
 #endif
 };
 
@@ -70,7 +70,7 @@ static int __init mipi_video_lgit_wvga_pt_init(void)
 
 	pinfo.lcdc.h_back_porch = 20;
 	pinfo.lcdc.h_front_porch = 16;
-	pinfo.lcdc.h_pulse_width = 4;//1;//32;//10;
+	pinfo.lcdc.h_pulse_width = 4;	//1;//32;//10;
 	pinfo.lcdc.v_back_porch = 22;
 	pinfo.lcdc.v_front_porch = 8;
 	pinfo.lcdc.v_pulse_width = 1;
@@ -84,19 +84,19 @@ static int __init mipi_video_lgit_wvga_pt_init(void)
 	   pinfo.lcdc.v_pulse_width = 3;//5;
 	 */
 
-	pinfo.lcdc.border_clr = 0;			/* blk */
+	pinfo.lcdc.border_clr = 0;	/* blk */
 	pinfo.lcdc.underflow_clr = 0xff;	/* blue */
 	pinfo.lcdc.hsync_skew = 0;
 
 	//                                                                     
-	pinfo.bl_max = 0x7F;//22;
-	pinfo.bl_min = 15;//1;
+	pinfo.bl_max = 0x7F;	//22;
+	pinfo.bl_min = 15;	//1;
 	pinfo.fb_num = 2;
 
 #ifdef USE_HW_VSYNC
 	pinfo.lcd.vsync_enable = TRUE;
 	pinfo.lcd.hw_vsync_mode = TRUE;
-	pinfo.mipi.te_sel = 1; /* TE from vsync gpio */
+	pinfo.mipi.te_sel = 1;	/* TE from vsync gpio */
 #endif
 	pinfo.mipi.mode = DSI_VIDEO_MODE;
 
@@ -131,14 +131,14 @@ static int __init mipi_video_lgit_wvga_pt_init(void)
 	pinfo.clk_rate = 337000000;
 	pinfo.mipi.frame_rate = 65;
 #endif
-	pinfo.mipi.stream = 0;		/* dma_p */
+	pinfo.mipi.stream = 0;	/* dma_p */
 	pinfo.mipi.mdp_trigger = DSI_CMD_TRIGGER_SW;
 	pinfo.mipi.dma_trigger = DSI_CMD_TRIGGER_SW;
 	pinfo.mipi.dsi_phy_db = &dsi_video_mode_phy_db;
 	/*to maintain MIPI clock in HS mode always */
 	pinfo.mipi.force_clk_lane_hs = 1;
 	ret = mipi_lgit_device_register(&pinfo, MIPI_DSI_PRIM,
-			MIPI_DSI_PANEL_WVGA_PT);
+					MIPI_DSI_PANEL_WVGA_PT);
 	if (ret)
 		printk(KERN_ERR "%s: failed to register device!\n", __func__);
 

@@ -36,14 +36,14 @@
 #include <apds9900.h>
 
 //For RCA-12_0657
-//                                                                            
+//
 #include <linux/wakelock.h>
 //#endif
 #if defined(CONFIG_MACH_LGE_325_BOARD_LGU) || defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_DCM)|| defined(CONFIG_MACH_LGE_325_BOARD_VZW) || defined(CONFIG_MACH_LGE_120_BOARD) || defined (CONFIG_MACH_LGE_I_BOARD) || defined(CONFIG_MACH_LGE_I_BOARD_VZW) || defined(CONFIG_MACH_LGE_C1_BOARD_MPS)
 #define APDS9900_PROXIMITY_CAL
 #endif
 
-//                                                      
+//
 #if defined(APDS9900_PROXIMITY_CAL)
 #include <linux/syscalls.h>
 #include <linux/fs.h>
@@ -55,7 +55,7 @@
 #define PS_DEFAULT_CROSS_TALK 500
 #endif
 #endif
-//                                                    
+//
 
 #if defined (CONFIG_MACH_LGE_I_BOARD_VZW)
 #include <board_lge.h>
@@ -65,25 +65,27 @@
 #define DRIVER_VERSION          "1.0.4"
 
 #if defined(CONFIG_MACH_LGE_I_BOARD_LGU) || defined(CONFIG_MACH_LGE_120_BOARD)
-#define APDS990x_PS_DETECTION_THRESHOLD		800//850//820 //600
-#define APDS990x_PS_HSYTERESIS_THRESHOLD	700//770//720 //500
+#define APDS990x_PS_DETECTION_THRESHOLD		800	//850//820 //600
+#define APDS990x_PS_HSYTERESIS_THRESHOLD	700	//770//720 //500
 
 #elif defined(CONFIG_MACH_LGE_I_BOARD_VZW) || defined(CONFIG_MACH_LGE_C1_BOARD_MPS)
 #define APDS990x_PS_DETECTION_THRESHOLD		500
 #define APDS990x_PS_HSYTERESIS_THRESHOLD	400
 
 #else
-//                                                                                           
-//#define APDS9900_USE_MUTEX  
-//                                                                               
-#define APDS990x_PS_DETECTION_THRESHOLD		850//600
-#define APDS990x_PS_HSYTERESIS_THRESHOLD	750//500
+//
+//#define APDS9900_USE_MUTEX
+//
+#define APDS990x_PS_DETECTION_THRESHOLD		850	//600
+#define APDS990x_PS_HSYTERESIS_THRESHOLD	750	//500
 #endif
 
-static unsigned long apds990x_ps_detection_threshold = APDS990x_PS_DETECTION_THRESHOLD;
-static unsigned long apds990x_ps_hsyteresis_threshold = APDS990x_PS_HSYTERESIS_THRESHOLD;
+static unsigned long apds990x_ps_detection_threshold =
+    APDS990x_PS_DETECTION_THRESHOLD;
+static unsigned long apds990x_ps_hsyteresis_threshold =
+    APDS990x_PS_HSYTERESIS_THRESHOLD;
 
-/* Change History 
+/* Change History
  *
  * 1.0.1	Functions apds990x_show_rev(), apds990x_show_id() and apds990x_show_status()
  *			have missing CMD_BYTE in the i2c_smbus_read_byte_data(). APDS-990x needs
@@ -142,69 +144,67 @@ static unsigned long apds990x_ps_hsyteresis_threshold = APDS990x_PS_HSYTERESIS_T
  * Structs
  */
 
-struct apds9900_data 
-{
-    struct i2c_client *client;
+struct apds9900_data {
+	struct i2c_client *client;
 #ifdef APDS9900_USE_MUTEX
-    struct mutex lock;
+	struct mutex lock;
 #else
 	spinlock_t update_lock;
 #endif
-    struct delayed_work poswork;
-    struct input_dev *input_dev_proxi;
-    struct input_dev *input_dev_light;
-    
-    unsigned int enable;
-    unsigned int atime;
-    unsigned int ptime;
-    unsigned int wtime;
-    unsigned int ailt;
-    unsigned int aiht;
-    unsigned int pilt;
-    unsigned int piht;
-    unsigned int pers;
-    unsigned int config;
-    unsigned int ppcount;
-    unsigned int control;
+	struct delayed_work poswork;
+	struct input_dev *input_dev_proxi;
+	struct input_dev *input_dev_light;
+
+	unsigned int enable;
+	unsigned int atime;
+	unsigned int ptime;
+	unsigned int wtime;
+	unsigned int ailt;
+	unsigned int aiht;
+	unsigned int pilt;
+	unsigned int piht;
+	unsigned int pers;
+	unsigned int config;
+	unsigned int ppcount;
+	unsigned int control;
 
 	/* control flag from HAL */
 	unsigned int enable_ps_sensor;
 	unsigned int enable_als_sensor;
 
-    /* PS parameters */
-    unsigned int ps_threshold;
-	unsigned int ps_hysteresis_threshold; /* always lower than ps_threshold */
-    unsigned int ps_detection;      /* 0 = near-to-far; 1 = far-to-near */
-    unsigned int ps_data;           /* to store PS data */
+	/* PS parameters */
+	unsigned int ps_threshold;
+	unsigned int ps_hysteresis_threshold;	/* always lower than ps_threshold */
+	unsigned int ps_detection;	/* 0 = near-to-far; 1 = far-to-near */
+	unsigned int ps_data;	/* to store PS data */
 
-    /* ALS parameters */
-    unsigned int als_threshold_l;   /* low threshold */
-    unsigned int als_threshold_h;   /* high threshold */
-    unsigned int als_data;          /* to store ALS data */
-	
-    unsigned int irq;
-	unsigned int als_gain;			/* needed for Lux calculation */
-	unsigned int als_poll_delay;		/* needed for light sensor polling : micro-second (us) */
-	unsigned int als_atime;			/* storage for als integratiion time */
-//                                                      
+	/* ALS parameters */
+	unsigned int als_threshold_l;	/* low threshold */
+	unsigned int als_threshold_h;	/* high threshold */
+	unsigned int als_data;	/* to store ALS data */
+
+	unsigned int irq;
+	unsigned int als_gain;	/* needed for Lux calculation */
+	unsigned int als_poll_delay;	/* needed for light sensor polling : micro-second (us) */
+	unsigned int als_atime;	/* storage for als integratiion time */
+//
 #if defined(APDS9900_PROXIMITY_CAL)
 	int cross_talk;
 	bool read_ps_cal_data;
 	bool ps_cal_result;
-#endif	
-//                                                    
-	
+#endif
+//
 
 };
 //For RCA-12_0657
-//                                                                            
+//
 struct wake_lock proxi_irq_wake_lock;
 //#endif
 
 #define ABS_LIGHT       0x29
 
 struct apds9900_data *papds9900_data;
-static struct workqueue_struct *apds9900_workqueue ;
+static struct workqueue_struct *apds9900_workqueue;
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
@@ -218,22 +218,23 @@ static void apds9900_late_resume(struct early_suspend *h);
 static int apds9900_suspend(struct device *device);
 static int apds9900_resume(struct device *device);
 #endif
- 
-static int apds9900_check_reliablility(struct i2c_client *client );
+
+static int apds9900_check_reliablility(struct i2c_client *client);
 static int apds9900_device_parameter_init(struct i2c_client *client);
 static int apds9900_device_init(struct i2c_client *client);
-//                                                      
+//
 #if defined(APDS9900_PROXIMITY_CAL)
 static int apds9900_read_crosstalk_data_fs(void);
-static void apds9900_Set_PS_Threshold_Adding_Cross_talk(struct i2c_client *client, int cal_data);
+static void apds9900_Set_PS_Threshold_Adding_Cross_talk(struct i2c_client
+							*client, int cal_data);
 #endif
-//                                                    
+//
 
 /*
  * DEBUG MASK
  */
 
-#define APDS9900_DEBUG_PRINT  (1)
+#define APDS9900_DEBUG_PRINT  (0) // 1
 #if defined(APDS9900_DEBUG_PRINT)
 #define DEBUG_MSG(fmt, args...) \
                         printk(KERN_INFO "[APDS9900] [%s %d] " \
@@ -248,20 +249,19 @@ static void apds9900_Set_PS_Threshold_Adding_Cross_talk(struct i2c_client *clien
  * No msg		: 0
  * default		: 1
  */
-enum 
-{
-		APDS9900_DEBUG_ERROR_CHECK	= 1U << 0,
-		APDS9900_DEBUG_FUNC_TRACE 	= 1U << 1,
-		APDS9900_DEBUG_DEV_STATUS 	= 1U << 2,
-		APDS9900_DEBUG_DEV_DEBOUNCE	= 1U << 3,
-		APDS9900_DEBUG_GEN_INFO		= 1U << 4,
-		APDS9900_DEBUG_INTR_INFO	= 1U << 5,
+enum {
+	APDS9900_DEBUG_ERROR_CHECK = 1U << 0,
+	APDS9900_DEBUG_FUNC_TRACE = 1U << 1,
+	APDS9900_DEBUG_DEV_STATUS = 1U << 2,
+	APDS9900_DEBUG_DEV_DEBOUNCE = 1U << 3,
+	APDS9900_DEBUG_GEN_INFO = 1U << 4,
+	APDS9900_DEBUG_INTR_INFO = 1U << 5,
 };
 
-static unsigned int apds9900_debug_mask = APDS9900_DEBUG_ERROR_CHECK|APDS9900_DEBUG_DEV_STATUS;
+static unsigned int apds9900_debug_mask =
+    APDS9900_DEBUG_ERROR_CHECK | APDS9900_DEBUG_DEV_STATUS;
 
-module_param_named(debug_mask, apds9900_debug_mask, int,
-                S_IRUGO | S_IWUSR );
+module_param_named(debug_mask, apds9900_debug_mask, int, S_IRUGO | S_IWUSR);
 
 /*
  * Management functions
@@ -270,17 +270,18 @@ static int apds9900_set_command(struct i2c_client *client, int command)
 {
 	int ret = 0;
 	int clearInt = 0;
-	
+
 	if (command == 0)
 		clearInt = CMD_CLR_PS_INT;
 	else if (command == 1)
 		clearInt = CMD_CLR_ALS_INT;
 	else
 		clearInt = CMD_CLR_PS_ALS_INT;
-	
+
 	ret = i2c_smbus_write_byte(client, clearInt);
 	if (ret < 0) {
-		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__,
+			ret);
 		return ret;
 	}
 
@@ -289,83 +290,102 @@ static int apds9900_set_command(struct i2c_client *client, int command)
 
 static void apds9900_change_ps_threshold(struct i2c_client *client)
 {
-	int irdata=0;
+	int irdata = 0;
 	int ret = 0;
-    struct apds9900_data *data = i2c_get_clientdata(client);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 //For RCA-12_0657
-//                                                                            
+//
 	wake_lock(&proxi_irq_wake_lock);
 //#endif
-   
-    data->ps_data =	i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_PDATAL_REG);
+
+	data->ps_data =
+	    i2c_smbus_read_word_data(client, CMD_WORD | APDS9900_PDATAL_REG);
 	if (data->ps_data < 0) {
 		dev_err(&client->dev,
-			"%s: i2c read fail: can't read from %02x: %d\n",__func__, CMD_WORD|APDS9900_PDATAL_REG, data->ps_data);
+			"%s: i2c read fail: can't read from %02x: %d\n",
+			__func__, CMD_WORD | APDS9900_PDATAL_REG,
+			data->ps_data);
 		return;
-	} 
+	}
 
-	irdata = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_IRDATAL_REG);
+	irdata =
+	    i2c_smbus_read_word_data(client, CMD_WORD | APDS9900_IRDATAL_REG);
 	if (irdata < 0) {
 		dev_err(&client->dev,
-			"%s: i2c read fail: can't read from %02x: %d\n",__func__, CMD_WORD|APDS9900_IRDATAL_REG, irdata);
+			"%s: i2c read fail: can't read from %02x: %d\n",
+			__func__, CMD_WORD | APDS9900_IRDATAL_REG, irdata);
 		return;
-	} 
+	}
 
-	if ( (data->ps_data > data->pilt) && (data->ps_data >= data->piht) && (irdata != (100*(1024*(256-data->atime)))/100)) 
-	{
+	if ((data->ps_data > data->pilt) && (data->ps_data >= data->piht)
+	    && (irdata != (100 * (1024 * (256 - data->atime))) / 100)) {
 		/* FAR-to-NEAR */
 		data->ps_detection = 1;
 
-        input_report_abs(data->input_dev_proxi, ABS_DISTANCE, 0); // fix to 0cm when near
+		input_report_abs(data->input_dev_proxi, ABS_DISTANCE, 0);	// fix to 0cm when near
 		input_sync(data->input_dev_proxi);
 
-		ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PILTL_REG, data->ps_hysteresis_threshold);
+		ret =
+		    i2c_smbus_write_word_data(client,
+					      CMD_WORD | APDS9900_PILTL_REG,
+					      data->ps_hysteresis_threshold);
 		if (ret < 0) {
 			dev_err(&client->dev,
-				"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-				data->ps_hysteresis_threshold, CMD_WORD|APDS9900_PILTL_REG, ret);
+				"%s: i2c write fail: can't write %02x to %02x: %d\n",
+				__func__, data->ps_hysteresis_threshold,
+				CMD_WORD | APDS9900_PILTL_REG, ret);
 			return;
-		}		
-		ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PIHTL_REG, 1023);
+		}
+		ret =
+		    i2c_smbus_write_word_data(client,
+					      CMD_WORD | APDS9900_PIHTL_REG,
+					      1023);
 		if (ret < 0) {
 			dev_err(&client->dev,
-				"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-				1023, CMD_WORD|APDS9900_PIHTL_REG, ret);
+				"%s: i2c write fail: can't write %02x to %02x: %d\n",
+				__func__, 1023, CMD_WORD | APDS9900_PIHTL_REG,
+				ret);
 			return;
 		}
 
 		data->pilt = data->ps_hysteresis_threshold;
 		data->piht = 1023;
-		
+
 #ifdef APDS9900_USE_MUTEX
 #else
 		//irq_set_irq_wake(data->irq, 1);
 #endif
 		if (apds9900_debug_mask & APDS9900_DEBUG_FUNC_TRACE)
-        	DEBUG_MSG("### far-to-near detected\n");		
-	}
-	else if ( (data->ps_data <= data->pilt) && (data->ps_data < data->piht) ) 
-	{
+			DEBUG_MSG("### far-to-near detected\n");
+	} else if ((data->ps_data <= data->pilt)
+		   && (data->ps_data < data->piht)) {
 		/* NEAR-to-FAR */
 		data->ps_detection = 0;
 
-        input_report_abs(data->input_dev_proxi, ABS_DISTANCE, 10); // fix to 10cm when far
+		input_report_abs(data->input_dev_proxi, ABS_DISTANCE, 10);	// fix to 10cm when far
 		input_sync(data->input_dev_proxi);
 
-		ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PILTL_REG, 0);
+		ret =
+		    i2c_smbus_write_word_data(client,
+					      CMD_WORD | APDS9900_PILTL_REG, 0);
 		if (ret < 0) {
 			dev_err(&client->dev,
-				"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-				0, CMD_WORD|APDS9900_PILTL_REG, ret);
+				"%s: i2c write fail: can't write %02x to %02x: %d\n",
+				__func__, 0, CMD_WORD | APDS9900_PILTL_REG,
+				ret);
 			return;
-		}		
-		ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PIHTL_REG, data->ps_threshold);
+		}
+		ret =
+		    i2c_smbus_write_word_data(client,
+					      CMD_WORD | APDS9900_PIHTL_REG,
+					      data->ps_threshold);
 		if (ret < 0) {
 			dev_err(&client->dev,
-				"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-				data->ps_threshold, CMD_WORD|APDS9900_PIHTL_REG, ret);
+				"%s: i2c write fail: can't write %02x to %02x: %d\n",
+				__func__, data->ps_threshold,
+				CMD_WORD | APDS9900_PIHTL_REG, ret);
 			return;
-		}	
+		}
 
 		data->pilt = 0;
 		data->piht = data->ps_threshold;
@@ -375,216 +395,244 @@ static void apds9900_change_ps_threshold(struct i2c_client *client)
 		//irq_set_irq_wake(data->irq, 0);
 #endif
 		if (apds9900_debug_mask & APDS9900_DEBUG_FUNC_TRACE)
-        	DEBUG_MSG("### near-to-far detected\n");
-	}
-	else if ( (irdata == (100*(1024*(256-data->atime)))/100) && (data->ps_detection == 1) ) 
-	{
-		/* under strong ambient light*/
+			DEBUG_MSG("### near-to-far detected\n");
+	} else if ((irdata == (100 * (1024 * (256 - data->atime))) / 100)
+		   && (data->ps_detection == 1)) {
+		/* under strong ambient light */
 		/*NEAR-to-FAR */
 		data->ps_detection = 0;
 
-        input_report_abs(data->input_dev_proxi, ABS_DISTANCE, 10); // fix to 10cm when far
+		input_report_abs(data->input_dev_proxi, ABS_DISTANCE, 10);	// fix to 10cm when far
 		input_sync(data->input_dev_proxi);
 
-//		i2c_smbus_write_word_data(client, CMD_WORD|APDS990x_PILTL_REG, 0);
-//		i2c_smbus_write_word_data(client, CMD_WORD|APDS990x_PIHTL_REG, data->ps_threshold);
+//              i2c_smbus_write_word_data(client, CMD_WORD|APDS990x_PILTL_REG, 0);
+//              i2c_smbus_write_word_data(client, CMD_WORD|APDS990x_PIHTL_REG, data->ps_threshold);
 
-//		data->pilt = 0;
-//		data->piht = data->ps_threshold;
+//              data->pilt = 0;
+//              data->piht = data->ps_threshold;
 
-		/*Keep the threshold NEAR condition to prevent the frequent Interrupt under strong ambient light*/
-		ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PILTL_REG, data->ps_hysteresis_threshold);
+		/*Keep the threshold NEAR condition to prevent the frequent Interrupt under strong ambient light */
+		ret =
+		    i2c_smbus_write_word_data(client,
+					      CMD_WORD | APDS9900_PILTL_REG,
+					      data->ps_hysteresis_threshold);
 		if (ret < 0) {
 			dev_err(&client->dev,
-				"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-				data->ps_hysteresis_threshold, CMD_WORD|APDS9900_PILTL_REG, ret);
+				"%s: i2c write fail: can't write %02x to %02x: %d\n",
+				__func__, data->ps_hysteresis_threshold,
+				CMD_WORD | APDS9900_PILTL_REG, ret);
 			return;
-		}	
+		}
 
-		ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PIHTL_REG, 1023);
+		ret =
+		    i2c_smbus_write_word_data(client,
+					      CMD_WORD | APDS9900_PIHTL_REG,
+					      1023);
 		if (ret < 0) {
 			dev_err(&client->dev,
-				"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-				1023, CMD_WORD|APDS9900_PIHTL_REG, ret);
+				"%s: i2c write fail: can't write %02x to %02x: %d\n",
+				__func__, 1023, CMD_WORD | APDS9900_PIHTL_REG,
+				ret);
 			return;
-		}				
+		}
 		data->pilt = data->ps_hysteresis_threshold;
 		data->piht = 1023;
-		
+
 #ifdef APDS9900_USE_MUTEX
 #else
 		//irq_set_irq_wake(data->irq, 0);
 #endif
-		if (apds9900_debug_mask & APDS9900_DEBUG_FUNC_TRACE)
-		{
-        	DEBUG_MSG("### near-to-far detected\n");
-			DEBUG_MSG("* Set PS Threshold NEAR condition to prevent the frequent Interrupt under strong ambient light *\n");
+		if (apds9900_debug_mask & APDS9900_DEBUG_FUNC_TRACE) {
+			DEBUG_MSG("### near-to-far detected\n");
+			DEBUG_MSG
+			    ("* Set PS Threshold NEAR condition to prevent the frequent Interrupt under strong ambient light *\n");
 		}
-		
+
 	}
-	
-	else if ( (data->pilt == 1023) && (data->piht == 0) )
-	{
+
+	else if ((data->pilt == 1023) && (data->piht == 0)) {
 		/* this is the first near-to-far forced interrupt */
 		data->ps_detection = 0;
 
-        input_report_abs(data->input_dev_proxi, ABS_DISTANCE, 10); // fix to 10cm when far
+		input_report_abs(data->input_dev_proxi, ABS_DISTANCE, 10);	// fix to 10cm when far
 		input_sync(data->input_dev_proxi);
 
-		ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PILTL_REG, 0);
+		ret =
+		    i2c_smbus_write_word_data(client,
+					      CMD_WORD | APDS9900_PILTL_REG, 0);
 		if (ret < 0) {
 			dev_err(&client->dev,
-				"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-				0, CMD_WORD|APDS9900_PILTL_REG, ret);
+				"%s: i2c write fail: can't write %02x to %02x: %d\n",
+				__func__, 0, CMD_WORD | APDS9900_PILTL_REG,
+				ret);
 			return;
-		}			
-		ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PIHTL_REG, data->ps_threshold);
+		}
+		ret =
+		    i2c_smbus_write_word_data(client,
+					      CMD_WORD | APDS9900_PIHTL_REG,
+					      data->ps_threshold);
 		if (ret < 0) {
 			dev_err(&client->dev,
-				"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-				data->ps_threshold, CMD_WORD|APDS9900_PIHTL_REG, ret);
+				"%s: i2c write fail: can't write %02x to %02x: %d\n",
+				__func__, data->ps_threshold,
+				CMD_WORD | APDS9900_PIHTL_REG, ret);
 			return;
-		}	
+		}
 
 		data->pilt = 0;
 		data->piht = data->ps_threshold;
 
 		//set_irq_wake(data->irq, 0);
 		if (apds9900_debug_mask & APDS9900_DEBUG_FUNC_TRACE)
-        	DEBUG_MSG("### near-to-far detected\n");
+			DEBUG_MSG("### near-to-far detected\n");
 
 	}
 //For RCA-12_0657
-//                                                                            
-	wake_lock_timeout(&proxi_irq_wake_lock, msecs_to_jiffies(2000)); //2sec wakelock
+//
+	wake_lock_timeout(&proxi_irq_wake_lock, msecs_to_jiffies(2000));	//2sec wakelock
 //#endif
 }
 
 static void apds9900_change_als_threshold(struct i2c_client *client)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-	struct apds9900_platform_data* pdata = client->dev.platform_data;
-    
-    int iac1, iac2, iac = 0;
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	struct apds9900_platform_data *pdata = client->dev.platform_data;
+
+	int iac1, iac2, iac = 0;
 	unsigned int ch0data, ch1data = 0;
-	int luxValue=0;
+	int luxValue = 0;
 	int ret = 0;
 
-	ch0data = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_CDATAL_REG);
+	ch0data =
+	    i2c_smbus_read_word_data(client, CMD_WORD | APDS9900_CDATAL_REG);
 	if (ch0data < 0) {
 		dev_err(&client->dev,
-			"%s: i2c read fail: can't read from %02x: %d\n",  __func__,  CMD_WORD|APDS9900_CDATAL_REG, ch0data);
-		return;
-	} 
-
-	ch1data = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_IRDATAL_REG);
-	if (ch1data < 0) {
-		dev_err(&client->dev,
-			"%s: i2c read fail: can't read from %02x: %d\n", __func__, CMD_WORD|APDS9900_IRDATAL_REG, ch1data);
+			"%s: i2c read fail: can't read from %02x: %d\n",
+			__func__, CMD_WORD | APDS9900_CDATAL_REG, ch0data);
 		return;
 	}
-    
-    iac1 = ch0data -((pdata->B*ch1data)/1000);
-    iac2 = (ch0data*pdata->C)/1000 - (ch1data*pdata->D)/1000;
 
-    if((iac1 < 0) && (iac2<0))
-   	{
-   	  if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-        	DEBUG_MSG("[LUX] iac: set to 0\n");
+	ch1data =
+	    i2c_smbus_read_word_data(client, CMD_WORD | APDS9900_IRDATAL_REG);
+	if (ch1data < 0) {
+		dev_err(&client->dev,
+			"%s: i2c read fail: can't read from %02x: %d\n",
+			__func__, CMD_WORD | APDS9900_IRDATAL_REG, ch1data);
+		return;
+	}
+
+	iac1 = ch0data - ((pdata->B * ch1data) / 1000);
+	iac2 = (ch0data * pdata->C) / 1000 - (ch1data * pdata->D) / 1000;
+
+	if ((iac1 < 0) && (iac2 < 0)) {
+		if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+			DEBUG_MSG("[LUX] iac: set to 0\n");
 		iac = 0;
-   	}
-    else if(iac1 > iac2)
-   	{
-   	  if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-       		DEBUG_MSG("[LUX] iac: set to iac1, due to (iac1 > iac2)\n");
-        iac = iac1;
-   	}
-    else
-   	{
-   	  if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-        	DEBUG_MSG("[LUX] iac: set to iac2, due to else\n");   	
-        iac = iac2;
-   	}
-    
-    if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-    {
-       	DEBUG_MSG("[LUX] ch0data = %d, ch1data = %d\n",ch0data, ch1data);
-		DEBUG_MSG("[LUX] iac1 = %d, iac2 = %d\n",iac1, iac2);
-        DEBUG_MSG("[LUX] iac = %d\n",iac);
-    }
-    luxValue = data->als_data =(unsigned int)((iac*pdata->ga_value*pdata->df_value)/(pdata->alsit));
-	luxValue = luxValue>0 ? luxValue : 0;
-	luxValue = luxValue<10000 ? luxValue : 10000;
+	} else if (iac1 > iac2) {
+		if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+			DEBUG_MSG
+			    ("[LUX] iac: set to iac1, due to (iac1 > iac2)\n");
+		iac = iac1;
+	} else {
+		if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+			DEBUG_MSG("[LUX] iac: set to iac2, due to else\n");
+		iac = iac2;
+	}
 
-    if(ch0data==(1024*(256-data->atime)))//under the direct sunlight, the luxvalue is fixed to 10000
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO) {
+		DEBUG_MSG("[LUX] ch0data = %d, ch1data = %d\n", ch0data,
+			  ch1data);
+		DEBUG_MSG("[LUX] iac1 = %d, iac2 = %d\n", iac1, iac2);
+		DEBUG_MSG("[LUX] iac = %d\n", iac);
+	}
+	luxValue = data->als_data =
+	    (unsigned int)((iac * pdata->ga_value * pdata->df_value) /
+			   (pdata->alsit));
+	luxValue = luxValue > 0 ? luxValue : 0;
+	luxValue = luxValue < 10000 ? luxValue : 10000;
+
+	if (ch0data == (1024 * (256 - data->atime)))	//under the direct sunlight, the luxvalue is fixed to 10000
 		luxValue = 10000;
 
-    if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-        DEBUG_MSG("[LUX] als_data = %d\n",luxValue);
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+		DEBUG_MSG("[LUX] als_data = %d\n", luxValue);
 
-    input_report_abs(data->input_dev_light, ABS_LIGHT, luxValue); //report als data
-    input_sync(data->input_dev_light);
-    
-    data->als_threshold_l = (ch0data * (100 - pdata->als_threshold_hsyteresis)) /100;
-    data->als_threshold_h = (ch0data * (100 + pdata->als_threshold_hsyteresis)) /100;
-        
-	if (data->als_threshold_h >= 65535) data->als_threshold_h = 65535;
-    ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_AILTL_REG, data->als_threshold_l);
+	input_report_abs(data->input_dev_light, ABS_LIGHT, luxValue);	//report als data
+	input_sync(data->input_dev_light);
+
+	data->als_threshold_l =
+	    (ch0data * (100 - pdata->als_threshold_hsyteresis)) / 100;
+	data->als_threshold_h =
+	    (ch0data * (100 + pdata->als_threshold_hsyteresis)) / 100;
+
+	if (data->als_threshold_h >= 65535)
+		data->als_threshold_h = 65535;
+	ret =
+	    i2c_smbus_write_word_data(client, CMD_WORD | APDS9900_AILTL_REG,
+				      data->als_threshold_l);
 	if (ret < 0) {
 		dev_err(&client->dev,
-			"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-			data->als_threshold_l, CMD_WORD|APDS9900_AILTL_REG, ret);
+			"%s: i2c write fail: can't write %02x to %02x: %d\n",
+			__func__, data->als_threshold_l,
+			CMD_WORD | APDS9900_AILTL_REG, ret);
 		return;
-	}		
-    ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_AIHTL_REG, data->als_threshold_h);
+	}
+	ret =
+	    i2c_smbus_write_word_data(client, CMD_WORD | APDS9900_AIHTL_REG,
+				      data->als_threshold_h);
 	if (ret < 0) {
 		dev_err(&client->dev,
-			"%s: i2c write fail: can't write %02x to %02x: %d\n", __func__,
-			data->als_threshold_h, CMD_WORD|APDS9900_AIHTL_REG, ret);
+			"%s: i2c write fail: can't write %02x to %02x: %d\n",
+			__func__, data->als_threshold_h,
+			CMD_WORD | APDS9900_AIHTL_REG, ret);
 		return;
-	}	
+	}
 
 }
 
-static void apds9900_reschedule_work(struct apds9900_data *data, unsigned long delay)
+static void apds9900_reschedule_work(struct apds9900_data *data,
+				     unsigned long delay)
 {
 #ifdef APDS9900_USE_MUTEX
 #else
-    unsigned long flags = 0;
-    
-    spin_lock_irqsave(&data->update_lock, flags);
+	unsigned long flags = 0;
+
+	spin_lock_irqsave(&data->update_lock, flags);
 #endif
-    
-  /*
-     * If work is already scheduled then subsequent schedules will not
-     * change the scheduled time that's why we have to cancel it first.
-     */
-    cancel_delayed_work(&data->poswork);
+
+	/*
+	 * If work is already scheduled then subsequent schedules will not
+	 * change the scheduled time that's why we have to cancel it first.
+	 */
+	cancel_delayed_work(&data->poswork);
 #if 1
-    queue_delayed_work(apds9900_workqueue,&data->poswork, delay);
+	queue_delayed_work(apds9900_workqueue, &data->poswork, delay);
 #else
-    schedule_delayed_work(&data->poswork, delay);
-#endif    
+	schedule_delayed_work(&data->poswork, delay);
+#endif
 #ifdef APDS9900_USE_MUTEX
 #else
-    spin_unlock_irqrestore(&data->update_lock, flags);
+	spin_unlock_irqrestore(&data->update_lock, flags);
 #endif
 }
 
 static void apds9900_event_work(struct work_struct *work)
 {
-    struct apds9900_data *data = container_of(work, struct apds9900_data, poswork.work);
-    struct i2c_client *client=data->client;
+	struct apds9900_data *data =
+	    container_of(work, struct apds9900_data, poswork.work);
+	struct i2c_client *client = data->client;
 	int status = 0;
-	int irdata=0;
+	int irdata = 0;
 	int ret = 0;
-	
+
 #ifdef APDS9900_USE_MUTEX
-    mutex_lock(&data->lock); 
+	mutex_lock(&data->lock);
 #endif
-    status = i2c_smbus_read_byte_data(client, CMD_BYTE|APDS9900_STATUS_REG);
+	status =
+	    i2c_smbus_read_byte_data(client, CMD_BYTE | APDS9900_STATUS_REG);
 	if (status < 0) {
-		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n", __func__, status, CMD_BYTE|APDS9900_STATUS_REG);
+		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n",
+			__func__, status, CMD_BYTE | APDS9900_STATUS_REG);
 #ifdef APDS9900_USE_MUTEX
 		goto err_i2c_fail;
 #else
@@ -592,9 +640,10 @@ static void apds9900_event_work(struct work_struct *work)
 #endif
 	}
 
-    ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_ENABLE_REG, 1);	/* disable 9900's ADC first */
+	ret = i2c_smbus_write_byte_data(client, CMD_BYTE | APDS9900_ENABLE_REG, 1);	/* disable 9900's ADC first */
 	if (ret < 0) {
-		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__,
+			ret);
 #ifdef APDS9900_USE_MUTEX
 		goto err_i2c_fail;
 #else
@@ -602,204 +651,253 @@ static void apds9900_event_work(struct work_struct *work)
 #endif
 	}
 
-
-    if ((status & data->enable & 0x30) == 0x30)
-    {
+	if ((status & data->enable & 0x30) == 0x30) {
 		/* both PS and ALS are interrupted */
 		apds9900_change_als_threshold(client);
-		
-		/* check if this is triggered by background ambient noise */	
-		irdata = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_IRDATAL_REG);
+
+		/* check if this is triggered by background ambient noise */
+		irdata =
+		    i2c_smbus_read_word_data(client,
+					     CMD_WORD | APDS9900_IRDATAL_REG);
 		if (irdata < 0) {
 			dev_err(&client->dev,
-				"%s: i2c read fail: can't read from %02x: %d\n", __func__, CMD_WORD|APDS9900_IRDATAL_REG, irdata);
+				"%s: i2c read fail: can't read from %02x: %d\n",
+				__func__, CMD_WORD | APDS9900_IRDATAL_REG,
+				irdata);
 #ifdef APDS9900_USE_MUTEX
 			goto err_i2c_fail;
 #else
 			return;
 #endif
-		} 
+		}
 
-		if (irdata != (100*(1024*(256-data->atime)))/100)
+		if (irdata != (100 * (1024 * (256 - data->atime))) / 100)
 			apds9900_change_ps_threshold(client);
-		else 
-		{
-			if (data->ps_detection == 1) 
-			{
-				apds9900_change_ps_threshold(client);			
-				if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-				{
-					DEBUG_MSG("* Triggered by background ambient noise\n");	
+		else {
+			if (data->ps_detection == 1) {
+				apds9900_change_ps_threshold(client);
+				if (apds9900_debug_mask &
+				    APDS9900_DEBUG_GEN_INFO) {
+					DEBUG_MSG
+					    ("* Triggered by background ambient noise\n");
 					DEBUG_MSG("\n ===> near-to-FAR\n");
 				}
-			}
-			else 
-			{
-				/*Keep the threshold NEAR condition to prevent the frequent Interrup under strong ambient light*/
-				ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PILTL_REG, data->ps_hysteresis_threshold);
+			} else {
+				/*Keep the threshold NEAR condition to prevent the frequent Interrup under strong ambient light */
+				ret =
+				    i2c_smbus_write_word_data(client,
+							      CMD_WORD |
+							      APDS9900_PILTL_REG,
+							      data->
+							      ps_hysteresis_threshold);
 				if (ret < 0) {
-					dev_err(&client->dev, "%s: failed reading register, %d\n", __func__, ret);
+					dev_err(&client->dev,
+						"%s: failed reading register, %d\n",
+						__func__, ret);
 #ifdef APDS9900_USE_MUTEX
 					goto err_i2c_fail;
 #else
 					return;
 #endif
-				}				
-				ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PIHTL_REG, 1023);
+				}
+				ret =
+				    i2c_smbus_write_word_data(client,
+							      CMD_WORD |
+							      APDS9900_PIHTL_REG,
+							      1023);
 				if (ret < 0) {
-					dev_err(&client->dev, "%s: failed reading register, %d\n", __func__, ret);
+					dev_err(&client->dev,
+						"%s: failed reading register, %d\n",
+						__func__, ret);
 #ifdef APDS9900_USE_MUTEX
 					goto err_i2c_fail;
 #else
 					return;
 #endif
-				}				
+				}
 				data->pilt = data->ps_hysteresis_threshold;
 				data->piht = 1023;
-				if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-				{
-      				DEBUG_MSG("* Set PS Threshold NEAR condition to prevent the frequent Interrup under strong ambient light\n");
-      				DEBUG_MSG("* Triggered by background ambient noise\n\n");
-      				DEBUG_MSG("\n ==> maintain FAR \n\n");
+				if (apds9900_debug_mask &
+				    APDS9900_DEBUG_GEN_INFO) {
+					DEBUG_MSG
+					    ("* Set PS Threshold NEAR condition to prevent the frequent Interrup under strong ambient light\n");
+					DEBUG_MSG
+					    ("* Triggered by background ambient noise\n\n");
+					DEBUG_MSG("\n ==> maintain FAR \n\n");
 				}
 			}
 		}
 
 		apds9900_set_command(client, 2);	/* 2 = CMD_CLR_PS_ALS_INT */
-    }
-    else if ((status & data->enable & 0x20) == 0x20)
-    {
+	} else if ((status & data->enable & 0x20) == 0x20) {
 		/* only PS is interrupted */
-		
+
 		/* check if this is triggered by background ambient noise */
-		irdata = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_IRDATAL_REG);	
+		irdata =
+		    i2c_smbus_read_word_data(client,
+					     CMD_WORD | APDS9900_IRDATAL_REG);
 		if (irdata < 0) {
 			dev_err(&client->dev,
-				"%s: i2c read fail: can't read from %02x: %d\n", __func__, CMD_WORD|APDS9900_IRDATAL_REG, irdata);
+				"%s: i2c read fail: can't read from %02x: %d\n",
+				__func__, CMD_WORD | APDS9900_IRDATAL_REG,
+				irdata);
 #ifdef APDS9900_USE_MUTEX
 			goto err_i2c_fail;
 #else
 			return;
 #endif
-		} 		
-		if (irdata != (100*(1024*(256-data->atime)))/100)
+		}
+		if (irdata != (100 * (1024 * (256 - data->atime))) / 100)
 			apds9900_change_ps_threshold(client);
-		else 
-		{
-			if (data->ps_detection == 1) 
-			{
-				apds9900_change_ps_threshold(client);			
-				if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-				{	
-    		        DEBUG_MSG("* Triggered by background ambient noise\n");	
-    				DEBUG_MSG("\n ===> near-to-FAR\n");
-				}					
-			}
-			else 
-			{
-				/*Keep the threshold NEAR condition to prevent the frequent Interrup under strong ambient light*/
-				ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PILTL_REG, data->ps_hysteresis_threshold);
+		else {
+			if (data->ps_detection == 1) {
+				apds9900_change_ps_threshold(client);
+				if (apds9900_debug_mask &
+				    APDS9900_DEBUG_GEN_INFO) {
+					DEBUG_MSG
+					    ("* Triggered by background ambient noise\n");
+					DEBUG_MSG("\n ===> near-to-FAR\n");
+				}
+			} else {
+				/*Keep the threshold NEAR condition to prevent the frequent Interrup under strong ambient light */
+				ret =
+				    i2c_smbus_write_word_data(client,
+							      CMD_WORD |
+							      APDS9900_PILTL_REG,
+							      data->
+							      ps_hysteresis_threshold);
 				if (ret < 0) {
-					dev_err(&client->dev, "%s: failed reading register, %d\n", __func__, ret);
+					dev_err(&client->dev,
+						"%s: failed reading register, %d\n",
+						__func__, ret);
 #ifdef APDS9900_USE_MUTEX
 					goto err_i2c_fail;
 #else
 					return;
 #endif
-				}				
-				ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PIHTL_REG, 1023);
+				}
+				ret =
+				    i2c_smbus_write_word_data(client,
+							      CMD_WORD |
+							      APDS9900_PIHTL_REG,
+							      1023);
 				if (ret < 0) {
-					dev_err(&client->dev, "%s: failed reading register, %d\n", __func__, ret);
+					dev_err(&client->dev,
+						"%s: failed reading register, %d\n",
+						__func__, ret);
 #ifdef APDS9900_USE_MUTEX
 					goto err_i2c_fail;
 #else
 					return;
 #endif
-				}				
+				}
 				data->pilt = data->ps_hysteresis_threshold;
 				data->piht = 1023;
-				if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-				{
-					DEBUG_MSG("* Set PS Threshold NEAR condition to prevent the frequent Interrup under strong ambient light\n");
-					DEBUG_MSG("* Triggered by background ambient noise\n");
+				if (apds9900_debug_mask &
+				    APDS9900_DEBUG_GEN_INFO) {
+					DEBUG_MSG
+					    ("* Set PS Threshold NEAR condition to prevent the frequent Interrup under strong ambient light\n");
+					DEBUG_MSG
+					    ("* Triggered by background ambient noise\n");
 					DEBUG_MSG("\n ==> maintain FAR \n\n");
 				}
 			}
 		}
-		
+
 		apds9900_set_command(client, 0);	/* 0 = CMD_CLR_PS_INT */
-    }
-    else if ((status & data->enable & 0x10) == 0x10)
-    {
-		/* only ALS is interrupted */	
+	} else if ((status & data->enable & 0x10) == 0x10) {
+		/* only ALS is interrupted */
 		apds9900_change_als_threshold(client);
 
-		if(data->enable_ps_sensor==1)
-		{
+		if (data->enable_ps_sensor == 1) {
 			/* check if this is triggered by background ambient noise */
-			irdata = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_IRDATAL_REG);
+			irdata =
+			    i2c_smbus_read_word_data(client,
+						     CMD_WORD |
+						     APDS9900_IRDATAL_REG);
 			if (irdata < 0) {
 				dev_err(&client->dev,
-					"%s: i2c read fail: can't read from %02x: %d\n", __func__, CMD_WORD|APDS9900_IRDATAL_REG, irdata);
+					"%s: i2c read fail: can't read from %02x: %d\n",
+					__func__,
+					CMD_WORD | APDS9900_IRDATAL_REG,
+					irdata);
 #ifdef APDS9900_USE_MUTEX
 				goto err_i2c_fail;
 #else
 				return;
 #endif
-			} 				
-			if (irdata != (100*(1024*(256-data->atime)))/100)
-				apds9900_change_ps_threshold(client);			
-			else 
-			{								 
-				if (data->ps_detection == 1) 
-				{
-					apds9900_change_ps_threshold(client);			
-			
-					if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-					{
-						printk("* Triggered by background ambient noise\n");
+			}
+			if (irdata !=
+			    (100 * (1024 * (256 - data->atime))) / 100)
+				apds9900_change_ps_threshold(client);
+			else {
+				if (data->ps_detection == 1) {
+					apds9900_change_ps_threshold(client);
+
+					if (apds9900_debug_mask &
+					    APDS9900_DEBUG_GEN_INFO) {
+						printk
+						    ("* Triggered by background ambient noise\n");
 						printk("\n ===> near-to-FAR\n");
 					}
-				}
-				else 
-				{			
-					/*Keep the threshold NEAR condition to prevent the frequent Interrup under strong ambient light*/
-					ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PILTL_REG, data->ps_hysteresis_threshold);
+				} else {
+					/*Keep the threshold NEAR condition to prevent the frequent Interrup under strong ambient light */
+					ret =
+					    i2c_smbus_write_word_data(client,
+								      CMD_WORD |
+								      APDS9900_PILTL_REG,
+								      data->
+								      ps_hysteresis_threshold);
 					if (ret < 0) {
-						dev_err(&client->dev, "%s: failed reading register, %d\n", __func__, ret);
+						dev_err(&client->dev,
+							"%s: failed reading register, %d\n",
+							__func__, ret);
 #ifdef APDS9900_USE_MUTEX
 						goto err_i2c_fail;
 #else
 						return;
 #endif
-					}						
-					ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PIHTL_REG, 1023);
+					}
+					ret =
+					    i2c_smbus_write_word_data(client,
+								      CMD_WORD |
+								      APDS9900_PIHTL_REG,
+								      1023);
 					if (ret < 0) {
-						dev_err(&client->dev, "%s: failed reading register, %d\n", __func__, ret);
+						dev_err(&client->dev,
+							"%s: failed reading register, %d\n",
+							__func__, ret);
 #ifdef APDS9900_USE_MUTEX
 						goto err_i2c_fail;
 #else
 						return;
 #endif
-					}									
-					data->pilt = data->ps_hysteresis_threshold;
+					}
+					data->pilt =
+					    data->ps_hysteresis_threshold;
 					data->piht = 1023;
-					if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-					{
-						printk("* Set PS Threshold NEAR condition to prevent the frequent Interrup under strong ambient light\n");
-						printk("* Triggered by background ambient noise\n");
-						printk("\n ==> maintain FAR \n\n");
+					if (apds9900_debug_mask &
+					    APDS9900_DEBUG_GEN_INFO) {
+						printk
+						    ("* Set PS Threshold NEAR condition to prevent the frequent Interrup under strong ambient light\n");
+						printk
+						    ("* Triggered by background ambient noise\n");
+						printk
+						    ("\n ==> maintain FAR \n\n");
 					}
 				}
 			}
 		}
-		
-		apds9900_set_command(client, 1);	/* 1 = CMD_CLR_ALS_INT */
-    }
 
-    ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_ENABLE_REG, data->enable);
+		apds9900_set_command(client, 1);	/* 1 = CMD_CLR_ALS_INT */
+	}
+
+	ret =
+	    i2c_smbus_write_byte_data(client, CMD_BYTE | APDS9900_ENABLE_REG,
+				      data->enable);
 	if (ret < 0) {
-		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__,
+			ret);
 #ifdef APDS9900_USE_MUTEX
 		goto err_i2c_fail;
 #else
@@ -809,271 +907,316 @@ static void apds9900_event_work(struct work_struct *work)
 #ifdef APDS9900_USE_MUTEX
 err_i2c_fail:
 	mutex_unlock(&data->lock);
-	return;	
+	return;
 #endif
 }
 
 /* assume this is ISR */
 static irqreturn_t apds9900_isr(int irq, void *dev_id)
 {
-    struct apds9900_data *data = dev_id;
-    
-    if(apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
-        DEBUG_MSG("### apds9900_interrupt\n");
-    apds9900_reschedule_work(data, 0);
-    
-    return IRQ_HANDLED;
+	struct apds9900_data *data = dev_id;
+
+	if (apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
+		DEBUG_MSG("### apds9900_interrupt\n");
+	apds9900_reschedule_work(data, 0);
+
+	return IRQ_HANDLED;
 }
 
 static int apds9900_set_atime(struct i2c_client *client, int atime)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_ATIME_REG, atime);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_byte_data(client, CMD_BYTE | APDS9900_ATIME_REG,
+				      atime);
 	if (ret < 0) {
-		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__,
+			ret);
 		return ret;
 	}
 
-    data->atime = atime;
-    
-    return ret;
+	data->atime = atime;
+
+	return ret;
 }
 
 static int apds9900_set_ptime(struct i2c_client *client, int ptime)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_PTIME_REG, ptime);
-    
-    data->ptime = ptime;
-    
-    return ret;
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_byte_data(client, CMD_BYTE | APDS9900_PTIME_REG,
+				      ptime);
+
+	data->ptime = ptime;
+
+	return ret;
 }
 
 static int apds9900_set_wtime(struct i2c_client *client, int wtime)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_WTIME_REG, wtime);
- 	if (ret < 0) {
-		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_byte_data(client, CMD_BYTE | APDS9900_WTIME_REG,
+				      wtime);
+	if (ret < 0) {
+		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__,
+			ret);
 		return ret;
-	}   
-    data->wtime = wtime;
-    
-    return ret;
+	}
+	data->wtime = wtime;
+
+	return ret;
 }
 
 static int apds9900_set_ailt(struct i2c_client *client, int threshold)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_AILTL_REG, threshold);
- 	if (ret < 0) {
-		dev_err(&client->dev, "%s: failed reading register, %d\n", __func__, ret);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_word_data(client, CMD_WORD | APDS9900_AILTL_REG,
+				      threshold);
+	if (ret < 0) {
+		dev_err(&client->dev, "%s: failed reading register, %d\n",
+			__func__, ret);
 		return ret;
-	}   
-    data->ailt = threshold;
-    
-    return ret;
+	}
+	data->ailt = threshold;
+
+	return ret;
 }
 
 static int apds9900_set_aiht(struct i2c_client *client, int threshold)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_AIHTL_REG, threshold);
-  	if (ret < 0) {
-		dev_err(&client->dev, "%s: failed reading register, %d\n", __func__, ret);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_word_data(client, CMD_WORD | APDS9900_AIHTL_REG,
+				      threshold);
+	if (ret < 0) {
+		dev_err(&client->dev, "%s: failed reading register, %d\n",
+			__func__, ret);
 		return ret;
-	}    
-    data->aiht = threshold;
-    
-    return ret;
+	}
+	data->aiht = threshold;
+
+	return ret;
 }
 
 static int apds9900_set_pilt(struct i2c_client *client, int threshold)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PILTL_REG, threshold);
-    
-    data->pilt = threshold;
-    
-    return ret;
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_word_data(client, CMD_WORD | APDS9900_PILTL_REG,
+				      threshold);
+
+	data->pilt = threshold;
+
+	return ret;
 }
 
 static int apds9900_set_piht(struct i2c_client *client, int threshold)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_word_data(client, CMD_WORD|APDS9900_PIHTL_REG, threshold);
-    
-    data->piht = threshold;
-    data->ps_threshold = threshold;
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
 
-    return ret;
+	ret =
+	    i2c_smbus_write_word_data(client, CMD_WORD | APDS9900_PIHTL_REG,
+				      threshold);
+
+	data->piht = threshold;
+	data->ps_threshold = threshold;
+
+	return ret;
 }
 
 static int apds9900_set_pers(struct i2c_client *client, int pers)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_PERS_REG, pers);
- 	if (ret < 0) {
-		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_byte_data(client, CMD_BYTE | APDS9900_PERS_REG,
+				      pers);
+	if (ret < 0) {
+		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__,
+			ret);
 		return ret;
-	}   
-    data->pers = pers;
-    
-    return ret;
+	}
+	data->pers = pers;
+
+	return ret;
 }
 
 static int apds9900_set_config(struct i2c_client *client, int config)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_CONFIG_REG, config);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_byte_data(client, CMD_BYTE | APDS9900_CONFIG_REG,
+				      config);
 	if (ret < 0) {
-		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__,
+			ret);
 		return ret;
-	}    
-    data->config = config;
-    
-    return ret;
+	}
+	data->config = config;
+
+	return ret;
 }
 
 static int apds9900_set_ppcount(struct i2c_client *client, int ppcount)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_PPCOUNT_REG, ppcount);
- 	if (ret < 0) {
-		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_byte_data(client, CMD_BYTE | APDS9900_PPCOUNT_REG,
+				      ppcount);
+	if (ret < 0) {
+		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__,
+			ret);
 		return ret;
-	}   
-    data->ppcount = ppcount;
-    
-    return ret;
+	}
+	data->ppcount = ppcount;
+
+	return ret;
 }
 
 static int apds9900_set_control(struct i2c_client *client, int control)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int ret = 0;
-    
-    ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_CONTROL_REG, control);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int ret = 0;
+
+	ret =
+	    i2c_smbus_write_byte_data(client, CMD_BYTE | APDS9900_CONTROL_REG,
+				      control);
 	if (ret < 0) {
-		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+		dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__,
+			ret);
 		return ret;
-	}   
-    data->control = control;
-    
-    return ret;
+	}
+	data->control = control;
+
+	return ret;
 }
 
-static int apds9900_check_reliablility(struct i2c_client *client )
+static int apds9900_check_reliablility(struct i2c_client *client)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int control = 0;
-    
-    control = i2c_smbus_read_byte_data(client, CMD_BYTE|APDS9900_CONTROL_REG);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int control = 0;
+
+	control =
+	    i2c_smbus_read_byte_data(client, CMD_BYTE | APDS9900_CONTROL_REG);
 	if (control < 0) {
-		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n",  __func__, control, CMD_BYTE|APDS9900_CONTROL_REG);
+		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n",
+			__func__, control, CMD_BYTE | APDS9900_CONTROL_REG);
 		return control;
-	}    
-    if(data->control != control)
-    {
-    	if(apds9900_debug_mask & APDS9900_DEBUG_ERROR_CHECK)
-        	DEBUG_MSG("### apds9900_check_reliablility fail!! reinit device !! control reg(%x),buf(%x)\n", control,data->control);
-        return 0;
-    }
-    else
-    {
-        return 1;
-    }
+	}
+	if (data->control != control) {
+		if (apds9900_debug_mask & APDS9900_DEBUG_ERROR_CHECK)
+			DEBUG_MSG
+			    ("### apds9900_check_reliablility fail!! reinit device !! control reg(%x),buf(%x)\n",
+			     control, data->control);
+		return 0;
+	} else {
+		return 1;
+	}
 }
 
 static int apds9900_set_enable(struct i2c_client *client, int enable)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
-	
-    int ret = 0;
-    int retry_count = 0;
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
-    printk("%s value : %d\n", __FUNCTION__, enable);
-	if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-		DEBUG_MSG("### apds9900_set_enable papds9900_data->enable=%d, data->enable=%d, enable=%d\n", papds9900_data->enable, data->enable, enable);
+	int ret = 0;
+	int retry_count = 0;
 
-    // Reliability check
-    if(data->enable != enable)
-    {
-        if(enable != 0)
-        {
-            for(retry_count = 0; retry_count <= 2; retry_count++)
-            {
-                if(apds9900_check_reliablility(client) == 0) // fail
-                    apds9900_device_parameter_init(client);
-                else
-                    break;
-            }
-#if defined(CONFIG_MACH_LGE_120_BOARD) 
-			if(((data->enable &0x20)==0)&&((enable &0x20)==0x20))
+	printk("%s value : %d\n", __FUNCTION__, enable);
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+		DEBUG_MSG
+		    ("### apds9900_set_enable papds9900_data->enable=%d, data->enable=%d, enable=%d\n",
+		     papds9900_data->enable, data->enable, enable);
+
+	// Reliability check
+	if (data->enable != enable) {
+		if (enable != 0) {
+			for (retry_count = 0; retry_count <= 2; retry_count++) {
+				if (apds9900_check_reliablility(client) == 0)	// fail
+					apds9900_device_parameter_init(client);
+				else
+					break;
+			}
+#if defined(CONFIG_MACH_LGE_120_BOARD)
+			if (((data->enable & 0x20) == 0)
+			    && ((enable & 0x20) == 0x20))
 #else
-			if(((data->enable &0x20)==0)&&((enable &0x20)==1))
+			if (((data->enable & 0x20) == 0)
+			    && ((enable & 0x20) == 1))
 #endif
 			{
-                apds9900_set_pilt(client, 1023);	// to force first Near-to-Far interrupt
-                apds9900_set_piht(client, 0);
-                papds9900_data->ps_detection = 1;			// we are forcing Near-to-Far interrupt, so this is defaulted to 1
-//                                                      
+				apds9900_set_pilt(client, 1023);	// to force first Near-to-Far interrupt
+				apds9900_set_piht(client, 0);
+				papds9900_data->ps_detection = 1;	// we are forcing Near-to-Far interrupt, so this is defaulted to 1
+//
 #if defined(APDS9900_PROXIMITY_CAL)
-                apds9900_Set_PS_Threshold_Adding_Cross_talk(client, data->cross_talk);				
+				apds9900_Set_PS_Threshold_Adding_Cross_talk
+				    (client, data->cross_talk);
 #else
-                papds9900_data->ps_threshold = apds990x_ps_detection_threshold ;
-                papds9900_data->ps_hysteresis_threshold = apds990x_ps_hsyteresis_threshold ;
+				papds9900_data->ps_threshold =
+				    apds990x_ps_detection_threshold;
+				papds9900_data->ps_hysteresis_threshold =
+				    apds990x_ps_hsyteresis_threshold;
 				apds9900_change_ps_threshold(client);
-#endif				
-//                                                        
-				if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-					DEBUG_MSG("### apds9900_set_enable initialize ps_threshold\n");
+#endif
+//
+				if (apds9900_debug_mask &
+				    APDS9900_DEBUG_GEN_INFO)
+					DEBUG_MSG
+					    ("### apds9900_set_enable initialize ps_threshold\n");
 			}
-            		printk("%s Debug point 2 value : %d\n", __FUNCTION__, enable);							
-        }
-		ret = i2c_smbus_write_byte_data(client, CMD_BYTE|APDS9900_ENABLE_REG, enable);
+			printk("%s Debug point 2 value : %d\n", __FUNCTION__,
+			       enable);
+		}
+		ret =
+		    i2c_smbus_write_byte_data(client,
+					      CMD_BYTE | APDS9900_ENABLE_REG,
+					      enable);
 		if (ret < 0) {
-			dev_err(&client->dev, "%s: i2c write fail err %d\n", __func__, ret);
+			dev_err(&client->dev, "%s: i2c write fail err %d\n",
+				__func__, ret);
 			return ret;
-		}		
-        data->enable = enable;
-    }
-    
-	if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-		DEBUG_MSG("### apds9900_set_enable data->enable=%d, papds9900_data->enable=%d\n", data->enable, papds9900_data->enable);
+		}
+		data->enable = enable;
+	}
 
-    return ret;
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+		DEBUG_MSG
+		    ("### apds9900_set_enable data->enable=%d, papds9900_data->enable=%d\n",
+		     data->enable, papds9900_data->enable);
+
+	return ret;
 }
-//                                                     
+
+//
 #if defined(APDS9900_PROXIMITY_CAL)
 void apds9900_swap(int *x, int *y)
 {
-     int temp = *x;
-     *x = *y;
-     *y = temp;
+	int temp = *x;
+	*x = *y;
+	*y = temp;
 }
 
- static int apds9900_backup_crosstalk_data_fs(unsigned int val)
+static int apds9900_backup_crosstalk_data_fs(unsigned int val)
 {
 	int fd;
 	int ret = 0;
@@ -1083,80 +1226,77 @@ void apds9900_swap(int *x, int *y)
 	memset(buf, 0, sizeof(buf));
 	sprintf(buf, "%d", val);
 
-	printk("%s Enter\n", __FUNCTION__ );
+	printk("%s Enter\n", __FUNCTION__);
 	printk("%s\n", buf);
 
 	set_fs(KERNEL_DS);
-	fd = sys_open("/mpt/prox_calibration.dat",O_WRONLY|O_CREAT, 0664);
+	fd = sys_open("/mpt/prox_calibration.dat", O_WRONLY | O_CREAT, 0664);
 
-	if(fd >=0)
-	{
+	if (fd >= 0) {
 		sys_write(fd, buf, sizeof(buf));
 		sys_close(fd);
 		set_fs(old_fs);
-	}
-	else
-	{
+	} else {
 		ret++;
 		sys_close(fd);
 		set_fs(old_fs);
-		return ret	;
+		return ret;
 	}
 
 	return ret;
 }
+
 static int apds9900_read_crosstalk_data_fs(void)
 {
 	int fd;
 	int ret = 0;
 	char read_buf[50];
 	mm_segment_t old_fs = get_fs();
-	  
+
 	printk("%s Enter\n", __FUNCTION__);
 	memset(read_buf, 0, sizeof(read_buf));
 	set_fs(KERNEL_DS);
 
-	fd = sys_open("/mpt/prox_calibration.dat",O_RDONLY, 0);
-	if(fd >=0)
-	{
-		printk("%s Success read Prox Cross-talk from FS\n", __FUNCTION__);
+	fd = sys_open("/mpt/prox_calibration.dat", O_RDONLY, 0);
+	if (fd >= 0) {
+		printk("%s Success read Prox Cross-talk from FS\n",
+		       __FUNCTION__);
 		sys_read(fd, read_buf, sizeof(read_buf));
 		sys_close(fd);
 		set_fs(old_fs);
-	}
-	else
-	{
+	} else {
 		printk("%s Fail read Prox Cross-talk FS\n", __FUNCTION__);
 		printk("%s Return error code : %d\n", __FUNCTION__, fd);
 		ret = -1;
 		sys_close(fd);
 		set_fs(old_fs);
-		return ret;	  
-	} 	  
+		return ret;
+	}
 
 	return (simple_strtol(read_buf, NULL, 10));
 
 }
 
 /* Cross-talk Calibration???? ??d?? cross-talk; threshold?? ??????.*/
-static void apds9900_Set_PS_Threshold_Adding_Cross_talk(struct i2c_client *client, int cal_data)
+static void apds9900_Set_PS_Threshold_Adding_Cross_talk(struct i2c_client
+							*client, int cal_data)
 {
 	struct apds9900_data *data = i2c_get_clientdata(client);
-#if defined(CONFIG_MACH_LGE_120_BOARD) 
-	if (cal_data>720)
+#if defined(CONFIG_MACH_LGE_120_BOARD)
+	if (cal_data > 720)
 		cal_data = 720;
-	if (cal_data<0)
+	if (cal_data < 0)
 		cal_data = 0;
-	
+
 	data->cross_talk = cal_data;
 	data->ps_threshold = 300 + cal_data;
 	data->ps_hysteresis_threshold = data->ps_threshold - 100;
 #else
-	if (cal_data>770)
+	if (cal_data > 770)
 		cal_data = 770;
-	if (cal_data<0)
+	if (cal_data < 0)
 		cal_data = 0;
-	
+
 	data->cross_talk = cal_data;
 	data->ps_threshold = 250 + cal_data;
 	data->ps_hysteresis_threshold = data->ps_threshold - 80;
@@ -1166,58 +1306,57 @@ static void apds9900_Set_PS_Threshold_Adding_Cross_talk(struct i2c_client *clien
 static int apds9900_Run_Cross_talk_Calibration(struct i2c_client *client)
 {
 	struct apds9900_data *data = i2c_get_clientdata(client);
-	unsigned int sum_of_pdata = 0,temp_pdata[20];
-	unsigned int ret=0,i=0,j=0,ArySize = 20,cal_check_flag = 0;
+	unsigned int sum_of_pdata = 0, temp_pdata[20];
+	unsigned int ret = 0, i = 0, j = 0, ArySize = 20, cal_check_flag = 0;
 	unsigned int old_enable = 0;
 
 	printk("%s Enter \n", __FUNCTION__);
 
-#if defined(CONFIG_MACH_LGE_120_BOARD) 
-	old_enable = data->enable; /*Back-up status*/
+#if defined(CONFIG_MACH_LGE_120_BOARD)
+	old_enable = data->enable;	/*Back-up status */
 #else
-	old_enable = 0x3f; /*Back-up status*/
+	old_enable = 0x3f;	/*Back-up status */
 #endif
 
 RE_CALIBRATION:
-	sum_of_pdata =0;
-	apds9900_set_enable(client, (data->enable|0x0D));/* Enable PS and Wait */
-	
+	sum_of_pdata = 0;
+	apds9900_set_enable(client, (data->enable | 0x0D));	/* Enable PS and Wait */
+
 	msleep(50);
 
-	for(i =0;i<20;i++)	{
-		temp_pdata[i] = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_PDATAL_REG);
+	for (i = 0; i < 20; i++) {
+		temp_pdata[i] =
+		    i2c_smbus_read_word_data(client,
+					     CMD_WORD | APDS9900_PDATAL_REG);
 		mdelay(6);
 	}
 
 	// pdata sorting
-	for(i=0; i<ArySize-1; i++)
-		for(j=i+1; j<ArySize; j++)
-			if(temp_pdata[i] > temp_pdata[j])
-				apds9900_swap(temp_pdata+i, temp_pdata+j);
+	for (i = 0; i < ArySize - 1; i++)
+		for (j = i + 1; j < ArySize; j++)
+			if (temp_pdata[i] > temp_pdata[j])
+				apds9900_swap(temp_pdata + i, temp_pdata + j);
 
-	for (i = 5;i<15;i++)
+	for (i = 5; i < 15; i++)
 		sum_of_pdata = sum_of_pdata + temp_pdata[i];
-	
-	data->cross_talk = sum_of_pdata/10;
-#if defined(CONFIG_MACH_LGE_120_BOARD) 
-	if (data->cross_talk>720)
+
+	data->cross_talk = sum_of_pdata / 10;
+#if defined(CONFIG_MACH_LGE_120_BOARD)
+	if (data->cross_talk > 720)
 #else
-	if (data->cross_talk>770)
+	if (data->cross_talk > 770)
 #endif
 	{
-		if (cal_check_flag == 0)
-		{
+		if (cal_check_flag == 0) {
 			cal_check_flag = 1;
 			goto RE_CALIBRATION;
-		}
-		else
-		{
-			apds9900_set_enable(client,0x00);	// disable clock. 
-			apds9900_set_enable(client,old_enable); /* restore status */
+		} else {
+			apds9900_set_enable(client, 0x00);	// disable clock.
+			apds9900_set_enable(client, old_enable);	/* restore status */
 			return -1;
 		}
 	}
-#if defined(CONFIG_MACH_LGE_120_BOARD) 
+#if defined(CONFIG_MACH_LGE_120_BOARD)
 	data->ps_threshold = 300 + data->cross_talk;
 	data->ps_hysteresis_threshold = data->ps_threshold - 100;
 #else
@@ -1228,13 +1367,14 @@ RE_CALIBRATION:
 	ret = apds9900_backup_crosstalk_data_fs(data->cross_talk);
 
 	printk("%s threshold : %d\n", __FUNCTION__, data->ps_threshold);
-	printk("%s Hysteresis_threshold : %d\n",__FUNCTION__, data->ps_hysteresis_threshold);
+	printk("%s Hysteresis_threshold : %d\n", __FUNCTION__,
+	       data->ps_hysteresis_threshold);
 
-	apds9900_set_enable(client,0x00);	// disable clock. 
-	apds9900_set_enable(client,old_enable); /* restore status */
+	apds9900_set_enable(client, 0x00);	// disable clock.
+	apds9900_set_enable(client, old_enable);	/* restore status */
 
 	printk("%s Leave\n", __FUNCTION__);
-	return data->cross_talk; //Save the cross-talk to the non-volitile memory in the phone.  
+	return data->cross_talk;	//Save the cross-talk to the non-volitile memory in the phone.
 }
 #endif
 
@@ -1242,8 +1382,9 @@ RE_CALIBRATION:
  * SysFS support
  */
 #if defined(APDS9900_PROXIMITY_CAL)
- static ssize_t apds9900_show_run_calibration(struct device *dev,
-		struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_run_calibration(struct device *dev,
+					     struct device_attribute *attr,
+					     char *buf)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct apds9900_data *data = i2c_get_clientdata(client);
@@ -1252,7 +1393,8 @@ RE_CALIBRATION:
 }
 
 static ssize_t apds9900_store_run_calibration(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+					      struct device_attribute *attr,
+					      const char *buf, size_t count)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct apds9900_data *data = i2c_get_clientdata(client);
@@ -1260,804 +1402,921 @@ static ssize_t apds9900_store_run_calibration(struct device *dev,
 	int ret;
 
 	ret = apds9900_Run_Cross_talk_Calibration(client);
-	if(ret < 0)
-	{
+	if (ret < 0) {
 		printk("%s Fail error :  %d\n", __FUNCTION__, ret);
 		data->ps_cal_result = 0;
-	}
-	else
-	{
+	} else {
 		printk("%s Succes cross-talk :  %d\n", __FUNCTION__, ret);
 		data->ps_cal_result = 1;
 	}
 
 	return count;
 }
-static DEVICE_ATTR(run_calibration,  S_IWUSR | S_IRUGO|S_IWGRP |S_IRGRP |S_IROTH/*|S_IWOTH*/,
-		   apds9900_show_run_calibration, apds9900_store_run_calibration);
 
- static ssize_t apds9900_show_crosstalk_data(struct device *dev,
-		struct device_attribute *attr, char *buf)
+static DEVICE_ATTR(run_calibration,
+		   S_IWUSR | S_IRUGO | S_IWGRP | S_IRGRP | S_IROTH /*|S_IWOTH */
+		   ,
+		   apds9900_show_run_calibration,
+		   apds9900_store_run_calibration);
+
+static ssize_t apds9900_show_crosstalk_data(struct device *dev,
+					    struct device_attribute *attr,
+					    char *buf)
 {
 	int ret = 0;
-	
+
 	ret = apds9900_read_crosstalk_data_fs();
-	if(ret<0)
+	if (ret < 0)
 		return sprintf(buf, "Read fail\n");
-	
+
 	return sprintf(buf, "%d\n", ret);
 }
 
 // Back-up new cross-talk and restore cross-talk value.
 static ssize_t apds9900_store_crosstalk_data(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+					     struct device_attribute *attr,
+					     const char *buf, size_t count)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct apds9900_data *data = i2c_get_clientdata(client);
 	int ret = 0;
 	unsigned long val = simple_strtoul(buf, NULL, 10);
 
-
-	printk("%s Enter\n", __FUNCTION__ );
+	printk("%s Enter\n", __FUNCTION__);
 	//back-up
 	ret = apds9900_backup_crosstalk_data_fs(val);
-	if(ret != 0)
-		return printk("File open fail %d\n", ret);	
+	if (ret != 0)
+		return printk("File open fail %d\n", ret);
 
 	//restore
 	data->cross_talk = val;
 
 	printk("Saved cross_talk val : %d\n", (int)val);
 
-	
 	return count;
 }
 
-static DEVICE_ATTR(prox_cal_data,  S_IWUSR | S_IRUGO|S_IWGRP |S_IRGRP |S_IROTH/*|S_IWOTH*/,
+static DEVICE_ATTR(prox_cal_data,
+		   S_IWUSR | S_IRUGO | S_IWGRP | S_IRGRP | S_IROTH /*|S_IWOTH */
+		   ,
 		   apds9900_show_crosstalk_data, apds9900_store_crosstalk_data);
 #endif
-//                                                    
+//
 
-static ssize_t apds9900_store_command(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_command(struct device *dev,
+				      struct device_attribute *attr,
+				      const char *buf, size_t count)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-    if (val < 0 || val > 2)
-        return -EINVAL;
-    
-    ret = apds9900_set_command(client, val);
-    
-    if (ret < 0)
-        return ret;
-    
-    return count;
+	if (val < 0 || val > 2)
+		return -EINVAL;
+
+	ret = apds9900_set_command(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
 }
+
 static DEVICE_ATTR(command, S_IWUSR, NULL, apds9900_store_command);
 
-static ssize_t apds9900_show_enable(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_enable(struct device *dev,
+				    struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    
-    return sprintf(buf, "%x\n", data->enable);
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+
+	return sprintf(buf, "%x\n", data->enable);
 }
 
-static ssize_t apds9900_store_enable(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_enable(struct device *dev,
+				     struct device_attribute *attr,
+				     const char *buf, size_t count)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
-    
-    ret = apds9900_set_enable(client, val);
-    
-    if (ret < 0)
-        return ret;
-    
-    return count;
-}
-static DEVICE_ATTR(enable, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_enable, apds9900_store_enable);
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-static ssize_t apds9900_show_atime(struct device *dev, struct device_attribute *attr, char *buf)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    
-    return sprintf(buf, "%x\n", data->atime);
+	ret = apds9900_set_enable(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
 }
 
-static ssize_t apds9900_store_atime(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
-    
-    ret = apds9900_set_atime(client, val);
-    
-    if (ret < 0)
-        return ret;
-    
-    return count;
-}
-static DEVICE_ATTR(atime,  S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_atime, apds9900_store_atime);
+static DEVICE_ATTR(enable, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_enable, apds9900_store_enable);
 
-static ssize_t apds9900_show_ptime(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_atime(struct device *dev,
+				   struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    
-    return sprintf(buf, "%x\n", data->ptime);
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+
+	return sprintf(buf, "%x\n", data->atime);
 }
 
-static ssize_t apds9900_store_ptime(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_atime(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t count)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
-    
-    ret = apds9900_set_ptime(client, val);
-    
-    if (ret < 0)
-        return ret;
-    
-    return count;
-}
-static DEVICE_ATTR(ptime, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_ptime, apds9900_store_ptime);
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-static ssize_t apds9900_show_wtime(struct device *dev, struct device_attribute *attr, char *buf)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    
-    return sprintf(buf, "%x\n", data->wtime);
+	ret = apds9900_set_atime(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
 }
 
-static ssize_t apds9900_store_wtime(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static DEVICE_ATTR(atime, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_atime, apds9900_store_atime);
+
+static ssize_t apds9900_show_ptime(struct device *dev,
+				   struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
-    
-    ret = apds9900_set_wtime(client, val);
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
-    if (ret < 0)
-        return ret;
-
-    return count;
-}
-static DEVICE_ATTR(wtime,  S_IWUSR | S_IRUGO  | S_IRGRP | S_IROTH , apds9900_show_wtime, apds9900_store_wtime);
-
-static ssize_t apds9900_show_ailt(struct device *dev, struct device_attribute *attr, char *buf)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    
-    return sprintf(buf, "%x\n", data->ailt);
+	return sprintf(buf, "%x\n", data->ptime);
 }
 
-static ssize_t apds9900_store_ailt(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_ptime(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t count)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
-    
-    ret = apds9900_set_ailt(client, val);
-    
-    if (ret < 0)
-        return ret;
-    
-    return count;
-}
-static DEVICE_ATTR(ailt,  S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_ailt, apds9900_store_ailt);
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-static ssize_t apds9900_show_aiht(struct device *dev, struct device_attribute *attr, char *buf)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    
-    return sprintf(buf, "%x\n", data->aiht);
+	ret = apds9900_set_ptime(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
 }
 
-static ssize_t apds9900_store_aiht(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static DEVICE_ATTR(ptime, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_ptime, apds9900_store_ptime);
+
+static ssize_t apds9900_show_wtime(struct device *dev,
+				   struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
-    ret = apds9900_set_aiht(client, val);
-
-    if (ret < 0)
-        return ret;
-    
-    return count;
-}
-static DEVICE_ATTR(aiht,  S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_aiht, apds9900_store_aiht);
-
-static ssize_t apds9900_show_pilt(struct device *dev, struct device_attribute *attr, char *buf)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    
-    return sprintf(buf, "%x\n", data->pilt);
+	return sprintf(buf, "%x\n", data->wtime);
 }
 
-static ssize_t apds9900_store_pilt(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_wtime(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t count)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
-    
-    ret = apds9900_set_pilt(client, val);
-    
-    if (ret < 0)
-        return ret;
-    
-    return count;
-}
-static DEVICE_ATTR(pilt, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_pilt, apds9900_store_pilt);
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-static ssize_t apds9900_show_piht(struct device *dev, struct device_attribute *attr, char *buf)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    
-    return sprintf(buf, "%x\n", data->piht);
+	ret = apds9900_set_wtime(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
 }
 
-static ssize_t apds9900_store_piht(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static DEVICE_ATTR(wtime, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_wtime, apds9900_store_wtime);
+
+static ssize_t apds9900_show_ailt(struct device *dev,
+				  struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
-    ret = apds9900_set_piht(client, val);
-
-    if (ret < 0)
-        return ret;
-
-    return count;
-}
-static DEVICE_ATTR(piht,  S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_piht, apds9900_store_piht);
-
-static ssize_t apds9900_show_pers(struct device *dev, struct device_attribute *attr, char *buf)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-
-    return sprintf(buf, "%x\n", data->pers);
+	return sprintf(buf, "%x\n", data->ailt);
 }
 
-static ssize_t apds9900_store_pers(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_ailt(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t count)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-    ret = apds9900_set_pers(client, val);
+	ret = apds9900_set_ailt(client, val);
 
-    if (ret < 0)
-        return ret;
+	if (ret < 0)
+		return ret;
 
-    return count;
-}
-static DEVICE_ATTR(pers, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_pers, apds9900_store_pers);
-
-static ssize_t apds9900_show_config(struct device *dev, struct device_attribute *attr, char *buf)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-
-    return sprintf(buf, "%x\n", data->config);
+	return count;
 }
 
-static ssize_t apds9900_store_config(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static DEVICE_ATTR(ailt, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_ailt, apds9900_store_ailt);
+
+static ssize_t apds9900_show_aiht(struct device *dev,
+				  struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
-    ret = apds9900_set_config(client, val);
-
-    if (ret < 0)
-        return ret;
-
-    return count;
-}
-static DEVICE_ATTR(config,  S_IWUSR | S_IRUGO|S_IRGRP |S_IROTH, apds9900_show_config, apds9900_store_config);
-
-static ssize_t apds9900_show_ppcount(struct device *dev, struct device_attribute *attr, char *buf)
-{
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-
-    return sprintf(buf, "%x\n", data->ppcount);
+	return sprintf(buf, "%x\n", data->aiht);
 }
 
-static ssize_t apds9900_store_ppcount(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_aiht(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t count)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-    ret = apds9900_set_ppcount(client, val);
+	ret = apds9900_set_aiht(client, val);
 
-    if (ret < 0)
-        return ret;
+	if (ret < 0)
+		return ret;
 
-    return count;
+	return count;
 }
-static DEVICE_ATTR(ppcount,  S_IWUSR | S_IRUGO |S_IRGRP |S_IROTH, apds9900_show_ppcount, apds9900_store_ppcount);
 
-static ssize_t apds9900_show_control(struct device *dev, struct device_attribute *attr, char *buf)
+static DEVICE_ATTR(aiht, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_aiht, apds9900_store_aiht);
+
+static ssize_t apds9900_show_pilt(struct device *dev,
+				  struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int control = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
-    control = i2c_smbus_read_byte_data(client, CMD_BYTE|APDS9900_CONTROL_REG);
+	return sprintf(buf, "%x\n", data->pilt);
+}
+
+static ssize_t apds9900_store_pilt(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
+
+	ret = apds9900_set_pilt(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
+}
+
+static DEVICE_ATTR(pilt, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_pilt, apds9900_store_pilt);
+
+static ssize_t apds9900_show_piht(struct device *dev,
+				  struct device_attribute *attr, char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+
+	return sprintf(buf, "%x\n", data->piht);
+}
+
+static ssize_t apds9900_store_piht(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
+
+	ret = apds9900_set_piht(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
+}
+
+static DEVICE_ATTR(piht, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_piht, apds9900_store_piht);
+
+static ssize_t apds9900_show_pers(struct device *dev,
+				  struct device_attribute *attr, char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+
+	return sprintf(buf, "%x\n", data->pers);
+}
+
+static ssize_t apds9900_store_pers(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
+
+	ret = apds9900_set_pers(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
+}
+
+static DEVICE_ATTR(pers, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_pers, apds9900_store_pers);
+
+static ssize_t apds9900_show_config(struct device *dev,
+				    struct device_attribute *attr, char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+
+	return sprintf(buf, "%x\n", data->config);
+}
+
+static ssize_t apds9900_store_config(struct device *dev,
+				     struct device_attribute *attr,
+				     const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
+
+	ret = apds9900_set_config(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
+}
+
+static DEVICE_ATTR(config, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_config, apds9900_store_config);
+
+static ssize_t apds9900_show_ppcount(struct device *dev,
+				     struct device_attribute *attr, char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+
+	return sprintf(buf, "%x\n", data->ppcount);
+}
+
+static ssize_t apds9900_store_ppcount(struct device *dev,
+				      struct device_attribute *attr,
+				      const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
+
+	ret = apds9900_set_ppcount(client, val);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
+}
+
+static DEVICE_ATTR(ppcount, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_ppcount, apds9900_store_ppcount);
+
+static ssize_t apds9900_show_control(struct device *dev,
+				     struct device_attribute *attr, char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int control = 0;
+
+	control =
+	    i2c_smbus_read_byte_data(client, CMD_BYTE | APDS9900_CONTROL_REG);
 	if (control < 0) {
-		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n",  __func__, control, CMD_BYTE|APDS9900_CONTROL_REG);
+		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n",
+			__func__, control, CMD_BYTE | APDS9900_CONTROL_REG);
 		return control;
-	} 
-
-    //return sprintf(buf, "%x\n", data->control);
-    return sprintf(buf, "reg(%x),buf(%x)\n", control,data->control);
+	}
+	//return sprintf(buf, "%x\n", data->control);
+	return sprintf(buf, "reg(%x),buf(%x)\n", control, data->control);
 }
 
-static ssize_t apds9900_store_control(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_control(struct device *dev,
+				      struct device_attribute *attr,
+				      const char *buf, size_t count)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    unsigned long val = simple_strtoul(buf, NULL, 10);
-    int ret = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	unsigned long val = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-    ret = apds9900_set_control(client, val);
+	ret = apds9900_set_control(client, val);
 
-    if (ret < 0)
-        return ret;
+	if (ret < 0)
+		return ret;
 
-    return count;
+	return count;
 }
-static DEVICE_ATTR(control,  S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_control, apds9900_store_control);
 
-static ssize_t apds9900_show_rev(struct device *dev, struct device_attribute *attr, char *buf)
+static DEVICE_ATTR(control, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_control, apds9900_store_control);
+
+static ssize_t apds9900_show_rev(struct device *dev,
+				 struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    int rev = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	int rev = 0;
 
-    rev = i2c_smbus_read_byte_data(client, CMD_BYTE|APDS9900_REV_REG);
+	rev = i2c_smbus_read_byte_data(client, CMD_BYTE | APDS9900_REV_REG);
 	if (rev < 0) {
-		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n", __func__, rev, CMD_BYTE|APDS9900_REV_REG);
+		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n",
+			__func__, rev, CMD_BYTE | APDS9900_REV_REG);
 		return rev;
-	} 
+	}
 
-    return sprintf(buf, "%x\n", rev);
+	return sprintf(buf, "%x\n", rev);
 }
+
 static DEVICE_ATTR(rev, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_rev, NULL);
 
-static ssize_t apds9900_show_id(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_id(struct device *dev,
+				struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    int id = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	int id = 0;
 
-    id = i2c_smbus_read_byte_data(client, CMD_BYTE|APDS9900_ID_REG);
+	id = i2c_smbus_read_byte_data(client, CMD_BYTE | APDS9900_ID_REG);
 	if (id < 0) {
-		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n", __func__, id, CMD_BYTE|APDS9900_ID_REG);
+		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n",
+			__func__, id, CMD_BYTE | APDS9900_ID_REG);
 		return id;
 	}
 
-    return sprintf(buf, "%x\n", id);
+	return sprintf(buf, "%x\n", id);
 }
+
 static DEVICE_ATTR(id, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_id, NULL);
 
-static ssize_t apds9900_show_status(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_status(struct device *dev,
+				    struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    int status = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	int status = 0;
 
-    status = i2c_smbus_read_byte_data(client, CMD_BYTE|APDS9900_STATUS_REG);
+	status =
+	    i2c_smbus_read_byte_data(client, CMD_BYTE | APDS9900_STATUS_REG);
 	if (status < 0) {
-		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n", __func__, status, CMD_BYTE|APDS9900_STATUS_REG);
+		dev_err(&client->dev, "%s: i2c error %d in reading reg 0x%x\n",
+			__func__, status, CMD_BYTE | APDS9900_STATUS_REG);
 		return status;
 	}
 
-    return sprintf(buf, "%x\n", status);
+	return sprintf(buf, "%x\n", status);
 }
-static DEVICE_ATTR(status, S_IRUGO |S_IRGRP | S_IROTH, apds9900_show_status, NULL);
 
-static ssize_t apds9900_show_cdata(struct device *dev, struct device_attribute *attr, char *buf)
+static DEVICE_ATTR(status, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_status,
+		   NULL);
+
+static ssize_t apds9900_show_cdata(struct device *dev,
+				   struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    int cdata = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	int cdata = 0;
 
-    cdata = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_CDATAL_REG);
+	cdata =
+	    i2c_smbus_read_word_data(client, CMD_WORD | APDS9900_CDATAL_REG);
 	if (cdata < 0) {
 		dev_err(&client->dev,
-			"%s: i2c read fail: can't read from %02x: %d\n", __func__, CMD_WORD|APDS9900_CDATAL_REG, cdata);
+			"%s: i2c read fail: can't read from %02x: %d\n",
+			__func__, CMD_WORD | APDS9900_CDATAL_REG, cdata);
 		return -EAGAIN;
-	} 
+	}
 
-    return sprintf(buf, "%x\n", cdata);
+	return sprintf(buf, "%x\n", cdata);
 }
-static DEVICE_ATTR(cdata, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_cdata, NULL);
 
-static ssize_t apds9900_show_irdata(struct device *dev, struct device_attribute *attr, char *buf)
+static DEVICE_ATTR(cdata, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_cdata,
+		   NULL);
+
+static ssize_t apds9900_show_irdata(struct device *dev,
+				    struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    int irdata = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	int irdata = 0;
 
-    irdata = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_IRDATAL_REG);
+	irdata =
+	    i2c_smbus_read_word_data(client, CMD_WORD | APDS9900_IRDATAL_REG);
 	if (irdata < 0) {
 		dev_err(&client->dev,
-			"%s: i2c read fail: can't read from %02x: %d\n", __func__, CMD_WORD|APDS9900_IRDATAL_REG, irdata);
+			"%s: i2c read fail: can't read from %02x: %d\n",
+			__func__, CMD_WORD | APDS9900_IRDATAL_REG, irdata);
 		return -EAGAIN;
-	} 
+	}
 
-    return sprintf(buf, "%x\n", irdata);
+	return sprintf(buf, "%x\n", irdata);
 }
-static DEVICE_ATTR(irdata, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_irdata, NULL);
 
-static ssize_t apds9900_show_pdata(struct device *dev, struct device_attribute *attr, char *buf)
+static DEVICE_ATTR(irdata, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_irdata,
+		   NULL);
+
+static ssize_t apds9900_show_pdata(struct device *dev,
+				   struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    int pdata = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	int pdata = 0;
 
-    pdata = i2c_smbus_read_word_data(client, CMD_WORD|APDS9900_PDATAL_REG);
+	pdata =
+	    i2c_smbus_read_word_data(client, CMD_WORD | APDS9900_PDATAL_REG);
 	if (pdata < 0) {
 		dev_err(&client->dev,
-			"%s: i2c read fail: can't read from %02x: %d\n", __func__, CMD_WORD|APDS9900_PDATAL_REG, pdata);
+			"%s: i2c read fail: can't read from %02x: %d\n",
+			__func__, CMD_WORD | APDS9900_PDATAL_REG, pdata);
 		return -EAGAIN;
-	} 
+	}
 
-    return sprintf(buf, "%x\n", pdata);
+	return sprintf(buf, "%x\n", pdata);
 }
-static DEVICE_ATTR(pdata, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_pdata, NULL);
 
-/*                            
-                                           
+static DEVICE_ATTR(pdata, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_pdata,
+		   NULL);
+
+/*
+
  */
-static ssize_t apds9900_show_prox(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_prox(struct device *dev,
+				  struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int pdata = 0;
-    pdata = data->ps_detection;
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int pdata = 0;
+	pdata = data->ps_detection;
 
-    return sprintf(buf, "%x\n", pdata);
+	return sprintf(buf, "%x\n", pdata);
 }
+
 static DEVICE_ATTR(prox, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_prox, NULL);
 
-static ssize_t apds9900_show_enable1(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_enable1(struct device *dev,
+				     struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
-    return sprintf(buf, "%x\n", data->enable);
+	return sprintf(buf, "%x\n", data->enable);
 }
 
-static ssize_t apds9900_store_enable1(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_enable1(struct device *dev,
+				      struct device_attribute *attr,
+				      const char *buf, size_t count)
 {
 	struct apds9900_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
- 
-    int ret = 0;
-    unsigned int value = 0;
 
-    sscanf(buf, "%d\n", &value);
+	int ret = 0;
+	unsigned int value = 0;
 
-    printk("%s value : %d", __FUNCTION__, value);
-    if (value == 0)
-        ret = apds9900_set_enable(client, 0); 
-    else if (value ==1)
-        ret = apds9900_set_enable(client, 0x2F); 
-    else
-    {
-    	if(apds9900_debug_mask & APDS9900_DEBUG_ERROR_CHECK)
-            DEBUG_MSG("0 : off, 1 : on \n");
-    }
+	sscanf(buf, "%d\n", &value);
 
-    if (ret < 0)
-        return ret;
+	printk("%s value : %d", __FUNCTION__, value);
+	if (value == 0)
+		ret = apds9900_set_enable(client, 0);
+	else if (value == 1)
+		ret = apds9900_set_enable(client, 0x2F);
+	else {
+		if (apds9900_debug_mask & APDS9900_DEBUG_ERROR_CHECK)
+			DEBUG_MSG("0 : off, 1 : on \n");
+	}
 
-    return count;
+	if (ret < 0)
+		return ret;
+
+	return count;
 }
 
-static ssize_t apds9900_show_proximity_enable(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_proximity_enable(struct device *dev,
+					      struct device_attribute *attr,
+					      char *buf)
 {
 	struct apds9900_data *data = dev_get_drvdata(dev);
 	unsigned int enable = 0;
 
-	if((data->enable==0x3f)||(data->enable==0x2f))
+	if ((data->enable == 0x3f) || (data->enable == 0x2f))
 		enable = 1;
 	else
 		enable = 0;
 
-    return sprintf(buf, "%x\n", enable);
+	return sprintf(buf, "%x\n", enable);
 }
 
-static ssize_t apds9900_store_proximity_enable(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_proximity_enable(struct device *dev,
+					       struct device_attribute *attr,
+					       const char *buf, size_t count)
 {
 	struct apds9900_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
 
- 
-    int ret = 0;
-    
-    unsigned long value = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-//	if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-	    DEBUG_MSG(KERN_INFO "### apds9900_store_proximity_enable value=%d\n", (int)value);
+	unsigned long value = simple_strtoul(buf, NULL, 10);
 
+//      if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+	DEBUG_MSG(KERN_INFO "### apds9900_store_proximity_enable value=%d\n",
+		  (int)value);
 
-    if (value == 0)
-    {
-        ret = apds9900_set_enable(client, (data->enable & 0x10)?0x1b:0); 
+	if (value == 0) {
+		ret =
+		    apds9900_set_enable(client,
+					(data->enable & 0x10) ? 0x1b : 0);
 
 // 20130311 avago ch.kim
 		irq_set_irq_wake(papds9900_data->client->irq, 0);
-    }
-    else if (value ==1)
-    {
-//                                                          
+	} else if (value == 1) {
+//
 #if defined(APDS9900_PROXIMITY_CAL)
-        if(!data->read_ps_cal_data)
-        {
-	    data->cross_talk = apds9900_read_crosstalk_data_fs();
-#if defined(CONFIG_MACH_LGE_120_BOARD) 
-	    if(data->cross_talk <= 0 || data->cross_talk > 720)
+		if (!data->read_ps_cal_data) {
+			data->cross_talk = apds9900_read_crosstalk_data_fs();
+#if defined(CONFIG_MACH_LGE_120_BOARD)
+			if (data->cross_talk <= 0 || data->cross_talk > 720)
 #else
-	    if(data->cross_talk <= 0 || data->cross_talk>770)
+			if (data->cross_talk <= 0 || data->cross_talk > 770)
 #endif
-	        data->cross_talk = PS_DEFAULT_CROSS_TALK;
+				data->cross_talk = PS_DEFAULT_CROSS_TALK;
 
- 	    printk("%s Cross_talk : %d\n", __FUNCTION__, data->cross_talk);
-	    apds9900_Set_PS_Threshold_Adding_Cross_talk(client, data->cross_talk); 	 
-	    data->read_ps_cal_data++;
-        }
+			printk("%s Cross_talk : %d\n", __FUNCTION__,
+			       data->cross_talk);
+			apds9900_Set_PS_Threshold_Adding_Cross_talk(client,
+								    data->
+								    cross_talk);
+			data->read_ps_cal_data++;
+		}
 #endif
-//                                                    
-        ret = apds9900_set_enable(client, 0x2F|data->enable); 
+//
+		ret = apds9900_set_enable(client, 0x2F | data->enable);
 
 // 20130311 avago ch.kim
 		irq_set_irq_wake(papds9900_data->client->irq, 1);
-    }
-    else
-	{
-		if(apds9900_debug_mask & APDS9900_DEBUG_ERROR_CHECK)
+	} else {
+		if (apds9900_debug_mask & APDS9900_DEBUG_ERROR_CHECK)
 			DEBUG_MSG("0 : off, 1 : on \n");
 	}
 
-    if (ret < 0)
-        return ret;
+	if (ret < 0)
+		return ret;
 
-    return count;
+	return count;
 }
 
-static ssize_t apds9900_show_als_enable(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_als_enable(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
 {
 	struct apds9900_data *data = dev_get_drvdata(dev);
 	unsigned int enable = 0;
 
-	if((data->enable==0x3f)||(data->enable==0x1f))
+	if ((data->enable == 0x3f) || (data->enable == 0x1f))
 		enable = 1;
 	else
 		enable = 0;
 
-    return sprintf(buf, "%x\n", enable);
+	return sprintf(buf, "%x\n", enable);
 
 }
 
-static ssize_t apds9900_store_als_enable(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_als_enable(struct device *dev,
+					 struct device_attribute *attr,
+					 const char *buf, size_t count)
 {
 	struct apds9900_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
 
-    int ret = 0;
-    
-    unsigned long value = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-//	if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-	    DEBUG_MSG(KERN_INFO "### apds9900_store_als_enable value=%d\n", (int)value);
+	unsigned long value = simple_strtoul(buf, NULL, 10);
 
-    if (value == 0)
-        ret = apds9900_set_enable(client, (data->enable & 0x20)?0x2f:0); 
-    else if (value ==1)
-        ret = apds9900_set_enable(client, 0x1B|data->enable); 
-    else
-	{
-		if(apds9900_debug_mask & APDS9900_DEBUG_ERROR_CHECK)
+//      if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+	DEBUG_MSG(KERN_INFO "### apds9900_store_als_enable value=%d\n",
+		  (int)value);
+
+	if (value == 0)
+		ret =
+		    apds9900_set_enable(client,
+					(data->enable & 0x20) ? 0x2f : 0);
+	else if (value == 1)
+		ret = apds9900_set_enable(client, 0x1B | data->enable);
+	else {
+		if (apds9900_debug_mask & APDS9900_DEBUG_ERROR_CHECK)
 			DEBUG_MSG("0 : off, 1 : on \n");
 	}
 
-    if (ret < 0)
-        return ret;
+	if (ret < 0)
+		return ret;
 
-    return count;
+	return count;
 }
 
-static ssize_t apds9900_show_als_data(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_als_data(struct device *dev,
+				      struct device_attribute *attr, char *buf)
 {
 	struct apds9900_data *data = dev_get_drvdata(dev);
 
-    return sprintf(buf, "%x\n", data->als_data);
+	return sprintf(buf, "%x\n", data->als_data);
 }
 
-static ssize_t apds9900_store_als_data(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)											 
+static ssize_t apds9900_store_als_data(struct device *dev,
+				       struct device_attribute *attr,
+				       const char *buf, size_t count)
 {
 	struct apds9900_data *data = dev_get_drvdata(dev);
-	
-    unsigned int value = 0;
 
-    sscanf(buf, "%d\n", &value);
-    input_report_abs(data->input_dev_light, ABS_LIGHT, value); //report als data
-    input_sync(data->input_dev_light);
+	unsigned int value = 0;
 
-    return count;
+	sscanf(buf, "%d\n", &value);
+	input_report_abs(data->input_dev_light, ABS_LIGHT, value);	//report als data
+	input_sync(data->input_dev_light);
+
+	return count;
 }
 
+static DEVICE_ATTR(enable1, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_enable1, apds9900_store_enable1);
 
-static DEVICE_ATTR(enable1, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_enable1, apds9900_store_enable1);
+static DEVICE_ATTR(proximity_enable, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_proximity_enable,
+		   apds9900_store_proximity_enable);
 
-static DEVICE_ATTR(proximity_enable, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_proximity_enable, apds9900_store_proximity_enable);
+static DEVICE_ATTR(light_enable, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_als_enable, apds9900_store_als_enable);
 
-static DEVICE_ATTR(light_enable, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_als_enable, apds9900_store_als_enable);
+static DEVICE_ATTR(als, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_als_data, apds9900_store_als_data);
 
-static DEVICE_ATTR(als, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_als_data, apds9900_store_als_data);
-
-static ssize_t apds9900_show_proximity(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_proximity(struct device *dev,
+				       struct device_attribute *attr, char *buf)
 {
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-    int pdata = 0;
-    
-    pdata = data->ps_detection;
-    
-    if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-		DEBUG_MSG("[%s]  pdata = %d \n",__func__, pdata);
-        
-    return sprintf(buf, "%x\n", pdata);
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
+	int pdata = 0;
+
+	pdata = data->ps_detection;
+
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+		DEBUG_MSG("[%s]  pdata = %d \n", __func__, pdata);
+
+	return sprintf(buf, "%x\n", pdata);
 }
-static DEVICE_ATTR(proximity, S_IRUGO | S_IRGRP | S_IROTH, apds9900_show_proximity, NULL);
 
-
+static DEVICE_ATTR(proximity, S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_proximity, NULL);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static ssize_t apds9900_show_proxthreshold_value(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_proxthreshold_value(struct device *dev,
+						 struct device_attribute *attr,
+						 char *buf)
 {
 #if defined(APDS9900_PROXIMITY_CAL)
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
-	
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
-    int val = (int) data->ps_threshold;
+	int val = (int)data->ps_threshold;
 #else
-  int val = (int) apds990x_ps_detection_threshold;
+	int val = (int)apds990x_ps_detection_threshold;
 #endif
-    return sprintf(buf, "%d\n", val );
+	return sprintf(buf, "%d\n", val);
 }
 
-static ssize_t apds9900_store_proxthreshold_value(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_proxthreshold_value(struct device *dev,
+						  struct device_attribute *attr,
+						  const char *buf, size_t count)
 {
 	struct apds9900_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
 
- 
-    int ret = 0;
-    
-    unsigned long value = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-    apds990x_ps_detection_threshold  = value;
-    
-	  if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-	    DEBUG_MSG(KERN_INFO "### apds9900_store_threshold_value value=%d\n", (int)value);
+	unsigned long value = simple_strtoul(buf, NULL, 10);
 
+	apds990x_ps_detection_threshold = value;
 
-    ret = apds9900_set_enable(client, 0); 
-    
-    msleep(50);
-    
-    ret = apds9900_set_enable(client, 0x2F); 
-   
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+		DEBUG_MSG(KERN_INFO
+			  "### apds9900_store_threshold_value value=%d\n",
+			  (int)value);
 
-    if (ret < 0)
-        return ret;
+	ret = apds9900_set_enable(client, 0);
 
-    return count;
+	msleep(50);
+
+	ret = apds9900_set_enable(client, 0x2F);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
 }
 
-
-
-
-static ssize_t apds9900_show_proxhysteresis_value(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t apds9900_show_proxhysteresis_value(struct device *dev,
+						  struct device_attribute *attr,
+						  char *buf)
 {
 #if defined(APDS9900_PROXIMITY_CAL)
-    struct i2c_client *client = to_i2c_client(dev);
-    struct apds9900_data *data = i2c_get_clientdata(client);
+	struct i2c_client *client = to_i2c_client(dev);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
-    int val = (int) data->ps_hysteresis_threshold;
+	int val = (int)data->ps_hysteresis_threshold;
 #else
-  int val = (int) apds990x_ps_hsyteresis_threshold ;
+	int val = (int)apds990x_ps_hsyteresis_threshold;
 #endif
-    return sprintf(buf, "%d\n", val );
+	return sprintf(buf, "%d\n", val);
 }
 
-static ssize_t apds9900_store_proxhysteresis_value(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t apds9900_store_proxhysteresis_value(struct device *dev,
+						   struct device_attribute
+						   *attr, const char *buf,
+						   size_t count)
 {
 	struct apds9900_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
 
- 
-    int ret = 0;
-    
-    unsigned long value = simple_strtoul(buf, NULL, 10);
+	int ret = 0;
 
-    apds990x_ps_hsyteresis_threshold   = value;
-    
-	  if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-	    DEBUG_MSG(KERN_INFO "### apds9900_store_threshold_value value=%d\n", (int)value);
+	unsigned long value = simple_strtoul(buf, NULL, 10);
 
+	apds990x_ps_hsyteresis_threshold = value;
 
-    ret = apds9900_set_enable(client, 0); 
-    
-    msleep(50);
-    
-    ret = apds9900_set_enable(client, 0x2F); 
-   
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+		DEBUG_MSG(KERN_INFO
+			  "### apds9900_store_threshold_value value=%d\n",
+			  (int)value);
 
-    if (ret < 0)
-        return ret;
+	ret = apds9900_set_enable(client, 0);
 
-    return count;
+	msleep(50);
+
+	ret = apds9900_set_enable(client, 0x2F);
+
+	if (ret < 0)
+		return ret;
+
+	return count;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static DEVICE_ATTR(prox_threshold, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_proxthreshold_value, apds9900_store_proxthreshold_value);
+static DEVICE_ATTR(prox_threshold, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_proxthreshold_value,
+		   apds9900_store_proxthreshold_value);
 
-static DEVICE_ATTR(prox_hysteresis, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH , apds9900_show_proxhysteresis_value, apds9900_store_proxhysteresis_value);
+static DEVICE_ATTR(prox_hysteresis, S_IWUSR | S_IRUGO | S_IRGRP | S_IROTH,
+		   apds9900_show_proxhysteresis_value,
+		   apds9900_store_proxhysteresis_value);
 
-
-static struct attribute *apds9900_attributes[] =
-{
-    &dev_attr_command.attr,
-    &dev_attr_enable.attr,
-    &dev_attr_atime.attr,
-    &dev_attr_ptime.attr,
-    &dev_attr_wtime.attr,
-    &dev_attr_ailt.attr,
-    &dev_attr_aiht.attr,
-    &dev_attr_pilt.attr,
-    &dev_attr_piht.attr,
-    &dev_attr_pers.attr,
-    &dev_attr_config.attr,
-    &dev_attr_ppcount.attr,
-    &dev_attr_control.attr,
-    &dev_attr_rev.attr,
-    &dev_attr_id.attr,
-    &dev_attr_status.attr,
-    &dev_attr_cdata.attr,
-    &dev_attr_irdata.attr,
-    &dev_attr_pdata.attr,
-    &dev_attr_prox.attr,
-    &dev_attr_enable1.attr,
-    &dev_attr_proximity.attr,
-    &dev_attr_als.attr,
-    &dev_attr_prox_threshold.attr,
-    &dev_attr_prox_hysteresis.attr,
-    &dev_attr_proximity_enable.attr,
-    &dev_attr_light_enable.attr,
+static struct attribute *apds9900_attributes[] = {
+	&dev_attr_command.attr,
+	&dev_attr_enable.attr,
+	&dev_attr_atime.attr,
+	&dev_attr_ptime.attr,
+	&dev_attr_wtime.attr,
+	&dev_attr_ailt.attr,
+	&dev_attr_aiht.attr,
+	&dev_attr_pilt.attr,
+	&dev_attr_piht.attr,
+	&dev_attr_pers.attr,
+	&dev_attr_config.attr,
+	&dev_attr_ppcount.attr,
+	&dev_attr_control.attr,
+	&dev_attr_rev.attr,
+	&dev_attr_id.attr,
+	&dev_attr_status.attr,
+	&dev_attr_cdata.attr,
+	&dev_attr_irdata.attr,
+	&dev_attr_pdata.attr,
+	&dev_attr_prox.attr,
+	&dev_attr_enable1.attr,
+	&dev_attr_proximity.attr,
+	&dev_attr_als.attr,
+	&dev_attr_prox_threshold.attr,
+	&dev_attr_prox_hysteresis.attr,
+	&dev_attr_proximity_enable.attr,
+	&dev_attr_light_enable.attr,
 #if defined(APDS9900_PROXIMITY_CAL)
-//                                                      
-    &dev_attr_run_calibration.attr,
-    &dev_attr_prox_cal_data.attr,
-//                                                    
+//
+	&dev_attr_run_calibration.attr,
+	&dev_attr_prox_cal_data.attr,
+//
 #endif
-    NULL
+	NULL
 };
 
-static const struct attribute_group apds9900_attr_group =
-{
-    .attrs = apds9900_attributes,
+static const struct attribute_group apds9900_attr_group = {
+	.attrs = apds9900_attributes,
 };
 
 /*
@@ -2070,38 +2329,38 @@ extern int lge_bd_rev;
 
 static int apds9900_device_parameter_init(struct i2c_client *client)
 {
-	struct apds9900_platform_data* pdata = client->dev.platform_data;
-//                                              
+	struct apds9900_platform_data *pdata = client->dev.platform_data;
+//
 #if defined(APDS9900_PROXIMITY_CAL)
 	struct apds9900_data *data = i2c_get_clientdata(client);
 #endif
-	
-    if(apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
-	    DEBUG_MSG("apds9900 device paremeter (re)init .\n");
 
-    apds9900_set_wtime(client, 0xFF);   /* 0xFF : WAIT=2.72ms */
-    apds9900_set_control(client, 0x20); /* 100mA, IR-diode, 1X PGAIN,  1X AGAIN */
-    apds9900_set_config(client, 0x00);  /* unless they need to use wait time more than > 700ms */
+	if (apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
+		DEBUG_MSG("apds9900 device paremeter (re)init .\n");
 
-    /* ALS tuning */
-#if defined(CONFIG_MACH_LGE_120_BOARD) 
-    apds9900_set_atime(client, pdata->atime);   /* ALS = 100ms , MAX count = 37888 */
+	apds9900_set_wtime(client, 0xFF);	/* 0xFF : WAIT=2.72ms */
+	apds9900_set_control(client, 0x20);	/* 100mA, IR-diode, 1X PGAIN,  1X AGAIN */
+	apds9900_set_config(client, 0x00);	/* unless they need to use wait time more than > 700ms */
+
+	/* ALS tuning */
+#if defined(CONFIG_MACH_LGE_120_BOARD)
+	apds9900_set_atime(client, pdata->atime);	/* ALS = 100ms , MAX count = 37888 */
 #else
-    apds9900_set_atime(client, 0xDE);   /* ALS = 100ms , MAX count = 37888 */
+	apds9900_set_atime(client, 0xDE);	/* ALS = 100ms , MAX count = 37888 */
 #endif
 
-    /* proximity tuning */
-    apds9900_set_ptime(client, 0xFF);   /* recommended value. don't change it unless there's proper reason PTIME = 2.72ms, MAX count = 1023 */
+	/* proximity tuning */
+	apds9900_set_ptime(client, 0xFF);	/* recommended value. don't change it unless there's proper reason PTIME = 2.72ms, MAX count = 1023 */
 #if defined(CONFIG_MACH_LGE_I_BOARD_VZW)
-	if(lge_bd_rev ==LGE_REV_B){
-		pdata->ppcount =4;
+	if (lge_bd_rev == LGE_REV_B) {
+		pdata->ppcount = 4;
 	}
 #endif
 
-    apds9900_set_ppcount(client, pdata->ppcount);  /* use 8-pulse should be enough for evaluation */
+	apds9900_set_ppcount(client, pdata->ppcount);	/* use 8-pulse should be enough for evaluation */
 
-    /* interrupt tuning */
-	//apds9900_set_pers(client, 0x33);	// 3 consecutive Interrupt persistence
+	/* interrupt tuning */
+	//apds9900_set_pers(client, 0x33);      // 3 consecutive Interrupt persistence
 #if defined(CONFIG_MACH_LGE_120_BOARD)
 	apds9900_set_pers(client, 0x24);	//0x14// 5 consecutive Interrupt persistence
 #else
@@ -2110,65 +2369,64 @@ static int apds9900_device_parameter_init(struct i2c_client *client)
 
 	apds9900_set_pilt(client, 1023);	// to force first Near-to-Far interrupt
 	apds9900_set_piht(client, 0);
-	papds9900_data->ps_detection = 1;			// we are forcing Near-to-Far interrupt, so this is defaulted to 1
-//                                              
+	papds9900_data->ps_detection = 1;	// we are forcing Near-to-Far interrupt, so this is defaulted to 1
+//
 #if defined(APDS9900_PROXIMITY_CAL)
 	apds9900_Set_PS_Threshold_Adding_Cross_talk(client, data->cross_talk);
 #else
-	papds9900_data->ps_threshold = apds990x_ps_detection_threshold ;
-	papds9900_data->ps_hysteresis_threshold = apds990x_ps_hsyteresis_threshold ;
-#endif	
+	papds9900_data->ps_threshold = apds990x_ps_detection_threshold;
+	papds9900_data->ps_hysteresis_threshold =
+	    apds990x_ps_hsyteresis_threshold;
+#endif
 	// sensor is in disabled mode but all the configurations are preset
-    return 0;
+	return 0;
 }
 
 static int apds9900_device_init(struct i2c_client *client)
 {
-    apds9900_set_enable(client, 0);
-    
-    apds9900_device_parameter_init(client);
-    
-  /*                              
-                                                                          
-     */
-	if(apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
-	    DEBUG_MSG("apds9900 device (re)init finished.\n");
-    
-    return 0;
+	apds9900_set_enable(client, 0);
+
+	apds9900_device_parameter_init(client);
+
+	/*
+
+	 */
+	if (apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
+		DEBUG_MSG("apds9900 device (re)init finished.\n");
+
+	return 0;
 }
 
-/*                              
-                                      
+/*
+
  */
 
 static int apds_open(struct inode *inode, struct file *file)
 {
-	if(apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
-	    DEBUG_MSG("### apds open \n");
+	if (apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
+		DEBUG_MSG("### apds open \n");
 
-    return 0;
+	return 0;
 }
 
 static int apds_release(struct inode *inode, struct file *file)
 {
-	if(apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
-	    DEBUG_MSG("### apds release \n");
+	if (apds9900_debug_mask & APDS9900_DEBUG_DEV_STATUS)
+		DEBUG_MSG("### apds release \n");
 
-    return 0;
+	return 0;
 }
 
-static struct file_operations apds_fops =
-{
-    .owner = THIS_MODULE,
-    .open = apds_open,
-    .release = apds_release,
+static struct file_operations apds_fops = {
+	.owner = THIS_MODULE,
+	.open = apds_open,
+	.release = apds_release,
 };
 
-static struct miscdevice apds_device =
-{
-    .minor = MISC_DYNAMIC_MINOR,
-    .name = "apds9900",
-    .fops = &apds_fops,
+static struct miscdevice apds_device = {
+	.minor = MISC_DYNAMIC_MINOR,
+	.name = "apds9900",
+	.fops = &apds_fops,
 };
 
 /*
@@ -2176,141 +2434,151 @@ static struct miscdevice apds_device =
  */
 static struct i2c_driver apds9900_driver;
 static int __devinit apds9900_probe(struct i2c_client *client,
-                                    const struct i2c_device_id *id)
+				    const struct i2c_device_id *id)
 {
-    struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-    struct apds9900_platform_data* pdata = client->dev.platform_data;
+	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+	struct apds9900_platform_data *pdata = client->dev.platform_data;
 	int err = 0;
-    int irq;
+	int irq;
 
-    if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE))
-    {
-        err = -EIO;
-        goto exit;
-    }
-    
-    papds9900_data = kzalloc(sizeof(struct apds9900_data), GFP_KERNEL);
-    if (!papds9900_data)
-    {
-        err = -ENOMEM;
-        goto exit;
-    }
-    
-    papds9900_data->client = client;
-    i2c_set_clientdata(client, papds9900_data);
-    
+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE)) {
+		err = -EIO;
+		goto exit;
+	}
+
+	papds9900_data = kzalloc(sizeof(struct apds9900_data), GFP_KERNEL);
+	if (!papds9900_data) {
+		err = -ENOMEM;
+		goto exit;
+	}
+
+	papds9900_data->client = client;
+	i2c_set_clientdata(client, papds9900_data);
+
 #ifdef APDS9900_USE_MUTEX
-    mutex_init(&papds9900_data->lock);
+	mutex_init(&papds9900_data->lock);
 #endif
-    papds9900_data->enable = 0;	/* default mode is standard */
-    papds9900_data->ps_detection = 0; /* default to no detection == far */    
-    papds9900_data->ps_threshold = 0;
-    papds9900_data->ps_hysteresis_threshold = 0;
+	papds9900_data->enable = 0;	/* default mode is standard */
+	papds9900_data->ps_detection = 0;	/* default to no detection == far */
+	papds9900_data->ps_threshold = 0;
+	papds9900_data->ps_hysteresis_threshold = 0;
 
-	#if defined(APDS9900_PROXIMITY_CAL)
-    papds9900_data->cross_talk=PS_DEFAULT_CROSS_TALK;
-#endif	
-	
-    dev_info(&client->dev, "enable = %s\n", papds9900_data->enable ? "1" : "0");
+#if defined(APDS9900_PROXIMITY_CAL)
+	papds9900_data->cross_talk = PS_DEFAULT_CROSS_TALK;
+#endif
 
-    pdata->power(1);
-#if defined(CONFIG_MACH_LGE_325_BOARD_LGU) || defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_DCM) 
-	  mdelay(10);
+	dev_info(&client->dev, "enable = %s\n",
+		 papds9900_data->enable ? "1" : "0");
+
+	pdata->power(1);
+#if defined(CONFIG_MACH_LGE_325_BOARD_LGU) || defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_DCM)
+	mdelay(10);
 #else
 	mdelay(20);
 #endif
 
-    err = sysfs_create_group(&client->dev.kobj, &apds9900_attr_group);
-    if (err)
-        goto exit_kfree;
+	err = sysfs_create_group(&client->dev.kobj, &apds9900_attr_group);
+	if (err)
+		goto exit_kfree;
 
-    dev_info(&client->dev, "support ver. %s enabled\n", DRIVER_VERSION);
+	dev_info(&client->dev, "support ver. %s enabled\n", DRIVER_VERSION);
 
-    INIT_DELAYED_WORK(&papds9900_data->poswork, apds9900_event_work);
-    
-    err = gpio_request(pdata->irq_num, "apds_irq");
-    if (err)
-    {
-        printk(KERN_ERR"Unable to request GPIO.\n");
-        goto exit_kfree;
-    }
-    
-    gpio_tlmm_config(GPIO_CFG(pdata->irq_num, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA), GPIO_CFG_ENABLE); 
-    gpio_direction_input(pdata->irq_num);
-    irq = gpio_to_irq(pdata->irq_num);
-    
-    if (irq < 0)
-    {
-        err = irq;
-        printk(KERN_ERR"Unable to request gpio irq. err=%d\n", err);
-        gpio_free(pdata->irq_num);
-        
-        goto exit_kfree;
-    }
-    
-    papds9900_data->irq = irq;
-    err = request_irq(papds9900_data->irq, apds9900_isr, IRQF_TRIGGER_FALLING, ALS_SENSOR_NAME, papds9900_data);
-    if (err)
-    {
-        printk(KERN_ERR"Unable to request irq.\n");
-        
-        goto exit_kfree;
-    }
+	INIT_DELAYED_WORK(&papds9900_data->poswork, apds9900_event_work);
 
-    papds9900_data->input_dev_proxi = input_allocate_device();
-    if (!papds9900_data->input_dev_proxi)
-    {
-        err = -ENOMEM;
-        printk("### apds9900_probe: Failed to allocate input device\n");
-    }
-    
-    set_bit(EV_ABS, papds9900_data->input_dev_proxi->evbit);
-    
-    /* distance data  */
-    input_set_abs_params(papds9900_data->input_dev_proxi, ABS_DISTANCE, 0, 10, 0, 0);
+	err = gpio_request(pdata->irq_num, "apds_irq");
+	if (err) {
+		printk(KERN_ERR "Unable to request GPIO.\n");
+		goto exit_kfree;
+	}
 
-    /* add light input event */	
-    papds9900_data->input_dev_proxi->name = "proximity";
-    
-    err = input_register_device(papds9900_data->input_dev_proxi);
-    if (err) 
-        printk("### apds9900_probe: Unable to register input device: %s\n",papds9900_data->input_dev_proxi->name);
+	gpio_tlmm_config(GPIO_CFG
+			 (pdata->irq_num, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP,
+			  GPIO_CFG_2MA), GPIO_CFG_ENABLE);
+	gpio_direction_input(pdata->irq_num);
+	irq = gpio_to_irq(pdata->irq_num);
 
-    papds9900_data->input_dev_light = input_allocate_device();
-    if (!papds9900_data->input_dev_light)
-    {
-        err = -ENOMEM;
-        printk("### apds9900_probe: Failed to allocate input device\n");
-    }
-    
-    set_bit(EV_ABS, papds9900_data->input_dev_light->evbit);
-    input_set_abs_params(papds9900_data->input_dev_light, ABS_LIGHT, 0, ABS_MAX, 0, 0);
+	if (irq < 0) {
+		err = irq;
+		printk(KERN_ERR "Unable to request gpio irq. err=%d\n", err);
+		gpio_free(pdata->irq_num);
 
-    /* add light input event */	
-    papds9900_data->input_dev_light->name = "light";
-    
-    err = input_register_device(papds9900_data->input_dev_light);
-    if (err) 
-        printk("### apds9900_probe: Unable to register input device: %s\n",papds9900_data->input_dev_light->name);
-       
-    err = misc_register(&apds_device);
-    if (err)
-    {
-        printk("### apds_probe: apds_device misc_register failed\n");
-    }
+		goto exit_kfree;
+	}
+
+	papds9900_data->irq = irq;
+	err =
+	    request_irq(papds9900_data->irq, apds9900_isr, IRQF_TRIGGER_FALLING,
+			ALS_SENSOR_NAME, papds9900_data);
+	if (err) {
+		printk(KERN_ERR "Unable to request irq.\n");
+
+		goto exit_kfree;
+	}
+
+	papds9900_data->input_dev_proxi = input_allocate_device();
+	if (!papds9900_data->input_dev_proxi) {
+		err = -ENOMEM;
+		printk("### apds9900_probe: Failed to allocate input device\n");
+	}
+
+	set_bit(EV_ABS, papds9900_data->input_dev_proxi->evbit);
+
+	/* distance data  */
+	input_set_abs_params(papds9900_data->input_dev_proxi, ABS_DISTANCE, 0,
+			     10, 0, 0);
+
+	/* add light input event */
+	papds9900_data->input_dev_proxi->name = "proximity";
+
+	err = input_register_device(papds9900_data->input_dev_proxi);
+	if (err)
+		printk
+		    ("### apds9900_probe: Unable to register input device: %s\n",
+		     papds9900_data->input_dev_proxi->name);
+
+	papds9900_data->input_dev_light = input_allocate_device();
+	if (!papds9900_data->input_dev_light) {
+		err = -ENOMEM;
+		printk("### apds9900_probe: Failed to allocate input device\n");
+	}
+
+	set_bit(EV_ABS, papds9900_data->input_dev_light->evbit);
+	input_set_abs_params(papds9900_data->input_dev_light, ABS_LIGHT, 0,
+			     ABS_MAX, 0, 0);
+
+	/* add light input event */
+	papds9900_data->input_dev_light->name = "light";
+
+	err = input_register_device(papds9900_data->input_dev_light);
+	if (err)
+		printk
+		    ("### apds9900_probe: Unable to register input device: %s\n",
+		     papds9900_data->input_dev_light->name);
+
+	err = misc_register(&apds_device);
+	if (err) {
+		printk("### apds_probe: apds_device misc_register failed\n");
+	}
 //For RCA-12_0657
-//                                                                            
+//
 	wake_lock_init(&proxi_irq_wake_lock, WAKE_LOCK_SUSPEND, "proxi_irq");	//hyunjee.yoon
 //#endif
-	err = device_create_file(&papds9900_data->input_dev_proxi->dev, &dev_attr_proximity_enable);
-	err = device_create_file(&papds9900_data->input_dev_proxi->dev, &dev_attr_proximity);
-	err = device_create_file(&papds9900_data->input_dev_proxi->dev, &dev_attr_prox_threshold);
-	err = device_create_file(&papds9900_data->input_dev_proxi->dev, &dev_attr_prox_hysteresis);
-	
-	
+	err =
+	    device_create_file(&papds9900_data->input_dev_proxi->dev,
+			       &dev_attr_proximity_enable);
+	err =
+	    device_create_file(&papds9900_data->input_dev_proxi->dev,
+			       &dev_attr_proximity);
+	err =
+	    device_create_file(&papds9900_data->input_dev_proxi->dev,
+			       &dev_attr_prox_threshold);
+	err =
+	    device_create_file(&papds9900_data->input_dev_proxi->dev,
+			       &dev_attr_prox_hysteresis);
+
 	if (err) {
 		printk("### apds_probe: Proximity device_create_file failed\n");
-		goto  exit_kfree;
+		goto exit_kfree;
 	}
 
 	input_set_drvdata(papds9900_data->input_dev_proxi, papds9900_data);
@@ -2318,17 +2586,21 @@ static int __devinit apds9900_probe(struct i2c_client *client,
 
 	if (err) {
 		printk("### apds_probe: Proximity device_create_file failed\n");
-		goto  exit_kfree;
+		goto exit_kfree;
 	}
-	
-	err = device_create_file(&papds9900_data->input_dev_light->dev, &dev_attr_light_enable);
-	err = device_create_file(&papds9900_data->input_dev_light->dev, &dev_attr_als);
-			
+
+	err =
+	    device_create_file(&papds9900_data->input_dev_light->dev,
+			       &dev_attr_light_enable);
+	err =
+	    device_create_file(&papds9900_data->input_dev_light->dev,
+			       &dev_attr_als);
+
 	if (err) {
 		printk("### apds_probe: light device_create_file failed\n");
-		goto  exit_kfree;
+		goto exit_kfree;
 	}
-	
+
 	input_set_drvdata(papds9900_data->input_dev_light, papds9900_data);
 	dev_set_drvdata(&papds9900_data->input_dev_light->dev, papds9900_data);
 
@@ -2337,62 +2609,69 @@ static int __devinit apds9900_probe(struct i2c_client *client,
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	apds9900_sensor_early_suspend.suspend = apds9900_early_suspend;
 	apds9900_sensor_early_suspend.resume = apds9900_late_resume;
-	apds9900_sensor_early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN - 45;
+	apds9900_sensor_early_suspend.level =
+	    EARLY_SUSPEND_LEVEL_BLANK_SCREEN - 45;
 	register_early_suspend(&apds9900_sensor_early_suspend);
 #endif
 
 	device_init_wakeup(&client->dev, 1);
 	enable_irq_wake(papds9900_data->irq);
 
-    return 0;
+	return 0;
 
 exit_kfree:
-    kfree(papds9900_data);
+	kfree(papds9900_data);
 exit:
-    return err;
+	return err;
 }
 
 static int __devexit apds9900_remove(struct i2c_client *client)
 {
-    struct apds9900_data *data = i2c_get_clientdata(client);
+	struct apds9900_data *data = i2c_get_clientdata(client);
 
 	disable_irq_wake(client->irq);
 	free_irq(client->irq, data);
 	cancel_work_sync(&data->poswork.work);
 
-    sysfs_remove_group(&client->dev.kobj, &apds9900_attr_group);
-	device_remove_file(&papds9900_data->input_dev_proxi->dev, &dev_attr_proximity_enable);
-	device_remove_file(&papds9900_data->input_dev_proxi->dev, &dev_attr_proximity);
-	device_remove_file(&papds9900_data->input_dev_light->dev, &dev_attr_light_enable);
-	device_remove_file(&papds9900_data->input_dev_light->dev, &dev_attr_als);
-	device_remove_file(&papds9900_data->input_dev_light->dev, &dev_attr_prox_threshold);
-	device_remove_file(&papds9900_data->input_dev_light->dev, &dev_attr_prox_hysteresis);
-	
+	sysfs_remove_group(&client->dev.kobj, &apds9900_attr_group);
+	device_remove_file(&papds9900_data->input_dev_proxi->dev,
+			   &dev_attr_proximity_enable);
+	device_remove_file(&papds9900_data->input_dev_proxi->dev,
+			   &dev_attr_proximity);
+	device_remove_file(&papds9900_data->input_dev_light->dev,
+			   &dev_attr_light_enable);
+	device_remove_file(&papds9900_data->input_dev_light->dev,
+			   &dev_attr_als);
+	device_remove_file(&papds9900_data->input_dev_light->dev,
+			   &dev_attr_prox_threshold);
+	device_remove_file(&papds9900_data->input_dev_light->dev,
+			   &dev_attr_prox_hysteresis);
+
 	input_unregister_device(papds9900_data->input_dev_proxi);
 	input_unregister_device(papds9900_data->input_dev_light);
 
-    /* Power down the device */
-    apds9900_set_enable(client, 0);
+	/* Power down the device */
+	apds9900_set_enable(client, 0);
 
-    kfree(i2c_get_clientdata(client));
+	kfree(i2c_get_clientdata(client));
 
-    return 0;
+	return 0;
 }
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 unsigned int apds9900_enable_backup = 0;
 
-static void apds9900_early_suspend(struct early_suspend * h)
+static void apds9900_early_suspend(struct early_suspend *h)
 {
-   // Temporary for current consumption, ALC is not controlled by Frameworks
-	if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+	// Temporary for current consumption, ALC is not controlled by Frameworks
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
 		DEBUG_MSG("### %s, do nothing..\n", __func__);
 }
 
-static void apds9900_late_resume(struct early_suspend * h)
+static void apds9900_late_resume(struct early_suspend *h)
 {
-  // Temporary for current consumption, ALC is not controlled by Frameworks
-	if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+	// Temporary for current consumption, ALC is not controlled by Frameworks
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
 		DEBUG_MSG("### %s, do nothoing..\n", __func__);
 }
 #endif /* CONFIG_HAS_EARLYSUSPEND */
@@ -2400,13 +2679,15 @@ static void apds9900_late_resume(struct early_suspend * h)
 #ifdef CONFIG_PM
 static int apds9900_suspend(struct device *device)
 {
-	struct apds9900_platform_data* pdata = (struct apds9900_platform_data* )device->platform_data;
+	struct apds9900_platform_data *pdata =
+	    (struct apds9900_platform_data *)device->platform_data;
 
-	// suspend /resume logging test	
-	printk(KERN_INFO"%s is stating ... \n", __func__);
+	// suspend /resume logging test
+	printk(KERN_INFO "%s is stating ... \n", __func__);
 
-	if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-		DEBUG_MSG("### apds9900_suspend, papds9900_data->enable=%d\n", papds9900_data->enable);
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+		DEBUG_MSG("### apds9900_suspend, papds9900_data->enable=%d\n",
+			  papds9900_data->enable);
 
 #ifdef APDS9900_USE_MUTEX
 #else
@@ -2416,22 +2697,17 @@ static int apds9900_suspend(struct device *device)
 
 	apds9900_enable_backup = papds9900_data->enable;
 
-	if(papds9900_data->enable == 0x3F || papds9900_data->enable == 0x2F)
-	{
+	if (papds9900_data->enable == 0x3F || papds9900_data->enable == 0x2F) {
 		apds9900_set_enable(papds9900_data->client, 0x2F);
-	}
-	else 
-	{
+	} else {
 		apds9900_set_enable(papds9900_data->client, 0);
 		pdata->power(0);
 	}
 
-	
-	// suspend /resume logging test	
-	printk(KERN_INFO"%s is exting ... \n", __func__);
+	// suspend /resume logging test
+	printk(KERN_INFO "%s is exting ... \n", __func__);
 
-
-#if 0 //def APDS9900_USE_MUTEX //Disable for unnecessary code
+#if 0				//def APDS9900_USE_MUTEX //Disable for unnecessary code
 	mutex_lock(&papds9900_data->lock);
 #endif
 	return 0;
@@ -2439,26 +2715,27 @@ static int apds9900_suspend(struct device *device)
 
 static int apds9900_resume(struct device *device)
 {
-	struct apds9900_platform_data* pdata = (struct apds9900_platform_data* )device->platform_data;
-#if 0 //def APDS9900_USE_MUTEX //Disalbe for unnecessary code
+	struct apds9900_platform_data *pdata =
+	    (struct apds9900_platform_data *)device->platform_data;
+#if 0				//def APDS9900_USE_MUTEX //Disalbe for unnecessary code
 	mutex_unlock(&papds9900_data->lock);
 #endif
-	// suspend /resume logging test	
-	printk(KERN_INFO"%s is stating ... \n", __func__);
+	// suspend /resume logging test
+	printk(KERN_INFO "%s is stating ... \n", __func__);
 
-	if(apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
-		DEBUG_MSG("### apds9900_resume, papds9900_data->enable=%d, enable_backup=%d\n", papds9900_data->enable,apds9900_enable_backup);
+	if (apds9900_debug_mask & APDS9900_DEBUG_GEN_INFO)
+		DEBUG_MSG
+		    ("### apds9900_resume, papds9900_data->enable=%d, enable_backup=%d\n",
+		     papds9900_data->enable, apds9900_enable_backup);
 
-	if(papds9900_data->enable != 0x2F)
-	{
+	if (papds9900_data->enable != 0x2F) {
 		pdata->power(1);
-#if defined(CONFIG_MACH_LGE_325_BOARD_LGU) || defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_DCM) 
-	  mdelay(10);
+#if defined(CONFIG_MACH_LGE_325_BOARD_LGU) || defined(CONFIG_MACH_LGE_325_BOARD_SKT) || defined(CONFIG_MACH_LGE_325_BOARD_DCM)
+		mdelay(10);
 #else
 		mdelay(20);
 #endif
 	}
-
 	//if(papds9900_data->enable != apds9900_enable_backup)
 	//if((papds9900_data->enable == 0x2F)||(papds9900_data->enable ==0))
 	apds9900_set_enable(papds9900_data->client, apds9900_enable_backup);
@@ -2467,21 +2744,20 @@ static int apds9900_resume(struct device *device)
 #else
 	enable_irq(papds9900_data->client->irq);
 
-//	irq_set_irq_wake(papds9900_data->client->irq, 1);
+//      irq_set_irq_wake(papds9900_data->client->irq, 1);
 #endif
-	// suspend /resume logging test	
-	printk(KERN_INFO"%s is exting ... \n", __func__);
+	// suspend /resume logging test
+	printk(KERN_INFO "%s is exting ... \n", __func__);
 
 	return 0;
 }
 #endif
 
-
-static const struct i2c_device_id apds9900_id[] =
-{
-    { "apds9900", 0 },
-    { }
+static const struct i2c_device_id apds9900_id[] = {
+	{"apds9900", 0},
+	{}
 };
+
 MODULE_DEVICE_TABLE(i2c, apds9900_id);
 
 #if defined(CONFIG_PM)
@@ -2491,40 +2767,37 @@ static struct dev_pm_ops apds9900_pm_ops = {
 };
 #endif
 
-
-static struct i2c_driver apds9900_driver =
-{
-    .driver = 
-    {
-        .name   = APDS9900_DRV_NAME,
-        .owner  = THIS_MODULE,
+static struct i2c_driver apds9900_driver = {
+	.driver = {
+		   .name = APDS9900_DRV_NAME,
+		   .owner = THIS_MODULE,
 #if defined(CONFIG_PM)
-	.pm = &apds9900_pm_ops,
+		   .pm = &apds9900_pm_ops,
 #endif
-        
-    },
-    .probe      = apds9900_probe,
-    .remove     = __devexit_p(apds9900_remove),
-    .id_table   = apds9900_id,
+
+		   },
+	.probe = apds9900_probe,
+	.remove = __devexit_p(apds9900_remove),
+	.id_table = apds9900_id,
 };
 
 static int __init apds9900_init(void)
 {
-    apds9900_workqueue = create_workqueue("proximity_als");
+	apds9900_workqueue = create_workqueue("proximity_als");
 
-    if(!apds9900_workqueue)
-       return -ENOMEM;
+	if (!apds9900_workqueue)
+		return -ENOMEM;
 
-    return i2c_add_driver(&apds9900_driver);
+	return i2c_add_driver(&apds9900_driver);
 }
 
 static void __exit apds9900_exit(void)
 {
-    if(apds9900_workqueue)
-       destroy_workqueue(apds9900_workqueue);
+	if (apds9900_workqueue)
+		destroy_workqueue(apds9900_workqueue);
 
-    apds9900_workqueue = NULL;
-    i2c_del_driver(&apds9900_driver);
+	apds9900_workqueue = NULL;
+	i2c_del_driver(&apds9900_driver);
 }
 
 MODULE_AUTHOR("Lee Kai Koon <kai-koon.lee@avagotech.com>");

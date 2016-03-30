@@ -50,7 +50,6 @@ Interrupt Management
 #define K3DH_ACC_I2C_SAD_H	((K3DH_ACC_I2C_SADROOT<<1)|SAD0H)
 #define	K3DH_ACC_DEV_NAME	"k3dh_acc_misc"
 
-
 #define	K3DH_ACC_IOCTL_BASE 77
 /** The following define the IOCTL command values via the ioctl macros */
 #define	K3DH_ACC_IOCTL_SET_DELAY		_IOW(K3DH_ACC_IOCTL_BASE, 0, int)
@@ -82,8 +81,6 @@ Interrupt Management
 #define	K3DH_ACC_IOCTL_SET_TAP_TLAT		_IOW(K3DH_ACC_IOCTL_BASE, 21, int)
 #define K3DH_ACC_IOCTL_READ_ACCEL_XYZ  _IOW(K3DH_ACC_IOCTL_BASE, 22, int)
 
-
-
 /************************************************/
 /* 	Accelerometer defines section	 	*/
 /************************************************/
@@ -95,12 +92,8 @@ Interrupt Management
 #define K3DH_ACC_G_8G 		0x20
 #define K3DH_ACC_G_16G		0x30
 
-
 /* Accelerometer Sensor Operating Mode */
 #define K3DH_ACC_ENABLE		0x01
 #define K3DH_ACC_DISABLE		0x00
 
-#endif	/* __K3DH_H__ */
-
-
-
+#endif /* __K3DH_H__ */

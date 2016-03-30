@@ -24,71 +24,52 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
+ */  
+    
 #ifndef IMX105_H
 #define IMX105_H
 #include <linux/types.h>
 #include <mach/board.h>
-
-extern struct imx105_reg imx105_regs;
-
-struct imx105_i2c_reg_conf {
-	unsigned short waddr;
-	unsigned short wdata;
-};
-
-struct imx105_reg {
-
-	struct imx105_i2c_reg_conf const *init_tbl;
-	uint16_t inittbl_size;
-	struct imx105_i2c_reg_conf const *prev_tbl;
-	uint16_t prevtbl_size;
-	struct imx105_i2c_reg_conf const *snap_tbl;
-	uint16_t snaptbl_size;
-	struct imx105_i2c_reg_conf const *prev_1080_tbl;
-	uint16_t prevtbl_1080_size;
-
+extern struct imx105_reg imx105_regs;
+ struct imx105_i2c_reg_conf {
+	unsigned short waddr;
+	 unsigned short wdata;
+};
+ struct imx105_reg {
+	struct imx105_i2c_reg_conf const *init_tbl;
+	 uint16_t inittbl_size;
+	 struct imx105_i2c_reg_conf const *prev_tbl;
+	 uint16_t prevtbl_size;
+	 struct imx105_i2c_reg_conf const *snap_tbl;
+	 uint16_t snaptbl_size;
+	 struct imx105_i2c_reg_conf const *prev_1080_tbl;
+	 uint16_t prevtbl_1080_size;
+	 
 //                                                                     
 	struct imx105_i2c_reg_conf const *shutter_tbl;
-	uint16_t shuttertbl_size;
-	struct imx105_i2c_reg_conf const *shutter2_tbl;
-	uint16_t shutter2tbl_size;
-	struct imx105_i2c_reg_conf const *shutter2_1080p_tbl;
-	uint16_t shutter2_1080ptbl_size;
+	 uint16_t shuttertbl_size;
+	 struct imx105_i2c_reg_conf const *shutter2_tbl;
+	 uint16_t shutter2tbl_size;
+	 struct imx105_i2c_reg_conf const *shutter2_1080p_tbl;
+	 uint16_t shutter2_1080ptbl_size;
+	
 //                                                                    
 };
-
-
-enum imx105_test_mode_t {
-	TEST_OFF,
-	TEST_1,
-	TEST_2,
-	TEST_3
+  enum imx105_test_mode_t { TEST_OFF, TEST_1, TEST_2, TEST_3 
 };
-
-enum imx105_resolution_t {
-	QTR_SIZE,
-	FULL_SIZE,
-	FHD_SIZE,
-	INVALID_SIZE
+ enum imx105_resolution_t { QTR_SIZE, FULL_SIZE, FHD_SIZE, INVALID_SIZE 
 };
-enum imx105_setting {
-	RES_PREVIEW,
-	RES_CAPTURE,
-	RES_PREVIEW_1080
+enum imx105_setting { RES_PREVIEW, RES_CAPTURE, RES_PREVIEW_1080 
 };
-enum imx105_reg_update {
-	/* Sensor egisters that need to be updated during initialization */
-	REG_INIT,
-	/* Sensor egisters that needs periodic I2C writes */
-	UPDATE_PERIODIC,
-	/* All the sensor Registers will be updated */
-	UPDATE_ALL,
-	/* Not valid update */
-	UPDATE_INVALID
+enum imx105_reg_update { 
+	    /* Sensor egisters that need to be updated during initialization */ 
+	    REG_INIT, 
+	    /* Sensor egisters that needs periodic I2C writes */ 
+	    UPDATE_PERIODIC, 
+	    /* All the sensor Registers will be updated */ 
+	    UPDATE_ALL, 
+	    /* Not valid update */ 
+	UPDATE_INVALID 
 };
-
-
-
-#endif /* IMX105_H */
+   
+#endif	/* IMX105_H */

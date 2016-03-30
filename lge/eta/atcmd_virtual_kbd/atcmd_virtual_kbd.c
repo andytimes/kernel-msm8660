@@ -21,8 +21,8 @@
  *  along with this program; if not, you can find it at http://www.fsf.org
  */
 
-#if 1 /*                                               */
-#include <linux/module.h>   /* kernel module definitions */
+#if 1				/*                                               */
+#include <linux/module.h>	/* kernel module definitions */
 #endif
 #include <linux/platform_device.h>
 #include <linux/input.h>
@@ -34,7 +34,8 @@
 static struct input_dev *atcmd_virtual_kbd_dev;
 static struct atcmd_virtual_platform_data *atcmd_virtual_pdata;
 
-static int atcmd_virtual_suspend(struct platform_device *pdev, pm_message_t state)
+static int atcmd_virtual_suspend(struct platform_device *pdev,
+				 pm_message_t state)
 {
 	return 0;
 }
@@ -51,14 +52,16 @@ static int atcmd_virtual_probe(struct platform_device *pdev)
 	unsigned keycode = KEY_UNKNOWN;
 
 	if (!pdev || !pdev->dev.platform_data) {
-		printk(KERN_ERR"%s : pdev or platform data is null\n", __func__);
+		printk(KERN_ERR "%s : pdev or platform data is null\n",
+		       __func__);
 		return -ENODEV;
 	}
 	atcmd_virtual_pdata = pdev->dev.platform_data;
 
 	atcmd_virtual_kbd_dev = input_allocate_device();
 	if (!atcmd_virtual_kbd_dev) {
-		printk(KERN_ERR "%s: not enough memory for input device\n", __func__);
+		printk(KERN_ERR "%s: not enough memory for input device\n",
+		       __func__);
 		return -ENOMEM;
 	}
 
@@ -73,10 +76,12 @@ static int atcmd_virtual_probe(struct platform_device *pdev)
 
 	atcmd_virtual_kbd_dev->keycode = atcmd_virtual_pdata->keycode;
 	atcmd_virtual_kbd_dev->keycodesize = sizeof(unsigned short);
-	atcmd_virtual_kbd_dev->keycodemax = atcmd_virtual_pdata->keypad_row * atcmd_virtual_pdata->keypad_col;
+	atcmd_virtual_kbd_dev->keycodemax =
+	    atcmd_virtual_pdata->keypad_row * atcmd_virtual_pdata->keypad_col;
 	atcmd_virtual_kbd_dev->mscbit[0] = 0;
-	
-	for (key_idx = 0; key_idx <= atcmd_virtual_kbd_dev->keycodemax; key_idx++) {
+
+	for (key_idx = 0; key_idx <= atcmd_virtual_kbd_dev->keycodemax;
+	     key_idx++) {
 		keycode = atcmd_virtual_pdata->keycode[2 * key_idx];
 		if (keycode != KEY_UNKNOWN)
 			set_bit(keycode, atcmd_virtual_kbd_dev->keybit);
@@ -84,26 +89,26 @@ static int atcmd_virtual_probe(struct platform_device *pdev)
 
 	rc = input_register_device(atcmd_virtual_kbd_dev);
 	if (rc)
-		printk(KERN_ERR"%s : input_register_device failed\n", __func__);
+		printk(KERN_ERR "%s : input_register_device failed\n",
+		       __func__);
 
 	return rc;
 }
 
 static struct platform_driver atcmd_virtual_kbd_driver = {
 	.driver = {
-		.name = KEY_DRIVER_NAME,
-		.owner = THIS_MODULE,
-	},
-	.probe	 = atcmd_virtual_probe,
+		   .name = KEY_DRIVER_NAME,
+		   .owner = THIS_MODULE,
+		   },
+	.probe = atcmd_virtual_probe,
 	.suspend = atcmd_virtual_suspend,
-	.resume  = atcmd_virtual_resume,
+	.resume = atcmd_virtual_resume,
 };
 
 static int atcmd_virtual_init(void)
 {
 	return platform_driver_register(&atcmd_virtual_kbd_driver);
 }
-
 
 static void atcmd_virtual_exit(void)
 {

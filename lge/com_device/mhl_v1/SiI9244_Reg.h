@@ -11,19 +11,15 @@ when              who                         what, where, why
                      INCLUDE FILES FOR MODULE
 ===========================================================================*/
 
-
 /*===========================================================================
                    FUNCTION DEFINITIONS
 ===========================================================================*/
 #include "Common_Def.h"
 
-
 #define RGND_OPEN 0x00
 #define RGND_2K 0x01
 #define RGND_1K 0x02
 #define RGND_SHOT 0x03
-
-
 
 //page: 0 Offset: 0x78 Start
 #define PVT_HTBT_FAIL_EN BIT_7
@@ -35,7 +31,6 @@ when              who                         what, where, why
 #define RPWR5V_CHANGE_EN BIT_1
 #define SCDT_CHANGE_EN BIT_0
 //page: 0 Offset: 0x78 End
-
 
 // TPI Video Mode Data
 //====================
@@ -104,7 +99,7 @@ when              who                         what, where, why
 
 // Colorimetry
 //============
-#define SET_EX_COLORIMETRY	0x0C	// Set TPI_AVI_BYTE_2 to extended colorimetry and use 
+#define SET_EX_COLORIMETRY	0x0C	// Set TPI_AVI_BYTE_2 to extended colorimetry and use
 									//TPI_AVI_BYTE_3
 
 // ===================================================== //
@@ -134,7 +129,6 @@ when              who                         what, where, why
 #define OUTPUT_MODE_MASK					(BIT_0)
 #define OUTPUT_MODE_DVI						(_ZERO)
 #define OUTPUT_MODE_HDMI					(BIT_0)
-
 
 // TPI Identification Registers
 //=============================
@@ -172,12 +166,10 @@ when              who                         what, where, why
 #define TPI_I2S_CHST_3						(0x24)
 #define TPI_I2S_CHST_4						(0x25)
 
-
 // Available only when 0x26[7:6]=01
 //=================================
 #define TPI_SPDIF_HEADER					(0x24)
 #define TPI_AUDIO_HANDLING					(0x25)
-
 
 // Audio Configuration Regiaters
 //==============================
@@ -188,11 +180,6 @@ when              who                         what, where, why
 #define AUDIO_MUTE_MASK						(BIT_4)
 #define AUDIO_MUTE_NORMAL					(_ZERO)
 #define AUDIO_MUTE_MUTED					(BIT_4)
-
-
-
-
-
 
 #define TPI_AUDIO_SAMPLE_CTRL				(0x27)
 
@@ -349,7 +336,7 @@ when              who                         what, where, why
 #define CPI_EVENT_MASK						(BIT_3)
 #define CPI_EVENT_NO						(0x00)
 #define CPI_EVENT_YES						(0x08)
-#define RX_SENSE_MASK						(BIT_3)		// This bit is dual purpose depending on the value of 0x3C[3]
+#define RX_SENSE_MASK						(BIT_3)	// This bit is dual purpose depending on the value of 0x3C[3]
 #define RX_SENSE_NOT_ATTACHED				(0x00)
 #define RX_SENSE_ATTACHED					(0x08)
 
@@ -419,50 +406,47 @@ when              who                         what, where, why
 #define MISC_INFO_FRAMES_LEN				(0xC2)
 #define MISC_INFO_FRAMES_CHKSUM				(0xC3)
 
-//NAGSM_Android_SEL_Kernel_Aakash_20101206
+				//NAGSM_Android_SEL_Kernel_Aakash_20101206
+    typedef struct {
+	//bool_t            interruptDriven;        // Remember what app told us about interrupt availability.
+	//uint8_t           pollIntervalMs;         // Remember what app set the polling frequency as.
 
-typedef struct 
-{
-    //bool_t		interruptDriven;	// Remember what app told us about interrupt availability.
-    //uint8_t		pollIntervalMs;		// Remember what app set the polling frequency as.
+	byte mscState;		// Internal MSC engine's states.
 
-	byte		mscState;			// Internal MSC engine's states.
+	byte status_0;		// Received status from peer is stored here
+	byte status_1;		// Received status from peer is stored here
 
-	byte		status_0;			// Received status from peer is stored here
-	byte		status_1;			// Received status from peer is stored here
-
-	bool		mhlConnectionEvent;
-	byte		mhlConnected;
+	bool mhlConnectionEvent;
+	byte mhlConnected;
 
 	// mscMsgArrived == true when a MSC MSG arrives, false when it has been picked up
-	bool		mscMsgArrived;
-	byte		mscMsgSubCommand;
-	byte		mscMsgData;
+	bool mscMsgArrived;
+	byte mscMsgSubCommand;
+	byte mscMsgData;
 
 	// Remember FEATURE FLAG of the peer to reject app commands if unsupported
-	byte		mscFeatureFlag;
+	byte mscFeatureFlag;
 
 	// Remember last command, offset that was sent. Mostly for READ_DEVCAP command
-	byte		mscLastCommand;
-	byte		mscLastOffset;
+	byte mscLastCommand;
+	byte mscLastOffset;
 
 	// Remember last MSC_MSG command (RCPE particularly)
-	byte		mscMsgLastCommand;
-	byte		mscMsgLastData;
-	byte		mscSaveRcpKeyCode;
-  
+	byte mscMsgLastCommand;
+	byte mscMsgLastData;
+	byte mscSaveRcpKeyCode;
+
 #ifdef MHL_CTL
-	byte		mscScratchpadData[16];
+	byte mscScratchpadData[16];
 #endif
-//  uint8_t 	mscData[ 16 ]; 		// What we got back as message data
+//  uint8_t     mscData[ 16 ];          // What we got back as message data
 
 } mhlTx_config_t;
 
-enum
-{
-	MSC_STATE_IDLE		= 0x00,		// Until MHL is connected, do nothing
-	MSC_STATE_BEGIN		= 0x01,		// Start of MSC engine to read devcap of the peer
-	MSC_STATE_POW_DONE	= 0x02,		// Just read devcap[2]. Next do the feature flags
-	MSC_STATE_RCP_READY = 0x03		// Feature flags done. Ready to take in RCP.
+enum {
+	MSC_STATE_IDLE = 0x00,	// Until MHL is connected, do nothing
+	MSC_STATE_BEGIN = 0x01,	// Start of MSC engine to read devcap of the peer
+	MSC_STATE_POW_DONE = 0x02,	// Just read devcap[2]. Next do the feature flags
+	MSC_STATE_RCP_READY = 0x03	// Feature flags done. Ready to take in RCP.
 };
 //NAGSM_Android_SEL_Kernel_Aakash_20101206

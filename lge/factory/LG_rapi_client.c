@@ -14,8 +14,8 @@
  * GNU General Public License for more details.
  *
  */
-#if 1 /*                                               */
-#include <linux/module.h>   /* kernel module definitions */
+#if 1				/*                                               */
+#include <linux/module.h>	/* kernel module definitions */
 #endif
 #include <linux/kernel.h>
 #include <linux/err.h>
@@ -25,10 +25,10 @@
 #include <linux/slab.h>
 #include <lge_diag_eri.h>
 
-#ifdef CONFIG_LGE_DLOAD_SRD  //kabjoo.choi
+#ifdef CONFIG_LGE_DLOAD_SRD	//kabjoo.choi
 #include <userDataBackUpTypeDef.h>
 #include <userDataBackUpDiag.h>
-#endif 
+#endif
 
 // LG_FW : 2011.07.06 moon.yongho : saving webdload status variable to eMMC. ----------[[
 #include <lg_diag_dload.h>
@@ -58,7 +58,6 @@
 #define GET_U_LONG(buf)	      ((u_long)GET_LONG(buf))
 #define PUT_U_LONG(buf, v)	      PUT_LONG(buf, (long)(v))
 
-
 #define GET_BOOL(buf)            ((bool_t)GET_LONG(buf))
 #define GET_ENUM(buf, t)         ((t)GET_LONG(buf))
 #define GET_SHORT(buf)           ((short)GET_LONG(buf))
@@ -87,51 +86,51 @@ extern void msleep(unsigned int msecs);
 
 static struct workqueue_struct *send_to_arm9_wq = NULL;
 struct __send_to_arm9 {
-    int mutex_flag;
-    boolean complete_main;
-    boolean complete_sub;
-    void*	pReq;
-    void* pRsp;
-    struct work_struct work;
+	int mutex_flag;
+	boolean complete_main;
+	boolean complete_sub;
+	void *pReq;
+	void *pRsp;
+	struct work_struct work;
 };
 static struct __send_to_arm9 send_to_arm9_data;
 
 //DID BACKUP  kabjoo.choi
-typedef  struct
-{
-  int pid_magic_code;  //AABBCCDD
-  char pid[60];
-  int imei_magic_code;
-  char imei[60];
-  int swv_magic_code;
-  char swv[60];
+typedef struct {
+	int pid_magic_code;	//AABBCCDD
+	char pid[60];
+	int imei_magic_code;
+	char imei[60];
+	int swv_magic_code;
+	char swv[60];
 } test_mode_emmc_direct_type;
 
 struct MmcPartition {
-    char *device_index;
-    char *filesystem;
-    char *name;
-    unsigned dstatus;
-    unsigned dtype ;
-    unsigned dfirstsec;
-    unsigned dsize;
+	char *device_index;
+	char *filesystem;
+	char *name;
+	unsigned dstatus;
+	unsigned dtype;
+	unsigned dfirstsec;
+	unsigned dsize;
 };
 typedef struct MmcPartition MmcPartition;
 
 #define DID_MAGIC_CODE "AABBCCDD"
 extern int lge_mmc_scan_partitions(void);
 extern const MmcPartition *lge_mmc_find_partition_by_name(const char *name);
-extern int lge_read_block(unsigned int bytes_pos, unsigned char *buf, size_t size);
-extern int lge_write_block(unsigned int bytes_pos, unsigned char *buf, size_t size);
+extern int lge_read_block(unsigned int bytes_pos, unsigned char *buf,
+			  size_t size);
+extern int lge_write_block(unsigned int bytes_pos, unsigned char *buf,
+			   size_t size);
 //
-
 
 static void send_to_arm9_wq_func(struct work_struct *work);
 
 typedef enum {
-    NORMAL_WORK_FLAG = 0,
-    WORK_QUEUE_FLAG = 1,
-}send_to_arm9_wq_type;
+	NORMAL_WORK_FLAG = 0,
+	WORK_QUEUE_FLAG = 1,
+} send_to_arm9_wq_type;
 
 #define INCREASE_MUTEX_FLAG()         (++send_to_arm9_data.mutex_flag)
 #define DECREASE_MUTEX_FLAG()         ((send_to_arm9_data.mutex_flag==0)?(send_to_arm9_data.mutex_flag=0):(send_to_arm9_data.mutex_flag--))
@@ -146,43 +145,42 @@ typedef enum {
 
 /*                                            */
 /* MOD 0015327: [KERNEL] LG RAPI validity check */
-typedef enum{
+typedef enum {
 	LG_RAPI_SUCCESS = 0,
 	LG_RAPI_OVER_UNDER_FLOW = 1,
 	LG_RAPI_INVALID_RESPONSE = 2,
-	
-}lg_rapi_status_type;
+
+} lg_rapi_status_type;
 /*                                          */
 
 /*                                            */
 /* ADD 0013860: [FACTORY RESET] ERI file save */
 #ifdef CONFIG_LGE_ERI_DOWNLOAD
-#define EOP 1 			/*operation failed*/
+#define EOP 1			/*operation failed */
 #define ENOENT 2		/**< No such file or directory */
 #define EBADF 9		/**< Bad file descriptor */
-#define ENOMEM 12         /**< Out of memory. */
+#define ENOMEM 12	  /**< Out of memory. */
 
 char *fs_err_to_string(int err_num, char *ret_buf)
 {
 	pr_info("%s: err_num : %d\n", __func__, err_num);
-	switch (err_num)
-	{
-		case -EOP:
-			sprintf(ret_buf, " %d, EOP", EOP);
-			break;
-		case -ENOENT:
-			sprintf(ret_buf, " %d, ENOENT", ENOENT);
-			break;
-		case -EBADF:
-			sprintf(ret_buf, " %d, EBADF", EBADF);
-			break;
-		case -ENOMEM:
-			sprintf(ret_buf, " %d, ENOMEM", ENOMEM);
-			break;
+	switch (err_num) {
+	case -EOP:
+		sprintf(ret_buf, " %d, EOP", EOP);
+		break;
+	case -ENOENT:
+		sprintf(ret_buf, " %d, ENOENT", ENOENT);
+		break;
+	case -EBADF:
+		sprintf(ret_buf, " %d, EBADF", EBADF);
+		break;
+	case -ENOMEM:
+		sprintf(ret_buf, " %d, ENOMEM", ENOMEM);
+		break;
 		// this will be a file size in case remote_eri_rpc
-		default:
-			sprintf(ret_buf, " %d, no matched", err_num);
-			break;
+	default:
+		sprintf(ret_buf, " %d, no matched", err_num);
+		break;
 	}
 
 	pr_info("%s: err_str : %s\n", __func__, ret_buf);
@@ -212,12 +210,11 @@ void Open_check(void)
 /* MOD 0014110: [FACTORY RESET] stability */
 /* sync up with oem_rapi */
 	uint32_t open_count;
-	
+
 	/* to double check re-open; */
 	open_count = get_oem_rapi_open_cnt();
-	
-	if(open_count > 0)
-	{
+
+	if (open_count > 0) {
 #ifdef LOCAL_RAPI_DBG
 		pr_info("%s,  open_count : %d \r\n", __func__, open_count);
 #endif
@@ -230,29 +227,29 @@ void Open_check(void)
 
 /*                                            */
 /* MOD 0015327: [KERNEL] LG RAPI validity check */
-int lg_rapi_check_validity_and_copy_result(void* src, char* dest, uint32 size_expected)
+int lg_rapi_check_validity_and_copy_result(void *src, char *dest,
+					   uint32 size_expected)
 {
-	struct oem_rapi_client_streaming_func_ret* psrc = (struct oem_rapi_client_streaming_func_ret*)src;
+	struct oem_rapi_client_streaming_func_ret *psrc =
+	    (struct oem_rapi_client_streaming_func_ret *)src;
 	int result = -1;
 
 	// error handling - if rpc timeout occurs, page fault will be invoked
-	if((psrc->output != NULL) && (psrc->out_len != NULL) && (*(psrc->out_len) > 0))
-	{
+	if ((psrc->output != NULL) && (psrc->out_len != NULL)
+	    && (*(psrc->out_len) > 0)) {
 		// check size overflow or underflow
-		if(*(psrc->out_len) == size_expected)
-		{
+		if (*(psrc->out_len) == size_expected) {
 			memcpy((void *)dest, psrc->output, *(psrc->out_len));
 			result = LG_RAPI_SUCCESS;
-		}
-		else
-		{
-//			pr_err("%s, size overflow or underflow, expected : %d, returned : %d\r\n", __func__, size_expected, *(psrc->out_len));
-			memcpy((void *)dest, psrc->output,size_expected >(*(psrc->out_len))?(*(psrc->out_len)):size_expected);
+		} else {
+//                      pr_err("%s, size overflow or underflow, expected : %d, returned : %d\r\n", __func__, size_expected, *(psrc->out_len));
+			memcpy((void *)dest, psrc->output,
+			       size_expected >
+			       (*(psrc->out_len)) ? (*(psrc->out_len)) :
+			       size_expected);
 			result = LG_RAPI_OVER_UNDER_FLOW;
 		}
-	}
-	else
-	{
+	} else {
 		pr_err("%s, invalid rpc results\n", __func__);
 		result = LG_RAPI_INVALID_RESPONSE;
 	}
@@ -260,42 +257,44 @@ int lg_rapi_check_validity_and_copy_result(void* src, char* dest, uint32 size_ex
 	return result;
 
 }
+
 /*                                          */
 
 #ifdef CONFIG_LGE_SMS_PC_TEST
-static void unifiedmsgtool_send_to_arm9(void*	pReq, void* pRsp, int flag)
+static void unifiedmsgtool_send_to_arm9(void *pReq, void *pRsp, int flag)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
+	int rc = -1;
 
 	Open_check();
-	printk(KERN_INFO "%s %s start\n", __func__, (flag==NORMAL_WORK_FLAG)?"[N]":"[WQ]");
+	printk(KERN_INFO "%s %s start\n", __func__,
+	       (flag == NORMAL_WORK_FLAG) ? "[N]" : "[WQ]");
 
 	arg.event = LG_MSG_UNIFIEDMSGTOOL_FROM_ARM11;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = 160;
-	arg.input = (char*)pReq;
+	arg.input = (char *)pReq;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 
 	ret.output = NULL;
 	ret.out_len = NULL;
 
-	rc= oem_rapi_client_streaming_function(client, &arg, &ret);
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
 
-	if (rc < 0)
-	{
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
-		((diag_sms_mode_rsp_type*)pRsp)->ret_stat_code = TEST_FAIL_S;
-		
-	}
-	else
-	{
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)pRsp, arg.output_size);
-		if(rc == LG_RAPI_INVALID_RESPONSE)
-			((diag_sms_mode_rsp_type*)pRsp)->ret_stat_code = TEST_FAIL_S;
+		((diag_sms_mode_rsp_type *) pRsp)->ret_stat_code = TEST_FAIL_S;
+
+	} else {
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    (char *)pRsp,
+							    arg.output_size);
+		if (rc == LG_RAPI_INVALID_RESPONSE)
+			((diag_sms_mode_rsp_type *) pRsp)->ret_stat_code =
+			    TEST_FAIL_S;
 	}
 
 	if (ret.output)
@@ -303,10 +302,11 @@ static void unifiedmsgtool_send_to_arm9(void*	pReq, void* pRsp, int flag)
 	if (ret.out_len)
 		kfree(ret.out_len);
 
-	printk(KERN_INFO "%s %s end\n", __func__, (flag==NORMAL_WORK_FLAG)?"[N]":"[WQ]");
+	printk(KERN_INFO "%s %s end\n", __func__,
+	       (flag == NORMAL_WORK_FLAG) ? "[N]" : "[WQ]");
 }
 
-void unifiedmsgtool_do_send_to_arm9(void*	pReq, void* pRsp)
+void unifiedmsgtool_do_send_to_arm9(void *pReq, void *pRsp)
 {
 	unifiedmsgtool_send_to_arm9(pReq, pRsp, NORMAL_WORK_FLAG);
 }
@@ -314,54 +314,70 @@ void unifiedmsgtool_do_send_to_arm9(void*	pReq, void* pRsp)
 
 /*                                            */
 /* MOD 0014166: [KERNEL] send_to_arm9 work queue */
-static void
-do_send_to_arm9(void*	pReq, void* pRsp, int flag)
+static void do_send_to_arm9(void *pReq, void *pRsp, int flag)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
+	int rc = -1;
 
 	Open_check();
-	printk(KERN_INFO "%s %s start\n", __func__, (flag==NORMAL_WORK_FLAG)?"[N]":"[WQ]");
+	printk(KERN_INFO "%s %s start\n", __func__,
+	       (flag == NORMAL_WORK_FLAG) ? "[N]" : "[WQ]");
 
 	arg.event = LG_FW_TESTMODE_EVENT_FROM_ARM11;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(DIAG_TEST_MODE_F_req_type);
-	arg.input = (char*)pReq;
+	arg.input = (char *)pReq;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 
 	// DIAG_TEST_MODE_F_rsp_type union type is greater than the actual size, decrease it in case sensitive items
-	switch(((DIAG_TEST_MODE_F_req_type*)pReq)->sub_cmd_code)
-	{
-		case TEST_MODE_FACTORY_RESET_CHECK_TEST:
-			arg.output_size = sizeof(DIAG_TEST_MODE_F_rsp_type) - sizeof(test_mode_rsp_type);
-			break;
+	switch (((DIAG_TEST_MODE_F_req_type *) pReq)->sub_cmd_code) {
+	case TEST_MODE_FACTORY_RESET_CHECK_TEST:
+		arg.output_size =
+		    sizeof(DIAG_TEST_MODE_F_rsp_type) -
+		    sizeof(test_mode_rsp_type);
+		break;
 
-		case TEST_MODE_TEST_SCRIPT_MODE:
-			arg.output_size = sizeof(DIAG_TEST_MODE_F_rsp_type) - sizeof(test_mode_rsp_type) + sizeof(test_mode_req_test_script_mode_type);
-			break;
+	case TEST_MODE_TEST_SCRIPT_MODE:
+		arg.output_size =
+		    sizeof(DIAG_TEST_MODE_F_rsp_type) -
+		    sizeof(test_mode_rsp_type) +
+		    sizeof(test_mode_req_test_script_mode_type);
+		break;
 
-		case TEST_MODE_XO_CAL_DATA_COPY:
-			arg.output_size = sizeof(DIAG_TEST_MODE_F_rsp_type) - sizeof(test_mode_rsp_type) + sizeof(test_mode_req_XOCalDataBackup_Type);
-			break;
+	case TEST_MODE_XO_CAL_DATA_COPY:
+		arg.output_size =
+		    sizeof(DIAG_TEST_MODE_F_rsp_type) -
+		    sizeof(test_mode_rsp_type) +
+		    sizeof(test_mode_req_XOCalDataBackup_Type);
+		break;
 
-        case TEST_MODE_MANUAL_TEST_MODE:
-            arg.output_size = sizeof(DIAG_TEST_MODE_F_rsp_type) - sizeof(test_mode_rsp_type) + sizeof(test_mode_req_manual_test_mode_type);
-            break;
+	case TEST_MODE_MANUAL_TEST_MODE:
+		arg.output_size =
+		    sizeof(DIAG_TEST_MODE_F_rsp_type) -
+		    sizeof(test_mode_rsp_type) +
+		    sizeof(test_mode_req_manual_test_mode_type);
+		break;
 
-        case TEST_MODE_BLUETOOTH_RW:
-            arg.output_size = sizeof(DIAG_TEST_MODE_F_rsp_type) - sizeof(test_mode_rsp_type) + sizeof(test_mode_req_bt_addr_type);
-            break;
+	case TEST_MODE_BLUETOOTH_RW:
+		arg.output_size =
+		    sizeof(DIAG_TEST_MODE_F_rsp_type) -
+		    sizeof(test_mode_rsp_type) +
+		    sizeof(test_mode_req_bt_addr_type);
+		break;
 
-        case TEST_MODE_WIFI_MAC_RW:
-            arg.output_size = sizeof(DIAG_TEST_MODE_F_rsp_type) - sizeof(test_mode_rsp_type) + sizeof(test_mode_req_wifi_addr_type);
-            break;
-            
-		default:
-			arg.output_size = sizeof(DIAG_TEST_MODE_F_rsp_type);
-			break;
+	case TEST_MODE_WIFI_MAC_RW:
+		arg.output_size =
+		    sizeof(DIAG_TEST_MODE_F_rsp_type) -
+		    sizeof(test_mode_rsp_type) +
+		    sizeof(test_mode_req_wifi_addr_type);
+		break;
+
+	default:
+		arg.output_size = sizeof(DIAG_TEST_MODE_F_rsp_type);
+		break;
 	}
 
 	ret.output = NULL;
@@ -369,19 +385,20 @@ do_send_to_arm9(void*	pReq, void* pRsp, int flag)
 
 /*                                            */
 /* MOD 0015327: [KERNEL] LG RAPI validity check */
-	rc= oem_rapi_client_streaming_function(client, &arg, &ret);
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
 
-	if (rc < 0)
-	{
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
-		((DIAG_TEST_MODE_F_rsp_type*)pRsp)->ret_stat_code = TEST_FAIL_S;
-		
-	}
-	else
-	{
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)pRsp, arg.output_size);
-		if(rc == LG_RAPI_INVALID_RESPONSE)
-			((DIAG_TEST_MODE_F_rsp_type*)pRsp)->ret_stat_code = TEST_FAIL_S;
+		((DIAG_TEST_MODE_F_rsp_type *) pRsp)->ret_stat_code =
+		    TEST_FAIL_S;
+
+	} else {
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    (char *)pRsp,
+							    arg.output_size);
+		if (rc == LG_RAPI_INVALID_RESPONSE)
+			((DIAG_TEST_MODE_F_rsp_type *) pRsp)->ret_stat_code =
+			    TEST_FAIL_S;
 	}
 /*                                          */
 
@@ -396,7 +413,8 @@ do_send_to_arm9(void*	pReq, void* pRsp, int flag)
 
 /*                                         */
 
-	printk(KERN_INFO "%s %s end\n", __func__, (flag==NORMAL_WORK_FLAG)?"[N]":"[WQ]");
+	printk(KERN_INFO "%s %s end\n", __func__,
+	       (flag == NORMAL_WORK_FLAG) ? "[N]" : "[WQ]");
 }
 
 void wait_for_main_try_finished(void)
@@ -405,18 +423,17 @@ void wait_for_main_try_finished(void)
 #ifdef LOCAL_RAPI_DBG
 	printk(KERN_INFO "%s start\n", __func__);
 #endif
-	do
-	{
-		if(GET_COMPLETE_MAIN()==1)
+	do {
+		if (GET_COMPLETE_MAIN() == 1)
 			break;
-		
+
 		msleep(100);
-		if(++local_cnt > 50)
-		{
-			printk(KERN_ERR "%s wait too long : %d sec\n", __func__, (local_cnt*100/1000));
+		if (++local_cnt > 50) {
+			printk(KERN_ERR "%s wait too long : %d sec\n", __func__,
+			       (local_cnt * 100 / 1000));
 			break;
 		}
-	}while(1);
+	} while (1);
 #ifdef LOCAL_RAPI_DBG
 	printk(KERN_INFO "%s end\n", __func__);
 #endif
@@ -428,70 +445,69 @@ void wait_for_sub_try_finished(void)
 #ifdef LOCAL_RAPI_DBG
 	printk(KERN_INFO "%s start\n", __func__);
 #endif
-	do
-	{
-		if(GET_COMPLETE_SUB()==1)
+	do {
+		if (GET_COMPLETE_SUB() == 1)
 			break;
-		
+
 		msleep(100);
-		if(++local_cnt > 50)
-		{
-			printk(KERN_ERR "%s wait too long : %d sec\n", __func__, (local_cnt*100/1000));
+		if (++local_cnt > 50) {
+			printk(KERN_ERR "%s wait too long : %d sec\n", __func__,
+			       (local_cnt * 100 / 1000));
 			break;
 		}
-	}while(1);
+	} while (1);
 #ifdef LOCAL_RAPI_DBG
 	printk(KERN_INFO "%s end\n", __func__);
 #endif
 }
 
-static void
-send_to_arm9_wq_func(struct work_struct *work)
+static void send_to_arm9_wq_func(struct work_struct *work)
 {
-	printk(KERN_INFO "%s, flag : %d, handle work queue\n", __func__, GET_MUTEX_FLAG() );
+	printk(KERN_INFO "%s, flag : %d, handle work queue\n", __func__,
+	       GET_MUTEX_FLAG());
 	//INCREASE_MUTEX_FLAG(); //increase before getting into the work queue
 	wait_for_main_try_finished();
-	do_send_to_arm9(send_to_arm9_data.pReq, send_to_arm9_data.pRsp, WORK_QUEUE_FLAG);
+	do_send_to_arm9(send_to_arm9_data.pReq, send_to_arm9_data.pRsp,
+			WORK_QUEUE_FLAG);
 	DECREASE_MUTEX_FLAG();
 	SET_COMPLETE_SUB(1);
 	return;
 }
 
-void send_to_arm9(void*	pReq, void* pRsp)
+void send_to_arm9(void *pReq, void *pRsp)
 {
 	// sleep some time to avoid normal and work queue overlap
 	msleep(100);
-	
+
 	// initialize this work queue only once
-	if(send_to_arm9_wq == NULL)
-	{
+	if (send_to_arm9_wq == NULL) {
 		printk(KERN_INFO "%s initialize work queue\n", __func__);
-		send_to_arm9_wq = create_singlethread_workqueue("send_to_arm9_wq");
+		send_to_arm9_wq =
+		    create_singlethread_workqueue("send_to_arm9_wq");
 		INIT_WORK(&send_to_arm9_data.work, send_to_arm9_wq_func);
-		SET_MUTEX_FLAG(0); // initial flag is 0
-		SET_COMPLETE_MAIN(1); // initial complete flag is 1
-		SET_COMPLETE_SUB(1); // initial complete flag is 1
-		
+		SET_MUTEX_FLAG(0);	// initial flag is 0
+		SET_COMPLETE_MAIN(1);	// initial complete flag is 1
+		SET_COMPLETE_SUB(1);	// initial complete flag is 1
+
 	}
 
-       if(GET_MUTEX_FLAG() == 0)
-       {
+	if (GET_MUTEX_FLAG() == 0) {
 #ifdef LOCAL_RAPI_DBG
-       	printk(KERN_INFO "%s, flag : %d, do normal work\n", __func__, GET_MUTEX_FLAG());
+		printk(KERN_INFO "%s, flag : %d, do normal work\n", __func__,
+		       GET_MUTEX_FLAG());
 #endif
-       	INCREASE_MUTEX_FLAG();
+		INCREASE_MUTEX_FLAG();
 		SET_COMPLETE_MAIN(0);
 		wait_for_sub_try_finished();
-        	do_send_to_arm9(pReq, pRsp, NORMAL_WORK_FLAG);
+		do_send_to_arm9(pReq, pRsp, NORMAL_WORK_FLAG);
 		SET_COMPLETE_MAIN(1);
 		DECREASE_MUTEX_FLAG();
-       }
-	else
-	{
+	} else {
 		// hardly ever comes here in normal case.
 		// Previously, it took more than 30 secs for modem factory reset, and this wq was needed at that time
-		printk(KERN_INFO "%s, flag : %d, activate work queue\n", __func__, GET_MUTEX_FLAG());
-		INCREASE_MUTEX_FLAG(); // increase before getting into the work queue
+		printk(KERN_INFO "%s, flag : %d, activate work queue\n",
+		       __func__, GET_MUTEX_FLAG());
+		INCREASE_MUTEX_FLAG();	// increase before getting into the work queue
 		SET_COMPLETE_SUB(0);
 		send_to_arm9_data.pReq = pReq;
 		send_to_arm9_data.pRsp = pRsp;
@@ -501,31 +517,31 @@ void send_to_arm9(void*	pReq, void* pRsp)
 
 	return;
 }
+
 /*                                          */
 
 void set_operation_mode(boolean info)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
+	int rc = -1;
 
 	Open_check();
 
-	arg.event = LG_FW_SET_OPERATION_MODE;	
+	arg.event = LG_FW_SET_OPERATION_MODE;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(boolean);
-	arg.input = (char*) &info;
+	arg.input = (char *)&info;
 	arg.out_len_valid = 0;
 	arg.output_valid = 0;
 	arg.output_size = 0;
 
-	ret.output = (char*) NULL;
+	ret.output = (char *)NULL;
 	ret.out_len = 0;
 
-	rc = oem_rapi_client_streaming_function(client,&arg, &ret);
-	if (rc < 0)
-	{
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
 	}
 
@@ -540,11 +556,11 @@ void set_operation_mode(boolean info)
 
 /*                                         */
 }
+
 EXPORT_SYMBOL(set_operation_mode);
 
-
 #ifdef CONFIG_MACH_MSM7X27_THUNDERC
-void battery_info_get(struct batt_info* resp_buf)
+void battery_info_get(struct batt_info *resp_buf)
 {
 
 	struct oem_rapi_client_streaming_func_arg arg;
@@ -557,53 +573,53 @@ void battery_info_get(struct batt_info* resp_buf)
 
 	arg.event = LG_FW_A2M_BATT_INFO_GET;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = 0;
 	arg.input = NULL;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 	arg.output_size = sizeof(rsp_buf);
 
-	ret.output = (char*)&rsp_buf;
+	ret.output = (char *)&rsp_buf;
 	ret.out_len = &out_len;
 
 	ret_val = oem_rapi_client_streaming_function(client, &arg, &ret);
-	if(ret_val == 0) {
+	if (ret_val == 0) {
 		resp_buf->valid_batt_id = GET_U_INT32(&rsp_buf.valid_batt_id);
 		resp_buf->batt_therm = GET_U_INT32(&rsp_buf.batt_therm);
 		resp_buf->batt_temp = GET_INT32(&rsp_buf.batt_temp);
-	} else { /* In case error */
-		resp_buf->valid_batt_id = 1; /* authenticated battery id */
-		resp_buf->batt_therm = 100;  /* 100 battery therm adc */
-		resp_buf->batt_temp = 30;    /* 30 degree celcius */
+	} else {		/* In case error */
+		resp_buf->valid_batt_id = 1;	/* authenticated battery id */
+		resp_buf->batt_therm = 100;	/* 100 battery therm adc */
+		resp_buf->batt_temp = 30;	/* 30 degree celcius */
 	}
 	return;
 }
+
 EXPORT_SYMBOL(battery_info_get);
 
-void pseudo_batt_info_set(struct pseudo_batt_info_type* info)
+void pseudo_batt_info_set(struct pseudo_batt_info_type *info)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
+	int rc = -1;
 
 	Open_check();
 
 	arg.event = LG_FW_A2M_PSEUDO_BATT_INFO_SET;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(struct pseudo_batt_info_type);
-	arg.input = (char*)info;
+	arg.input = (char *)info;
 	arg.out_len_valid = 0;
 	arg.output_valid = 0;
-	arg.output_size = 0;  /* alloc memory for response */
+	arg.output_size = 0;	/* alloc memory for response */
 
-	ret.output = (char*)NULL;
+	ret.output = (char *)NULL;
 	ret.out_len = 0;
 
 	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
-	if (rc < 0)
-	{
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
 	}
 
@@ -615,32 +631,32 @@ void pseudo_batt_info_set(struct pseudo_batt_info_type* info)
 	if (ret.out_len)
 		kfree(ret.out_len);
 /*                                         */
-	
+
 	return;
 }
+
 EXPORT_SYMBOL(pseudo_batt_info_set);
 void block_charging_set(int bypass)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
+	int rc = -1;
 
 	Open_check();
 	arg.event = LG_FW_A2M_BLOCK_CHARGING_SET;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(int);
-	arg.input = (char*) &bypass;
+	arg.input = (char *)&bypass;
 	arg.out_len_valid = 0;
 	arg.output_valid = 0;
 	arg.output_size = 0;
 
-	ret.output = (char*)NULL;
+	ret.output = (char *)NULL;
 	ret.out_len = 0;
 
-	rc = oem_rapi_client_streaming_function(client,&arg,&ret);
-	if (rc < 0)
-	{
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
 	}
 
@@ -652,31 +668,32 @@ void block_charging_set(int bypass)
 	if (ret.out_len)
 		kfree(ret.out_len);
 /*                                         */
-	
+
 	return;
 }
-EXPORT_SYMBOL(block_charging_set);
-#endif	/* CONFIG_MACH_MSM7X27_THUNDERC */
 
-void msm_get_SW_VER_type(char* sw_ver)
+EXPORT_SYMBOL(block_charging_set);
+#endif /* CONFIG_MACH_MSM7X27_THUNDERC */
+
+void msm_get_SW_VER_type(char *sw_ver)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
 	int rc = -1;
 	char temp[10];
-	memset( temp, 0, 10 );
+	memset(temp, 0, 10);
 
 	Open_check();
 
 	arg.event = LG_FW_SW_VERSION_GET;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
-	
-	arg.in_len = sizeof(temp);
-	arg.input = temp;	
+	arg.handle = (void *)0;
 
-//	arg.in_len = 0;
-//	arg.input = NULL;
+	arg.in_len = sizeof(temp);
+	arg.input = temp;
+
+//      arg.in_len = 0;
+//      arg.input = NULL;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 	arg.output_size = 9;
@@ -685,100 +702,101 @@ void msm_get_SW_VER_type(char* sw_ver)
 	ret.out_len = NULL;
 
 	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
-	if (rc < 0)
-	{
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
-		memset(sw_ver,0,9);
-	}
-	else
-	{
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)sw_ver, arg.output_size);
-		if(rc == LG_RAPI_INVALID_RESPONSE)
-			memset(sw_ver,0,9);
+		memset(sw_ver, 0, 9);
+	} else {
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    (char *)sw_ver,
+							    arg.output_size);
+		if (rc == LG_RAPI_INVALID_RESPONSE)
+			memset(sw_ver, 0, 9);
 		else
 			printk(KERN_INFO "sw_ver from modem : '%s'\n", sw_ver);
 
 	}
 
-	if( ret.output )
-		kfree( ret.output );
-	if( ret.out_len )
-		kfree ( ret.out_len );
+	if (ret.output)
+		kfree(ret.output);
+	if (ret.out_len)
+		kfree(ret.out_len);
 
 	return;
 }
+
 EXPORT_SYMBOL(msm_get_SW_VER_type);
 
-void msm_get_SUB_VER_type( char *sub_ver )
-{
-		struct oem_rapi_client_streaming_func_arg arg;
-		struct oem_rapi_client_streaming_func_ret ret;
-		int rc = -1;
-		char temp[8];
-		memset( temp, 0, 8 );
-	
-		Open_check();
-	
-		arg.event = LG_FW_SUB_VERSION_GET;
-		arg.cb_func = NULL;
-		arg.handle = (void*) 0;
-		
-		arg.in_len = sizeof(temp);
-		arg.input = temp;	
-	
-	//	arg.in_len = 0;
-	//	arg.input = NULL;
-		arg.out_len_valid = 1;
-		arg.output_valid = 1;
-		arg.output_size = 1;
-	
-		ret.output = NULL;
-		ret.out_len = NULL;
-	
-		rc = oem_rapi_client_streaming_function(client, &arg, &ret);
-		if (rc < 0)
-		{
-			pr_err("%s, rapi reqeust failed\r\n", __func__);
-			*sub_ver = 0;
-		}
-		else
-		{
-			rc = lg_rapi_check_validity_and_copy_result((void*)&ret, sub_ver, arg.output_size);
-			if(rc == LG_RAPI_INVALID_RESPONSE)
-				*sub_ver = 0;
-			else
-				printk(KERN_INFO "sw_ver from modem : '%02d'\n", *sub_ver);
-		}
-	
-		if( ret.output )
-			kfree( ret.output );
-		if( ret.out_len )
-			kfree ( ret.out_len );
-	
-		return;
-
-}
-EXPORT_SYMBOL(msm_get_SUB_VER_type);
-
-void msm_get_MEID_type(char* sMeid)
+void msm_get_SUB_VER_type(char *sub_ver)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
-	
+	int rc = -1;
+	char temp[8];
+	memset(temp, 0, 8);
+
+	Open_check();
+
+	arg.event = LG_FW_SUB_VERSION_GET;
+	arg.cb_func = NULL;
+	arg.handle = (void *)0;
+
+	arg.in_len = sizeof(temp);
+	arg.input = temp;
+
+	//      arg.in_len = 0;
+	//      arg.input = NULL;
+	arg.out_len_valid = 1;
+	arg.output_valid = 1;
+	arg.output_size = 1;
+
+	ret.output = NULL;
+	ret.out_len = NULL;
+
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
+	if (rc < 0) {
+		pr_err("%s, rapi reqeust failed\r\n", __func__);
+		*sub_ver = 0;
+	} else {
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    sub_ver,
+							    arg.output_size);
+		if (rc == LG_RAPI_INVALID_RESPONSE)
+			*sub_ver = 0;
+		else
+			printk(KERN_INFO "sw_ver from modem : '%02d'\n",
+			       *sub_ver);
+	}
+
+	if (ret.output)
+		kfree(ret.output);
+	if (ret.out_len)
+		kfree(ret.out_len);
+
+	return;
+
+}
+
+EXPORT_SYMBOL(msm_get_SUB_VER_type);
+
+void msm_get_MEID_type(char *sMeid)
+{
+	struct oem_rapi_client_streaming_func_arg arg;
+	struct oem_rapi_client_streaming_func_ret ret;
+	int rc = -1;
+
 	char temp[16];
-	memset(temp,0,16); // passing argument 2 of 'memset' makes integer from pointer without a cast, change NULL to 0
-	
+	memset(temp, 0, 16);	// passing argument 2 of 'memset' makes integer from pointer without a cast, change NULL to 0
+
 	Open_check();
 
 	arg.event = LG_FW_MEID_GET;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	//FIX ME : RPC_ACCEPTSTAT_GARBAGE_ARGS rpc fail
 	arg.in_len = sizeof(temp);
 	arg.input = temp;
-//	arg.in_len = 0;
-//	arg.input = NULL;
+//      arg.in_len = 0;
+//      arg.input = NULL;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 	arg.output_size = 10;
@@ -789,16 +807,13 @@ void msm_get_MEID_type(char* sMeid)
 /*                                            */
 /* MOD 0015327: [KERNEL] LG RAPI validity check */
 	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
-	if (rc < 0)
-	{
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
-		memset(sMeid,0,9);
-	}
-	else
-	{
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)sMeid, 9); // returned imei size is 9
-		if(rc == LG_RAPI_INVALID_RESPONSE)
-			memset(sMeid,0,9);
+		memset(sMeid, 0, 9);
+	} else {
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret, (char *)sMeid, 9);	// returned imei size is 9
+		if (rc == LG_RAPI_INVALID_RESPONSE)
+			memset(sMeid, 0, 9);
 		else
 			printk(KERN_INFO "IMEI from modem nv : '%s'\n", sMeid);
 	}
@@ -813,50 +828,51 @@ void msm_get_MEID_type(char* sMeid)
 		kfree(ret.out_len);
 /*                                         */
 
-	return;  
+	return;
 }
 
 EXPORT_SYMBOL(msm_get_MEID_type);
 
 #ifdef CONFIG_LGE_DIAG_ERI
-int eri_send_to_arm9(void* pReq, void* pRsp, unsigned int output_length)
+int eri_send_to_arm9(void *pReq, void *pRsp, unsigned int output_length)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-//	int result; 
-	
+//      int result; 
+
 	Open_check();
-	
-	printk(KERN_ERR "%s,LG_FW_RAPI_ERI_DIAG_WRITE : %d \n",__func__, LG_FW_RAPI_ERI_DIAG_WRITE);
-	printk(KERN_ERR "%s, output_length : %d\n",__func__, output_length );
+
+	printk(KERN_ERR "%s,LG_FW_RAPI_ERI_DIAG_WRITE : %d \n", __func__,
+	       LG_FW_RAPI_ERI_DIAG_WRITE);
+	printk(KERN_ERR "%s, output_length : %d\n", __func__, output_length);
 	arg.event = LG_FW_RAPI_ERI_DIAG_WRITE;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(eri_write_req_type);
-	arg.input = (char*)pReq;
+	arg.input = (char *)pReq;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 	arg.output_size = output_length;
 
 	ret.output = NULL;
 	ret.out_len = NULL;
-	
-	oem_rapi_client_streaming_function(client, &arg, &ret);
-	printk(KERN_ERR "%s, finished OEM_RAPI\n",__func__);
-	printk(KERN_ERR "%s, ret.out_len : %d\n",__func__, *ret.out_len);	
 
-	if(ret.output == NULL || ret.out_len == NULL){
-		printk(KERN_ERR "%s, output is NULL\n",__func__);
+	oem_rapi_client_streaming_function(client, &arg, &ret);
+	printk(KERN_ERR "%s, finished OEM_RAPI\n", __func__);
+	printk(KERN_ERR "%s, ret.out_len : %d\n", __func__, *ret.out_len);
+
+	if (ret.output == NULL || ret.out_len == NULL) {
+		printk(KERN_ERR "%s, output is NULL\n", __func__);
 		return -1;
 	} else {
-		memcpy(pRsp,ret.output,*ret.out_len);
+		memcpy(pRsp, ret.output, *ret.out_len);
 		return 0;
 	}
 
 	return 0;
-	
-	
+
 }
+
 EXPORT_SYMBOL(eri_send_to_arm9);
 #endif
 
@@ -864,25 +880,24 @@ EXPORT_SYMBOL(eri_send_to_arm9);
 #ifdef CONFIG_LGE_ERI_DOWNLOAD
 #define ERI_FILE_PATH 	"/data/eri/eri.bin"
 char eri_data[1400];
-extern int eri_factory_direct_write(const char *path , char* eri_data, int size );
+extern int eri_factory_direct_write(const char *path, char *eri_data, int size);
 
 void remote_eri_rpc(void)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
-	int errCount=0;
-	int file_size=0;
+	int rc = -1;
+	int errCount = 0;
+	int file_size = 0;
 	char fs_err_buf[20];
 
 	memset(fs_err_buf, 0, sizeof(fs_err_buf));
 	Open_check();
 
-	do
-	{
+	do {
 		arg.event = LGE_REQUEST_ERI_RPC;
 		arg.cb_func = NULL;
-		arg.handle = (void*) 0;
+		arg.handle = (void *)0;
 		arg.in_len = sizeof(fs_err_buf);
 		arg.input = fs_err_buf;
 		arg.out_len_valid = 1;
@@ -892,28 +907,29 @@ void remote_eri_rpc(void)
 		ret.output = NULL;
 		ret.out_len = NULL;
 
-		rc = oem_rapi_client_streaming_function(client,&arg,&ret);
+		rc = oem_rapi_client_streaming_function(client, &arg, &ret);
 
 		memset(fs_err_buf, 0, sizeof(fs_err_buf));
 		//if ((rc < 0) || (GET_INT32(ret.output) <=0))
 		if (rc < 0)
 			pr_err("%s error \r\n", __func__);
-		else
-		{
-			pr_info("%s succeeded, file size : %s\r\n",__func__, fs_err_to_string(GET_INT32(ret.output), fs_err_buf));
-			pr_info("%s succeeded\r\n",__func__);
+		else {
+			pr_info("%s succeeded, file size : %s\r\n", __func__,
+				fs_err_to_string(GET_INT32(ret.output),
+						 fs_err_buf));
+			pr_info("%s succeeded\r\n", __func__);
 		}
-	}while (rc < 0 && errCount++ < 3);
+	} while (rc < 0 && errCount++ < 3);
 
-	if(ret.output == NULL || ret.out_len == NULL){ 
-		printk(KERN_ERR "%s, output is NULL\n",__func__);
+	if (ret.output == NULL || ret.out_len == NULL) {
+		printk(KERN_ERR "%s, output is NULL\n", __func__);
 		return;
 	}
 	memcpy((void *)eri_data, ret.output, *ret.out_len);
-	file_size=(int)*ret.out_len;
+	file_size = (int)*ret.out_len;
 	//memcpy((void *)dest, psrc->output, *(psrc->out_len));
 
-	eri_factory_direct_write(ERI_FILE_PATH, (char *)&eri_data,file_size );
+	eri_factory_direct_write(ERI_FILE_PATH, (char *)&eri_data, file_size);
 
 /*                                            */
 /* MOD 0014591: [LG_RAPI] rpc request heap leakage bug fix */
@@ -923,44 +939,44 @@ void remote_eri_rpc(void)
 	if (ret.out_len)
 		kfree(ret.out_len);
 /*                                         */
-	
+
 	return;
 }
+
 EXPORT_SYMBOL(remote_eri_rpc);
 #endif
 /*                                          */
 
 //                                                    
 #ifdef CONFIG_LGE_DID_BACKUP
-unsigned char pbuf_emmc[192]; // size of test_mode_emmc_direct_type
-unsigned char pbuf_emmc2[192]; // 
+unsigned char pbuf_emmc[192];	// size of test_mode_emmc_direct_type
+unsigned char pbuf_emmc2[192];	// 
 void remote_did_rpc(void)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
-	
+	int rc = -1;
+
 	//int file_size=0;
 	char fs_err_buf[20];
 	//test_mode_emmc_direct_type did_info;
 
-	const MmcPartition *pMisc_part; 
-	unsigned int did_bytes_pos_in_emmc ;
-	 int mtd_op_result ;
-	
+	const MmcPartition *pMisc_part;
+	unsigned int did_bytes_pos_in_emmc;
+	int mtd_op_result;
 
-	printk(KERN_ERR "%s, start OEM_RAPI\n",__func__);
+	printk(KERN_ERR "%s, start OEM_RAPI\n", __func__);
 	//memset(&did_info,0x0,sizeof(test_mode_emmc_direct_type));
-	
+
 	//memset(fs_err_buf, 0, sizeof(fs_err_buf));
 
 	Open_check();
 
 	arg.event = LG_FW_DID_BACKUP_REQUEST;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
-	arg.in_len =  sizeof(fs_err_buf);
-	arg.input =fs_err_buf;
+	arg.handle = (void *)0;
+	arg.in_len = sizeof(fs_err_buf);
+	arg.input = fs_err_buf;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 	arg.output_size = sizeof(pbuf_emmc);
@@ -968,50 +984,48 @@ void remote_did_rpc(void)
 	ret.output = NULL;
 	ret.out_len = NULL;
 
-	rc = oem_rapi_client_streaming_function(client,&arg,&ret);
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
 
-	if(ret.output == NULL || ret.out_len == NULL){ 
-		printk(KERN_ERR "%s, output is NULL\n",__func__);
+	if (ret.output == NULL || ret.out_len == NULL) {
+		printk(KERN_ERR "%s, output is NULL\n", __func__);
 		return;
-	}	
+	}
 
-	printk(KERN_ERR "%s, output lenght =%dis\n",__func__,*ret.out_len);	
+	printk(KERN_ERR "%s, output lenght =%dis\n", __func__, *ret.out_len);
 	//memcpy(&did_info, ret.output, *ret.out_len);
-	memcpy((void *)&pbuf_emmc2[0], ret.output, 192);  //form modem  length =192
+	memcpy((void *)&pbuf_emmc2[0], ret.output, 192);	//form modem  length =192
 
 //===================== emmc wirte routine =======================
-	printk(KERN_ERR "%s, lge_mmc_scan_partitions\n",__func__);  
+	printk(KERN_ERR "%s, lge_mmc_scan_partitions\n", __func__);
 	rc = lge_mmc_scan_partitions();
 	if (rc < 0) {
 		printk(KERN_ERR "%s couldn't scan the partition\n", __func__);
-		return ;
+		return;
 	}
 
 	pMisc_part = lge_mmc_find_partition_by_name("misc");
-	printk(KERN_ERR "%s, lge_mmc_find_partition_by_name\n",__func__);  
-	if (pMisc_part ==NULL)
-	{
+	printk(KERN_ERR "%s, lge_mmc_find_partition_by_name\n", __func__);
+	if (pMisc_part == NULL) {
 		if (ret.output)
-		kfree(ret.output);
+			kfree(ret.output);
 		if (ret.out_len)
-		kfree(ret.out_len);
-		return ; 
+			kfree(ret.out_len);
+		return;
 	}
-	
-	did_bytes_pos_in_emmc = (pMisc_part->dfirstsec)*512+0x300000;  //3M 
-	memset((void *)pbuf_emmc, 0, sizeof(pbuf_emmc));  
-	
+
+	did_bytes_pos_in_emmc = (pMisc_part->dfirstsec) * 512 + 0x300000;	//3M 
+	memset((void *)pbuf_emmc, 0, sizeof(pbuf_emmc));
+
 	mtd_op_result = lge_read_block(did_bytes_pos_in_emmc, pbuf_emmc, 192);
 	//printk(KERN_ERR "%s,lge_read_block\n",__func__);  
 	//if(memcmp((void *)pbuf_emmc,(void *)ret.output, sizeof(pbuf_emmc)) != 0) 
-	if(memcmp((void *)pbuf_emmc,(void *)pbuf_emmc2, sizeof(pbuf_emmc)) != 0) 
-	{
-	  //printk(KERN_ERR "%s,lge_write_block0\n",__func__);  
-	  lge_write_block(did_bytes_pos_in_emmc, pbuf_emmc2, 192);	
-	 // printk(KERN_ERR "%s,lge_write_block1\n",__func__);  
+	if (memcmp((void *)pbuf_emmc, (void *)pbuf_emmc2, sizeof(pbuf_emmc)) !=
+	    0) {
+		//printk(KERN_ERR "%s,lge_write_block0\n",__func__);  
+		lge_write_block(did_bytes_pos_in_emmc, pbuf_emmc2, 192);
+		// printk(KERN_ERR "%s,lge_write_block1\n",__func__);  
 	}
-
-//=============================================================			
+//=============================================================                 
 
 /*                                            */
 /* MOD 0014591: [LG_RAPI] rpc request heap leakage bug fix */
@@ -1021,9 +1035,10 @@ void remote_did_rpc(void)
 	if (ret.out_len)
 		kfree(ret.out_len);
 /*                                         */
-	
+
 	return;
 }
+
 EXPORT_SYMBOL(remote_did_rpc);
 #endif
 
@@ -1033,11 +1048,11 @@ int msm_get_manual_test_mode(void)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
+	int rc = -1;
 	char temp;
 
 	char output[4];
-	memset(output,0,4);
+	memset(output, 0, 4);
 
 	Open_check();
 
@@ -1048,9 +1063,9 @@ int msm_get_manual_test_mode(void)
 
 	arg.event = LG_FW_MANUAL_TEST_MODE;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(temp);
-	arg.input = (char*)&temp;
+	arg.input = (char *)&temp;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 	arg.output_size = 4;
@@ -1059,21 +1074,21 @@ int msm_get_manual_test_mode(void)
 	ret.out_len = NULL;
 
 	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
-	
+
 /*                                            */
 /* MOD 0015327: [KERNEL] LG RAPI validity check */
-	if (rc < 0)
-	{
+	if (rc < 0) {
 		pr_err("%s error \r\n", __func__);
-		memset(output,0,4);
-	}
-	else
-	{
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)output, arg.output_size);
-		if(rc == LG_RAPI_INVALID_RESPONSE)
-			memset(output,0,4);
+		memset(output, 0, 4);
+	} else {
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    (char *)output,
+							    arg.output_size);
+		if (rc == LG_RAPI_INVALID_RESPONSE)
+			memset(output, 0, 4);
 		else
-			printk(KERN_INFO "MANUAL_TEST_MODE nv : %c\n", output[0]);
+			printk(KERN_INFO "MANUAL_TEST_MODE nv : %c\n",
+			       output[0]);
 	}
 /*                                          */
 
@@ -1082,11 +1097,12 @@ int msm_get_manual_test_mode(void)
 	if (ret.out_len)
 		kfree(ret.out_len);
 
-	if(output[0] == 0x31)
+	if (output[0] == 0x31)
 		return 1;
 	else
 		return 0;
 }
+
 EXPORT_SYMBOL(msm_get_manual_test_mode);
 #endif
 
@@ -1095,8 +1111,8 @@ void msm_rw_felica(uint32_t event, uint8_t is_write, char *buf, uint32_t len)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
-	char input[32] = {0,};
+	int rc = -1;
+	char input[32] = { 0, };
 
 	Open_check();
 
@@ -1111,16 +1127,15 @@ void msm_rw_felica(uint32_t event, uint8_t is_write, char *buf, uint32_t len)
 	arg.cb_func = NULL;
 	arg.handle = NULL;
 
-	if (is_write == TRUE) // WRITE
+	if (is_write == TRUE)	// WRITE
 	{
-		memcpy(input+1, buf, len);
+		memcpy(input + 1, buf, len);
 		arg.in_len = 1 + len;
 		arg.input = input;
 		arg.out_len_valid = 0;
 		arg.output_valid = 0;
 		arg.output_size = 0;
-	}
-	else // READ
+	} else			// READ
 	{
 		arg.in_len = 1;
 		arg.input = input;
@@ -1134,23 +1149,23 @@ void msm_rw_felica(uint32_t event, uint8_t is_write, char *buf, uint32_t len)
 
 	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
 
-	if (rc < 0)
-	{
+	if (rc < 0) {
 		pr_err("%s error \r\n", __func__);
 		memset(buf, 0, len);
-	}
-	else if (is_write == FALSE);
+	} else if (is_write == FALSE) ;
 	{
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)buf, arg.output_size);
-		if(rc == LG_RAPI_INVALID_RESPONSE)
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    (char *)buf,
+							    arg.output_size);
+		if (rc == LG_RAPI_INVALID_RESPONSE)
 			memset(buf, 0, len);
 
 		pr_info("%s: output_size(%d)\n", __func__, arg.output_size);
 		{
 			int i;
-			for (i = 0; i < arg.output_size; i++)
-			{
-				pr_info("%s: output[i] = 0x%02X\n", __func__, buf[i]);
+			for (i = 0; i < arg.output_size; i++) {
+				pr_info("%s: output[i] = 0x%02X\n", __func__,
+					buf[i]);
 			}
 		}
 	}
@@ -1160,21 +1175,24 @@ void msm_rw_felica(uint32_t event, uint8_t is_write, char *buf, uint32_t len)
 	if (ret.out_len)
 		kfree(ret.out_len);
 }
+
 EXPORT_SYMBOL(msm_rw_felica);
 
 #define RW_ANNOYING_FLC_FAIL -1
 #define RW_ANNOYING_FLC_NOT_ACTIVE 0
 #define ANNOYING_FLC_NOT_ACTIVE_MARK (0xDEAD)
 
-int msm_rw_annoying_flc(uint32_t event, uint8_t is_write, char *buf, uint32_t len)
+int msm_rw_annoying_flc(uint32_t event, uint8_t is_write, char *buf,
+			uint32_t len)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
-	char input[32] = {0,};
+	int rc = -1;
+	char input[32] = { 0, };
 	int result = 0;
 
-	pr_info("%s, event:%d, buf:0x%x, len:%d \n", __func__, event, (unsigned int)buf, len);
+	pr_info("%s, event:%d, buf:0x%x, len:%d \n", __func__, event,
+		(unsigned int)buf, len);
 	pr_info("checking current rpc status...  \n");
 
 	Open_check();
@@ -1194,18 +1212,17 @@ int msm_rw_annoying_flc(uint32_t event, uint8_t is_write, char *buf, uint32_t le
 	arg.cb_func = NULL;
 	arg.handle = NULL;
 
-	if (is_write == TRUE) // WRITE
+	if (is_write == TRUE)	// WRITE
 	{
 		pr_info("write case ...  \n");
 
-		memcpy(input+1, buf, len);
+		memcpy(input + 1, buf, len);
 		arg.in_len = 1 + len;
 		arg.input = input;
 		arg.out_len_valid = 0;
 		arg.output_valid = 0;
 		arg.output_size = 0;
-	}
-	else // READ
+	} else			// READ
 	{
 		pr_info("read case ...  \n");
 
@@ -1222,8 +1239,7 @@ int msm_rw_annoying_flc(uint32_t event, uint8_t is_write, char *buf, uint32_t le
 	pr_info("call oem_rapi_client_streaming_function ...  \n");
 	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
 
-	if (rc < 0)
-	{
+	if (rc < 0) {
 		pr_err("oem_rapi_client_streaming_function error \n");
 		memset(buf, 0, len);
 		result = RW_ANNOYING_FLC_FAIL;
@@ -1232,63 +1248,61 @@ int msm_rw_annoying_flc(uint32_t event, uint8_t is_write, char *buf, uint32_t le
 
 	pr_info("call oem_rapi_client_streaming_function ... OK \n");
 
-	if (is_write == FALSE)
-	{
+	if (is_write == FALSE) {
 		pr_info("in read case, validate result and copy ...  \n");
 
-		if( ret.out_len != NULL && (*ret.out_len) == ANNOYING_FLC_NOT_ACTIVE_MARK )
-		{
+		if (ret.out_len != NULL
+		    && (*ret.out_len) == ANNOYING_FLC_NOT_ACTIVE_MARK) {
 			pr_info("NV not activated ..\n");
 			memset(buf, 0, len);
 			result = RW_ANNOYING_FLC_NOT_ACTIVE;
 			goto msm_rw_annoying_flc_fin;
 		}
-    
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)buf, arg.output_size);
 
-		switch( rc )
-		{
-			case LG_RAPI_OVER_UNDER_FLOW:
-				pr_info("LG_RAPI_OVER_UNDER_FLOW happened.. \n");
-				result = len;
-				break;
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    (char *)buf,
+							    arg.output_size);
 
-			case LG_RAPI_SUCCESS:
-				pr_info("LG_RAPI_SUCCESS.. \n");
-				result = len;
-				break;
+		switch (rc) {
+		case LG_RAPI_OVER_UNDER_FLOW:
+			pr_info("LG_RAPI_OVER_UNDER_FLOW happened.. \n");
+			result = len;
+			break;
 
-			case LG_RAPI_INVALID_RESPONSE:
-			default:
-				pr_info("LG_RAPI_INVALID_RESPONSE .. \n");
-				memset(buf, 0, len);
-				result = RW_ANNOYING_FLC_FAIL;
-				goto msm_rw_annoying_flc_fin;
+		case LG_RAPI_SUCCESS:
+			pr_info("LG_RAPI_SUCCESS.. \n");
+			result = len;
+			break;
 
-				break;
+		case LG_RAPI_INVALID_RESPONSE:
+		default:
+			pr_info("LG_RAPI_INVALID_RESPONSE .. \n");
+			memset(buf, 0, len);
+			result = RW_ANNOYING_FLC_FAIL;
+			goto msm_rw_annoying_flc_fin;
+
+			break;
 		}
-	}
-	else
-	{
+	} else {
 		pr_info("in write case.. \n");
 		result = len;
 	}
 
 msm_rw_annoying_flc_fin:
-	if (ret.output)
-	{
+	if (ret.output) {
 		pr_info("free ret.output : 0x%x \n", (unsigned int)ret.output);
 		kfree(ret.output);
 	}
 
-	if (ret.out_len)
-	{
-		pr_info("free ret.out_len : 0x%x \n", (unsigned int)ret.out_len);
+	if (ret.out_len) {
+		pr_info("free ret.out_len : 0x%x \n",
+			(unsigned int)ret.out_len);
 		kfree(ret.out_len);
 	}
 
 	return result;
 }
+
 EXPORT_SYMBOL(msm_rw_annoying_flc);
 #endif
 
@@ -1300,190 +1314,187 @@ int remote_rpc_request(uint32_t command)
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
 	char output[4];
-	int rc= -1;
+	int rc = -1;
 	int request_cmd = command;
 
 	Open_check();
 	arg.event = LGE_RPC_HANDLE_REQUEST;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(request_cmd);
-	arg.input = (char*)&request_cmd;
+	arg.input = (char *)&request_cmd;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 	arg.output_size = sizeof(output);
 
-	ret.output = (char*)NULL;
+	ret.output = (char *)NULL;
 	ret.out_len = 0;
 
-	rc = oem_rapi_client_streaming_function(client,&arg,&ret);
-	if (rc < 0)
-	{
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
-	}
-	else
-	{
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)output, arg.output_size);
-		if(rc == LG_RAPI_INVALID_RESPONSE)
-			memset(output,0,sizeof(output));
-		
-		switch(command)
-		{
+	} else {
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    (char *)output,
+							    arg.output_size);
+		if (rc == LG_RAPI_INVALID_RESPONSE)
+			memset(output, 0, sizeof(output));
+
+		switch (command) {
 #ifdef CONFIG_LGE_SYNC_CMD
-			case LGE_SYNC_REQUEST:
-				pr_info("%s, sync retry count : %d\r\n", __func__, GET_INT32(output));
-				if(rc != LG_RAPI_SUCCESS)
-					rc = -1;
-				break;
-#endif			
-			default :
-				break;
+		case LGE_SYNC_REQUEST:
+			pr_info("%s, sync retry count : %d\r\n", __func__,
+				GET_INT32(output));
+			if (rc != LG_RAPI_SUCCESS)
+				rc = -1;
+			break;
+#endif
+		default:
+			break;
 		}
 	}
-	
+
 	if (ret.output)
 		kfree(ret.output);
 	if (ret.out_len)
 		kfree(ret.out_len);
-	
+
 	return rc;
 }
 #endif /*                       */
 /*                                          */
 
-
-#ifdef CONFIG_LGE_DLOAD_SRD 
-void remote_rpc_srd_cmmand(void*pReq, void* pRsp )  //kabjoo.choi
+#ifdef CONFIG_LGE_DLOAD_SRD
+void remote_rpc_srd_cmmand(void *pReq, void *pRsp)	//kabjoo.choi
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
 	//char output[4];
-	int rc= -1;
+	int rc = -1;
 	//int request_cmd = command;
 
 	Open_check();
 	arg.event = LG_FW_REQUEST_SRD_RPC;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(udbp_req_type);
-	arg.input = (char*)pReq;
+	arg.input = (char *)pReq;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 	arg.output_size = sizeof(udbp_rsp_type);
 
-	ret.output = (char*)NULL;
+	ret.output = (char *)NULL;
 	ret.out_len = 0;
 
-	rc = oem_rapi_client_streaming_function(client,&arg,&ret);
-	if (rc < 0)
-	{
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
-		((udbp_rsp_type*)pRsp)->header.err_code = UDBU_ERROR_CANNOT_COMPLETE;
-		
+		((udbp_rsp_type *) pRsp)->header.err_code =
+		    UDBU_ERROR_CANNOT_COMPLETE;
+
 	}
 
-	
-	else
-	{
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)pRsp, arg.output_size);
-		if(rc == LG_RAPI_INVALID_RESPONSE)
-			((udbp_rsp_type*)pRsp)->header.err_code = UDBU_ERROR_CANNOT_COMPLETE;
+	else {
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    (char *)pRsp,
+							    arg.output_size);
+		if (rc == LG_RAPI_INVALID_RESPONSE)
+			((udbp_rsp_type *) pRsp)->header.err_code =
+			    UDBU_ERROR_CANNOT_COMPLETE;
 	}
-
 
 	if (ret.output)
 		kfree(ret.output);
 	if (ret.out_len)
 		kfree(ret.out_len);
-	
-	return ;
-}
-EXPORT_SYMBOL(remote_rpc_srd_cmmand);
-#endif 
 
-#ifdef CONFIG_LGE_KERNEL_ROOTING_NV_INTERFACE   //kabjoo.choi
-void remote_rpc_rooting_nv_cmmand( char nv_data)  
+	return;
+}
+
+EXPORT_SYMBOL(remote_rpc_srd_cmmand);
+#endif
+
+#ifdef CONFIG_LGE_KERNEL_ROOTING_NV_INTERFACE	//kabjoo.choi
+void remote_rpc_rooting_nv_cmmand(char nv_data)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	
-	int rc= -1;
+
+	int rc = -1;
 	char request_cmd = nv_data;
 
 	Open_check();
 	arg.event = OEM_RAPI_CLIENT_SET_ROOTING_NV_FROM_KERNEL;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(request_cmd);
-	arg.input = (char*)&request_cmd;
+	arg.input = (char *)&request_cmd;
 	arg.out_len_valid = 0;
 	arg.output_valid = 0;
 	arg.output_size = 0;
 
-	ret.output = (char*)NULL;
+	ret.output = (char *)NULL;
 	ret.out_len = 0;
 
-	rc = oem_rapi_client_streaming_function(client,&arg,&ret);
-	if (rc < 0)
-	{
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
 	}
-	
-	
+
 	if (ret.output)
 		kfree(ret.output);
 	if (ret.out_len)
 		kfree(ret.out_len);
-	
-//	return rc;
-	
+
+//      return rc;
+
 }
+
 EXPORT_SYMBOL(remote_rpc_rooting_nv_cmmand);
-#endif 
+#endif
 
 // LG_FW : 2011.07.07 moon.yongho : saving webdload status variable to eMMC. ----------[[
-#ifdef LG_FW_WEB_DOWNLOAD	
-void webDload_rpc_srd_cmmand(void*pReq, void* pRsp ) 
+#ifdef LG_FW_WEB_DOWNLOAD
+void webDload_rpc_srd_cmmand(void *pReq, void *pRsp)
 {
 	struct oem_rapi_client_streaming_func_arg arg;
 	struct oem_rapi_client_streaming_func_ret ret;
-	int rc= -1;
+	int rc = -1;
 
 	Open_check();
 	arg.event = LG_FW_WEB_DLOAD_STATUS;
 	arg.cb_func = NULL;
-	arg.handle = (void*) 0;
+	arg.handle = (void *)0;
 	arg.in_len = sizeof(diag_webdload_req_type);
-	arg.input = (char*)pReq;
+	arg.input = (char *)pReq;
 	arg.out_len_valid = 1;
 	arg.output_valid = 1;
 	arg.output_size = sizeof(diag_webdload_rsp_type);
 
-	ret.output = (char*)NULL;
+	ret.output = (char *)NULL;
 	ret.out_len = 0;
 
-	rc = oem_rapi_client_streaming_function(client,&arg,&ret);
-	if (rc < 0)
-	{
+	rc = oem_rapi_client_streaming_function(client, &arg, &ret);
+	if (rc < 0) {
 		pr_err("%s, rapi reqeust failed\r\n", __func__);
-		((diag_webdload_rsp_type*)pRsp)->success = FALSE;
-		
-	}
-	else
-	{
-		rc = lg_rapi_check_validity_and_copy_result((void*)&ret, (char*)pRsp, arg.output_size);
-		if(rc == LG_RAPI_INVALID_RESPONSE)
-			((diag_webdload_rsp_type*)pRsp)->success = FALSE;
-	}
+		((diag_webdload_rsp_type *) pRsp)->success = FALSE;
 
+	} else {
+		rc = lg_rapi_check_validity_and_copy_result((void *)&ret,
+							    (char *)pRsp,
+							    arg.output_size);
+		if (rc == LG_RAPI_INVALID_RESPONSE)
+			((diag_webdload_rsp_type *) pRsp)->success = FALSE;
+	}
 
 	if (ret.output)
 		kfree(ret.output);
 	if (ret.out_len)
 		kfree(ret.out_len);
-	
-	return ;
+
+	return;
 }
-EXPORT_SYMBOL(webDload_rpc_srd_cmmand);	
-#endif /*LG_FW_WEB_DOWNLOAD*/	
+
+EXPORT_SYMBOL(webDload_rpc_srd_cmmand);
+#endif /*LG_FW_WEB_DOWNLOAD */
 // LG_FW : 2011.07.07 moon.yongho -----------------------------------------------------]]

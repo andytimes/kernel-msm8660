@@ -23,17 +23,17 @@
 #define ICODEC_HEADSET_MN_RX	3
 #define ICODEC_SPEAKER_RX	4
 //                                                  
-#define ICODEC_HEADSET_ST_RX_SPEAKER_RX 5   //simultaneously Ringing Headset and SPK
-#define ICODEC_TTY_RX 6 // TTY
-#define ICODEC_SPEAKER_PLAYBACK_RX  7 // Playback not call
-#define ICODEC_HEADSET_ST_PLAYBACK_RX  8 // Playback not call
+#define ICODEC_HEADSET_ST_RX_SPEAKER_RX 5	//simultaneously Ringing Headset and SPK
+#define ICODEC_TTY_RX 6		// TTY
+#define ICODEC_SPEAKER_PLAYBACK_RX  7	// Playback not call
+#define ICODEC_HEADSET_ST_PLAYBACK_RX  8	// Playback not call
 //                                                 
-#define ICODEC_SPEAKER_PLAYBACK_VZWNAVI  9 // Playback not call
+#define ICODEC_SPEAKER_PLAYBACK_VZWNAVI  9	// Playback not call
 
 /* interface for platform data while initializing wm9093 as platform device */
 typedef struct {
 	u8 wmaddress;
-    u16 wmdata;	
+	u16 wmdata;
 } wmCodecCmd;
 
 /* following information is for initializing platform device */
@@ -47,20 +47,20 @@ struct wm9093_platform_data {
 	struct wm9093_CodecCmd_data speaker_on;
 	struct wm9093_CodecCmd_data hph_on;
 //                                                  
-	struct wm9093_CodecCmd_data hph_spk_on; // simultaneously Ringing Headset and SPK
-    struct wm9093_CodecCmd_data tty_on; // TTY 
-	struct wm9093_CodecCmd_data speaker_playback_on;    // not call
-	struct wm9093_CodecCmd_data hph_playback_on;    // not call
+	struct wm9093_CodecCmd_data hph_spk_on;	// simultaneously Ringing Headset and SPK
+	struct wm9093_CodecCmd_data tty_on;	// TTY 
+	struct wm9093_CodecCmd_data speaker_playback_on;	// not call
+	struct wm9093_CodecCmd_data hph_playback_on;	// not call
 //                                                 
-	struct wm9093_CodecCmd_data speaker_vzwnavi_on;    // not call
+	struct wm9093_CodecCmd_data speaker_vzwnavi_on;	// not call
 	struct wm9093_CodecCmd_data power_down;
 #ifdef CONFIG_LGE_AUDIO_WM9093_POPNOISE
-	struct wm9093_CodecCmd_data headset_pre;     // for elimiating Headset pop noise
-	struct wm9093_CodecCmd_data headset_speaker_pre; // for elimationg headset pop noise
+	struct wm9093_CodecCmd_data headset_pre;	// for elimiating Headset pop noise
+	struct wm9093_CodecCmd_data headset_speaker_pre;	// for elimationg headset pop noise
 #endif
-	void (*set_amp_path)(int icodec_num); /* callback function which is initialized while probing */
-	void (*wm9093_cmd_register)(wmCodecCmd wmCmd); /* callback function which is initialized while probing */
-	void (*wm9093_reg_dump)(int icodec_num); /* callback function which is initialized while probing */
+	void (*set_amp_path) (int icodec_num);	/* callback function which is initialized while probing */
+	void (*wm9093_cmd_register) (wmCodecCmd wmCmd);	/* callback function which is initialized while probing */
+	void (*wm9093_reg_dump) (int icodec_num);	/* callback function which is initialized while probing */
 	int bTuningOnOff;
 };
 

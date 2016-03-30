@@ -25,7 +25,7 @@
 
 /*                                                    */
 enum {
-	EVB1         = 0,
+	EVB1 = 0,
 	EVB2,
 	LGE_REV_A,
 	LGE_REV_B,
@@ -37,7 +37,7 @@ enum {
 	LGE_REV_10,
 	LGE_REV_11,
 	LGE_REV_12,
-#if 1 /*                                                              */
+#if 1				/*                                                              */
 	LGE_REV_13,
 	LGE_REV_14,
 	LGE_REV_15,
@@ -88,9 +88,9 @@ extern int lge_battery_info;
 #define SENSOR_POWER_OFF_VALID	0x7
 
 enum {
-	SENSOR_TYPE_ACCELEROMETER = 0, 	//K3DH
-	SENSOR_TYPE_DCOMPASS,		//AMI306
-	SENSOR_TYPE_GYROSCOPE,		//K3G
+	SENSOR_TYPE_ACCELEROMETER = 0,	//K3DH
+	SENSOR_TYPE_DCOMPASS,	//AMI306
+	SENSOR_TYPE_GYROSCOPE,	//K3G
 };
 #endif
 
@@ -115,10 +115,10 @@ struct k3dh_acc_platform_data {
 	u8 negate_y;
 	u8 negate_z;
 
-	int (*init)(void);
-	void (*exit)(void);
-	int (*power_on)(int);
-	int (*power_off)(int);
+	int (*init) (void);
+	void (*exit) (void);
+	int (*power_on) (int);
+	int (*power_off) (int);
 	int gpio_int1;
 	int gpio_int2;
 
@@ -132,17 +132,17 @@ struct k3g_platform_data {
 	u8 negate_x;
 	u8 negate_y;
 	u8 negate_z;
-	int (*init)(void);
-	void (*exit)(void);
-	int (*power_on)(int);
-	int (*power_off)(int);
+	int (*init) (void);
+	void (*exit) (void);
+	int (*power_on) (int);
+	int (*power_off) (int);
 };
 
 struct ami306_platform_data {
-	int (*init)(void);
-	void (*exit)(void);	
-	int (*power_on)(int);
-	int (*power_off)(int);
+	int (*init) (void);
+	void (*exit) (void);
+	int (*power_on) (int);
+	int (*power_off) (int);
 
 	int fdata_mDir;
 	int fdata_sign_x;
@@ -156,16 +156,16 @@ struct ami306_platform_data {
 /* android vibrator platform data */
 struct android_vibrator_platform_data {
 	int enable_status;
-	int (*power_set)(int enable);           /* LDO Power Set Function */
-	int (*pwm_set)(int enable, int gain);           /* PWM Set Function */
-	int (*ic_enable_set)(int enable);       /* Motor IC Set Function */
-	int (*vibrator_init)(void);
+	int (*power_set) (int enable);	/* LDO Power Set Function */
+	int (*pwm_set) (int enable, int gain);	/* PWM Set Function */
+	int (*ic_enable_set) (int enable);	/* Motor IC Set Function */
+	int (*vibrator_init) (void);
 };
 
 //                                                      
 struct bluetooth_platform_data {
-	int (*bluetooth_power)(int on);
-	int (*bluetooth_toggle_radio)(void *data, bool blocked);
+	int (*bluetooth_power) (int on);
+	int (*bluetooth_toggle_radio) (void *data, bool blocked);
 };
 
 struct bluesleep_platform_data {
@@ -188,8 +188,8 @@ struct mhl_platform_data {
 	unsigned int reset_pin;
 	unsigned int select_pin;
 	unsigned int wakeup_pin;
-	int (*power)(int on);
-	int (*power_config)(void);
+	int (*power) (int on);
+	int (*power_config) (void);
 };
 /*                                                                 */
 
@@ -206,7 +206,7 @@ void *lge_get_fb_copy_phys_addr(void);
 
 //silent_reset_fusion2_kernel
 #if defined(CONFIG_LGE_SILENT_RESET_PATCH)
-extern int sreset_enable; 
+extern int sreset_enable;
 extern int on_silent_reset;
 #endif
 

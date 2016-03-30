@@ -23,7 +23,7 @@
 #include <linux/ioctl.h>
 //#include <asm-arm/arch/regs-gpio.h>
 
-#define AMI306_I2C_ADDRESS 			0x0E  //new Addr=0x0E(Low), old Addr=0x0F(High)
+#define AMI306_I2C_ADDRESS 			0x0E	//new Addr=0x0E(Low), old Addr=0x0F(High)
 
 #define STM_GYRO		//20110630 for STM Gyro sensor S/W support
 
@@ -42,9 +42,9 @@
 
 /* AMI306 Control Bit  (Please refer to AMI306 Specifications) */
 #define AMI306_CTRL1_PC1			0x80
-#define AMI306_CTRL1_FS1_NORMAL			0x00 //Normal
-#define AMI306_CTRL1_FS1_FORCE			0x02 //Force
-#define AMI306_CTRL1_ODR1			0x10 //20SPS(20HZ)
+#define AMI306_CTRL1_FS1_NORMAL			0x00	//Normal
+#define AMI306_CTRL1_FS1_FORCE			0x02	//Force
+#define AMI306_CTRL1_ODR1			0x10	//20SPS(20HZ)
 #define AMI306_CTRL2_DREN			0x08
 #define AMI306_CTRL2_DRP			0x04
 #define AMI306_CTRL3_NOFORCE_BIT		0x00

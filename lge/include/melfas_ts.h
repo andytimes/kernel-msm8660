@@ -19,7 +19,6 @@
 
 #define MELFAS_TS_NAME "melfas-ts"
 
-
 struct melfas_tsi_platform_data {
 	uint32_t version;
 	int max_x;
@@ -29,9 +28,9 @@ struct melfas_tsi_platform_data {
 	int gpio_scl;
 	int gpio_sda;
 	int i2c_int_gpio;
-	unsigned short ic_booting_delay;		/* ms */
-	int (*power)(int on);	/* Only valid in first array entry */
-	int (*power_enable)(int en, bool log_en);
+	unsigned short ic_booting_delay;	/* ms */
+	int (*power) (int on);	/* Only valid in first array entry */
+	int (*power_enable) (int en, bool log_en);
 	unsigned char fw_ver;
 	unsigned char manufcturer_id;
 };

@@ -14,10 +14,9 @@
 
 #include "SiI9244_I2C_master.h"
 #include "SiI9244_I2C_slave_add.h"
+static byte l_cbusPortOffsets[MHD_MAX_CHANNELS] = { 0x00 };
 
-
-static byte l_cbusPortOffsets [ MHD_MAX_CHANNELS ] = { 0x00 };
-
+ 
 //------------------------------------------------------------------------------
 // Function:    SiIRegioCbusRead
 // Description: Read a one byte CBUS register with port offset.
@@ -25,13 +24,13 @@ static byte l_cbusPortOffsets [ MHD_MAX_CHANNELS ] = { 0x00 };
 //              address and offset. The I2C slave address and offset are used
 //              to perform an I2C read operation.
 //------------------------------------------------------------------------------
-
-
-byte SiIRegioCbusRead ( word regAddr, byte channel )
+     byte SiIRegioCbusRead(word regAddr, byte channel) 
 {
-    return(I2C_ReadByte(SA_TX_CBUS_Primary + l_cbusPortOffsets[channel], regAddr));
-}
+	return (I2C_ReadByte
+		 (SA_TX_CBUS_Primary + l_cbusPortOffsets[channel], regAddr));
+}
 
+ 
 //------------------------------------------------------------------------------
 // Function:    SiIRegioCbusWrite
 // Description: Write a one byte CBUS register with port offset.
@@ -39,10 +38,8 @@ byte SiIRegioCbusRead ( word regAddr, byte channel )
 //              slave address and offset. The I2C slave address and offset
 //              are used to perform an I2C write operation.
 //------------------------------------------------------------------------------
-
-void SiIRegioCbusWrite ( word regAddr, byte channel, byte value )
+void SiIRegioCbusWrite(word regAddr, byte channel, byte value) 
 {
-
-    I2C_WriteByte(SA_TX_CBUS_Primary + l_cbusPortOffsets[channel], regAddr, value);
-}
-
+	 I2C_WriteByte(SA_TX_CBUS_Primary + l_cbusPortOffsets[channel],
+			 regAddr, value);
+}  

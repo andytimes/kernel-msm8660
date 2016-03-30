@@ -17,20 +17,19 @@
 #define __LINUX_SND_FSA8008_H
 
 struct fsa8008_platform_data {
-	const char *switch_name;            /* switch device name */
-	const char *keypad_name;			/* keypad device name */
+	const char *switch_name;	/* switch device name */
+	const char *keypad_name;	/* keypad device name */
 
-	unsigned int key_code;				/* key code for hook */
+	unsigned int key_code;	/* key code for hook */
 
 	unsigned int gpio_detect;	/* DET : to detect jack inserted or not */
 	unsigned int gpio_mic_en;	/* EN : to enable mic */
 	unsigned int gpio_jpole;	/* JPOLE : 3pole or 4pole */
-	unsigned int gpio_key;		/* S/E button */
+	unsigned int gpio_key;	/* S/E button */
 
-	void (*set_headset_mic_bias)(int enable); /* callback function which is initialized while probing */
+	void (*set_headset_mic_bias) (int enable);	/* callback function which is initialized while probing */
 
-	unsigned int latency_for_detection; /* latency for pole (3 or 4)detection (in ms) */
+	unsigned int latency_for_detection;	/* latency for pole (3 or 4)detection (in ms) */
 };
 
 #endif
-

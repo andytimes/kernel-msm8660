@@ -21,7 +21,7 @@
 #include <linux/proc_fs.h>
 #include <linux/workqueue.h>	// INIT_WORK()
 #include <linux/wakelock.h>
-#include <linux/i2c/twl.h>		//for akm power
+#include <linux/i2c/twl.h>	//for akm power
 #include <linux/regulator/consumer.h>	//for akm power
 #include <muic.h>
 #include <linux/mfd/pmic8058.h>
@@ -81,13 +81,13 @@ cable_id_type cable_type;
  *           and save the u8 content into value.
  * Return value: Negative errno upon failure, 0 upon success.
  */
-s32 ts5usba_muic_i2c_read_byte(u8 addr, u8 *value){
-	*value = i2c_smbus_read_byte_data(muic_client, (u8)addr);
-	if(*value < 0){
+s32 ts5usba_muic_i2c_read_byte(u8 addr, u8 * value)
+{
+	*value = i2c_smbus_read_byte_data(muic_client, (u8) addr);
+	if (*value < 0) {
 		printk(KERN_INFO "[MUIC] muic_i2c_read_byte failed.\n");
 		return *value;
-	}
-	else{
+	} else {
 		return 0;
 	}
 }
@@ -96,105 +96,122 @@ s32 ts5usba_muic_i2c_read_byte(u8 addr, u8 *value){
  * Function: Write u8 value to the MUIC register whose internal address is addr.
  * Return value: Negative errno upon failure, 0 upon success.
  */
-s32 ts5usba_muic_i2c_write_byte(u8 addr, u8 value){
+s32 ts5usba_muic_i2c_write_byte(u8 addr, u8 value)
+{
 	s32 ret;
-	ret = i2c_smbus_write_byte_data(muic_client, (u8)addr, (u8)value);
-	if(ret < 0) printk(KERN_INFO "[MUIC] muic_i2c_write_byte failed.\n");
+	ret = i2c_smbus_write_byte_data(muic_client, (u8) addr, (u8) value);
+	if (ret < 0)
+		printk(KERN_INFO "[MUIC] muic_i2c_write_byte failed.\n");
 	return ret;
 }
 
-void ts5usba_muic_udelay(u32 microsec){
+void ts5usba_muic_udelay(u32 microsec)
+{
 	u32 microseconds;
 	microseconds = microsec;
 	udelay(microseconds);
 }
 
-u8 ts5usba_muic_detect_charger_type(void){
+u8 ts5usba_muic_detect_charger_type(void)
+{
 
-	s32 ret = 0; 
+	s32 ret = 0;
 
 	//Read STATUS Register.
 	ret = ts5usba_muic_i2c_read_byte(TS5USBA_CHIP_STATUS, &status_val);
 
-	if(ret < 0){
+	if (ret < 0) {
 		printk(KERN_INFO "[MUIC] STATUS reading failed\n");
 		return ret;
 	}
-
 	//DCPORT ==1 : Dedicated Charger.
-	if((status_val&TS5USBA_DC_PORT_MASK)!=0)
+	if ((status_val & TS5USBA_DC_PORT_MASK) != 0)
 		return DEDICATED_CHARGER;
 	//CHPORT ==1 : Charger Host.
-	else if((status_val&TS5USBA_CH_PORT_MASK)!=0)
+	else if ((status_val & TS5USBA_CH_PORT_MASK) != 0)
 		return CHARGING_HOST;
-	else 
+	else
 		return INVALID_CHARGER;
 }
 
-void ts5usba_muic_set_USB_mode(void){
-  ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,TS5USBA_ID_2P2_MASK|
-		     TS5USBA_SEMREN_MASK|TS5USBA_DP_EN_MASK);  
-  ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,TS5USBA_DP_DM_USB<<TS5USBA_DP_MASK_SHIFT|
-		     TS5USBA_DP_DM_USB<<TS5USBA_DM_MASK_SHIFT);	
+void ts5usba_muic_set_USB_mode(void)
+{
+	ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,
+				    TS5USBA_ID_2P2_MASK | TS5USBA_SEMREN_MASK |
+				    TS5USBA_DP_EN_MASK);
+	ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,
+				    TS5USBA_DP_DM_USB << TS5USBA_DP_MASK_SHIFT |
+				    TS5USBA_DP_DM_USB << TS5USBA_DM_MASK_SHIFT);
 }
 
-void ts5usba_muic_set_LT_mode(void){
-  ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,TS5USBA_ID_2P2_MASK|
-		     TS5USBA_SEMREN_MASK|TS5USBA_DP_EN_MASK);  
-  ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,TS5USBA_DP_DM_USB<<TS5USBA_DP_MASK_SHIFT|
-		     TS5USBA_DP_DM_USB<<TS5USBA_DM_MASK_SHIFT);		
+void ts5usba_muic_set_LT_mode(void)
+{
+	ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,
+				    TS5USBA_ID_2P2_MASK | TS5USBA_SEMREN_MASK |
+				    TS5USBA_DP_EN_MASK);
+	ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,
+				    TS5USBA_DP_DM_USB << TS5USBA_DP_MASK_SHIFT |
+				    TS5USBA_DP_DM_USB << TS5USBA_DM_MASK_SHIFT);
 }
 
-void ts5usba_muic_set_TA_mode(void){
-  ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,TS5USBA_ID_2P2_MASK|TS5USBA_SEMREN_MASK);  
-  ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,TS5USBA_DP_DM_OPEN<<TS5USBA_DP_MASK_SHIFT|
-		     TS5USBA_DP_DM_OPEN<<TS5USBA_DM_MASK_SHIFT);	
+void ts5usba_muic_set_TA_mode(void)
+{
+	ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,
+				    TS5USBA_ID_2P2_MASK | TS5USBA_SEMREN_MASK);
+	ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,
+				    TS5USBA_DP_DM_OPEN << TS5USBA_DP_MASK_SHIFT
+				    | TS5USBA_DP_DM_OPEN <<
+				    TS5USBA_DM_MASK_SHIFT);
 }
 
-void ts5usba_muic_set_UART_mode(void){
-  ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,TS5USBA_ID_2P2_MASK|TS5USBA_SEMREN_MASK);  
-  ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,TS5USBA_DP_DM_UART<<TS5USBA_DP_MASK_SHIFT|
-		     TS5USBA_DP_DM_UART<<TS5USBA_DM_MASK_SHIFT);	
+void ts5usba_muic_set_UART_mode(void)
+{
+	ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,
+				    TS5USBA_ID_2P2_MASK | TS5USBA_SEMREN_MASK);
+	ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,
+				    TS5USBA_DP_DM_UART << TS5USBA_DP_MASK_SHIFT
+				    | TS5USBA_DP_DM_UART <<
+				    TS5USBA_DM_MASK_SHIFT);
 }
 
-
-void ts5usba_muic_detect_cable_type(u8 initRegData){
+void ts5usba_muic_detect_cable_type(u8 initRegData)
+{
 	u8 cable_adc;
 
 	//Read ADC Value for Cable type;
-	cable_adc = initRegData&TS5USBA_IDNU_MASK;
+	cable_adc = initRegData & TS5USBA_IDNU_MASK;
 
 	/*
-	0-ohm   : 0000
-	24K-ohm : 0001
-	56K-ohm : 0010   (LT)
-	100K-ohm : 0011
-	130K-ohm : 0100
-	180K-ohm : 0101	(USB/TA)
-	240K-ohm : 0110
-	330K-ohm : 0111
-	430K-ohm : 1000	
-	620K-ohm : 1001
-	910K-ohm : 1010
-	*/
+	   0-ohm   : 0000
+	   24K-ohm : 0001
+	   56K-ohm : 0010   (LT)
+	   100K-ohm : 0011
+	   130K-ohm : 0100
+	   180K-ohm : 0101      (USB/TA)
+	   240K-ohm : 0110
+	   330K-ohm : 0111
+	   430K-ohm : 1000      
+	   620K-ohm : 1001
+	   910K-ohm : 1010
+	 */
 
 	printk("cable_adc : %d\n", cable_adc);
-	
-	switch(cable_adc){
-	case TS5USBA_ID_56K_VAL : //LT
+
+	switch (cable_adc) {
+	case TS5USBA_ID_56K_VAL:	//LT
 		ts5usba_muic_set_LT_mode();
 		cable_type = FACTORY_USB;
 		break;
-	case TS5USBA_ID_180K_VAL : //USB or TA
+	case TS5USBA_ID_180K_VAL:	//USB or TA
 		ts5usba_muic_set_USB_mode();
 		cable_type = FACTORY_USB;
 		break;
 
-	case TS5USBA_ID_240K_VAL :   // 1A USB cable
+	case TS5USBA_ID_240K_VAL:	// 1A USB cable
 		ts5usba_muic_set_USB_mode();
 		cable_type = FACTORY_USB;
 		break;
-#ifndef SKW_TEST 
+#ifndef SKW_TEST
 //                                                                    
 // because, some developer doesn't have a standard USB.
 // we must modify this someday.
@@ -203,58 +220,60 @@ void ts5usba_muic_detect_cable_type(u8 initRegData){
 		cable_type = FACTORY_USB;
 		break;
 #else
-	case TS5USBA_ID_24K_VAL : 
-	case TS5USBA_ID_100K_VAL : 
-	case TS5USBA_ID_130K_VAL : 
-	case TS5USBA_ID_330K_VAL : 
-	case TS5USBA_ID_430K_VAL : 
-	case TS5USBA_ID_620K_VAL : 
-	case TS5USBA_ID_910K_VAL : 
-	case TS5USBA_ID_OPEN_VAL : 
+	case TS5USBA_ID_24K_VAL:
+	case TS5USBA_ID_100K_VAL:
+	case TS5USBA_ID_130K_VAL:
+	case TS5USBA_ID_330K_VAL:
+	case TS5USBA_ID_430K_VAL:
+	case TS5USBA_ID_620K_VAL:
+	case TS5USBA_ID_910K_VAL:
+	case TS5USBA_ID_OPEN_VAL:
 		cable_type = USB_ONLY;
-		default:
-			break;
-#endif		
+	default:
+		break;
+#endif
 	}
-		
-		
+
 }
 
-void ts5usba_muic_vbus_process(u8 intRegData){
-#if 1 //Temporay
-	
-	/*check charger type.*/
-	if(!(intRegData&TS5USBA_CHGDET_MASK)){
+void ts5usba_muic_vbus_process(u8 intRegData)
+{
+#if 1				//Temporay
+
+	/*check charger type. */
+	if (!(intRegData & TS5USBA_CHGDET_MASK)) {
 		chg_type = CHARGER_TYPE_NONE;
-	}else{
+	} else {
 		//why check chg type????
 		chg_type = ts5usba_muic_detect_charger_type();
 	}
-	
+
 	//why check chg type????
 	//if(chg_type != INVALID_CHARGER)
-		ts5usba_muic_detect_cable_type(intRegData);
+	ts5usba_muic_detect_cable_type(intRegData);
 #else
-	/*check charger type.*/
-	if(!(intRegData&TS5USBA_CHGDET_MASK)){
+	/*check charger type. */
+	if (!(intRegData & TS5USBA_CHGDET_MASK)) {
 		chg_type = CHARGER_TYPE_NONE;
-	}else{
+	} else {
 		chg_type = ts5usba_muic_detect_charger_type();
 
-		if(chg_type != INVALID_CHARGER)
+		if (chg_type != INVALID_CHARGER)
 			ts5usba_muic_detect_cable_type(intRegData);
 	}
-#endif	
+#endif
 }
 
-void ts5usba_muic_mr_comp_process(u8 intRegData){
+void ts5usba_muic_mr_comp_process(u8 intRegData)
+{
 }
 
-void ts5usba_muic_set_idle_process(u8 intRegData){
+void ts5usba_muic_set_idle_process(u8 intRegData)
+{
 }
 
 /* hyungsic.you since LGT board uses muic, remove later after making board config */
-#ifndef SKW_TEST//must remove later
+#ifndef SKW_TEST		//must remove later
 static s32 ts5usba_muic_initialize(void)
 {
 	s32 ret;
@@ -262,55 +281,85 @@ static s32 ts5usba_muic_initialize(void)
 	printk(KERN_WARNING "[MUIC] muic_initialize()\n");
 
 	//1. DP/DM Open 
-	ret = ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL, TS5USBA_DP_DM_OPEN<<TS5USBA_DP_MASK_SHIFT|
-     TS5USBA_DP_DM_OPEN<<TS5USBA_DM_MASK_SHIFT);
+	ret =
+	    ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,
+					TS5USBA_DP_DM_OPEN <<
+					TS5USBA_DP_MASK_SHIFT |
+					TS5USBA_DP_DM_OPEN <<
+					TS5USBA_DM_MASK_SHIFT);
 
-    if( ret < 0 ) return ret ;
-    
+	if (ret < 0)
+		return ret;
+
 	//2. 2.6V, 200K, SEMREN
-	ret = ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR, TS5USBA_ID_200_MASK|TS5USBA_SEMREN_MASK);
-    if( ret < 0 ) return ret ;
+	ret =
+	    ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,
+					TS5USBA_ID_200_MASK |
+					TS5USBA_SEMREN_MASK);
+	if (ret < 0)
+		return ret;
 
 	//3. CHG_TYP
-	ret = ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_2_ADDR, TS5USBA_CHG_TPY_MASK);
-    if( ret < 0 ) return ret ;
+	ret =
+	    ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_2_ADDR,
+					TS5USBA_CHG_TPY_MASK);
+	if (ret < 0)
+		return ret;
 
 	//4.delay 250ms
 	ts5usba_muic_udelay(250000);
 
 	//5. INT_EN, CHG_TYP
-	ret = ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_2_ADDR, TS5USBA_INT_EN_MASK |TS5USBA_CHG_TPY_MASK);
-    if( ret < 0 ) return ret ;
-	
-	return ret ;
+	ret =
+	    ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_2_ADDR,
+					TS5USBA_INT_EN_MASK |
+					TS5USBA_CHG_TPY_MASK);
+	if (ret < 0)
+		return ret;
+
+	return ret;
 }
 #else
-void ts5usba_muic_initialize(void){
+void ts5usba_muic_initialize(void)
+{
 	s32 ret;
 
 	printk(KERN_WARNING "[MUIC] muic_initialize()\n");
 
 	//1. DP/DM Open 
-	ret = ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL, TS5USBA_DP_DM_OPEN<<TS5USBA_DP_MASK_SHIFT|
-     TS5USBA_DP_DM_OPEN<<TS5USBA_DM_MASK_SHIFT);
+	ret =
+	    ts5usba_muic_i2c_write_byte(TS5USBA_SW_CONTROL,
+					TS5USBA_DP_DM_OPEN <<
+					TS5USBA_DP_MASK_SHIFT |
+					TS5USBA_DP_DM_OPEN <<
+					TS5USBA_DM_MASK_SHIFT);
 
 	//2. 2.6V, 200K, SEMREN
-	ret = ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR, TS5USBA_ID_200_MASK|TS5USBA_SEMREN_MASK);
+	ret =
+	    ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_1_ADDR,
+					TS5USBA_ID_200_MASK |
+					TS5USBA_SEMREN_MASK);
 
 	//3. CHG_TYP
-	ret = ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_2_ADDR, TS5USBA_CHG_TPY_MASK);
+	ret =
+	    ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_2_ADDR,
+					TS5USBA_CHG_TPY_MASK);
 
 	//4.delay 250ms
 	ts5usba_muic_udelay(250000);
 
 	//5. INT_EN, CHG_TYP
-	ret = ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_2_ADDR, TS5USBA_INT_EN_MASK |TS5USBA_CHG_TPY_MASK);
-	
+	ret =
+	    ts5usba_muic_i2c_write_byte(TS5USBA_CONTROL_2_ADDR,
+					TS5USBA_INT_EN_MASK |
+					TS5USBA_CHG_TPY_MASK);
+
 	return;
 }
-#endif//SKW_TEST//must remove later
+#endif //SKW_TEST//must remove later
 
-s32 ts5usba_device_detection(s32 upon_irq){
+s32 ts5usba_device_detection(s32 upon_irq)
+{
 	s32 ret = 0;
 
 	/* Upon an MUIC IRQ (MUIC_INT_N falls),
@@ -319,18 +368,19 @@ s32 ts5usba_device_detection(s32 upon_irq){
 	 * (but the INT_STAT and STATUS contents will be held).
 	 *
 	 * Do this only if TS5USBA33402_device_detection() was called upon IRQ. */
-	if(upon_irq) ts5usba_muic_udelay(70000);
+	if (upon_irq)
+		ts5usba_muic_udelay(70000);
 
 	/* Read INT_STAT */
 	ret = ts5usba_muic_i2c_read_byte(TS5USBA_INT_STATUS, &int_stat_val);
-	if(ret < 0){
+	if (ret < 0) {
 		printk(KERN_INFO "[MUIC] INT_STAT reading failed\n");
 		return ret;
 	}
 
-	if((int_stat_val&TS5USBA_VBUS_MASK)!=0)
+	if ((int_stat_val & TS5USBA_VBUS_MASK) != 0)
 		ts5usba_muic_vbus_process(int_stat_val);
-	else if(!(int_stat_val&TS5USBA_MR_COMP_MASK))
+	else if (!(int_stat_val & TS5USBA_MR_COMP_MASK))
 		ts5usba_muic_mr_comp_process(int_stat_val);
 	else
 		ts5usba_muic_set_idle_process(int_stat_val);
@@ -339,35 +389,39 @@ s32 ts5usba_device_detection(s32 upon_irq){
 
 }
 
-
-static void ts5usba_muic_wq_func(struct work_struct *muic_wq){
+static void ts5usba_muic_wq_func(struct work_struct *muic_wq)
+{
 	s32 ret = 0;
 	u32 retry_no;
 	printk(KERN_INFO "[MUIC] muic_wq_func()\n");
 	ret = ts5usba_device_detection(UPON_IRQ);
 	/* If an erronous situation occurs, try again */
 	retry_no = 0;
-	while(ret < 0 && retry_no < 3){
-		printk(KERN_INFO "[MUIC] muic_wq_func(): TS5USBA33402_device_detection() failed %d times\n",
-			retry_no);
+	while (ret < 0 && retry_no < 3) {
+		printk(KERN_INFO
+		       "[MUIC] muic_wq_func(): TS5USBA33402_device_detection() failed %d times\n",
+		       retry_no);
 		ret = ts5usba_device_detection(NOT_UPON_IRQ);
-		retry_no ++;
+		retry_no++;
 	}
 }
 
-static irqreturn_t ts5usba_muic_interrupt_handler(s32 irq, void *data){
+static irqreturn_t ts5usba_muic_interrupt_handler(s32 irq, void *data)
+{
 	printk(KERN_INFO "[MUIC] MUIC IRQ occurs!\n");
 	schedule_work(&muic_wq);
 	return IRQ_HANDLED;
 }
 
-static s32 ts5usba_muic_probe(struct i2c_client *client, const struct i2c_device_id *id){
+static s32 ts5usba_muic_probe(struct i2c_client *client,
+			      const struct i2c_device_id *id)
+{
 
 	s32 ret = 0;
 	u32 retry_no;
 
-	s32 sys_gpio; 
-	
+	s32 sys_gpio;
+
 	muic_client = client;
 
 	printk("[INFORPC] %s\n", __func__);
@@ -380,15 +434,17 @@ static s32 ts5usba_muic_probe(struct i2c_client *client, const struct i2c_device
 	 * Check if other driver already occupied it.
 	 */
 	ret = gpio_request(sys_gpio, "MUIC IRQ GPIO");
-	if(ret < 0){
-		printk(KERN_INFO "[MUIC] GPIO 40 MUIC_INT_N is already occupied by other driver!\n");
+	if (ret < 0) {
+		printk(KERN_INFO
+		       "[MUIC] GPIO 40 MUIC_INT_N is already occupied by other driver!\n");
 		return -ENOSYS;
 	}
 
 	/* Initialize GPIO direction before use or IRQ setting */
 	ret = gpio_direction_input(sys_gpio);
-	if(ret < 0){
-		printk(KERN_INFO "[MUIC] GPIO 40 MUIC_INT_N direction initialization failed!\n");
+	if (ret < 0) {
+		printk(KERN_INFO
+		       "[MUIC] GPIO 40 MUIC_INT_N direction initialization failed!\n");
 		return -ENOSYS;
 	}
 
@@ -400,10 +456,10 @@ static s32 ts5usba_muic_probe(struct i2c_client *client, const struct i2c_device
 	/* Initialize MUIC - Finally MUIC INT becomes enabled */
 	ret = ts5usba_muic_initialize();
 
-    if( ret < 0 ) {
+	if (ret < 0) {
 		printk(KERN_INFO "[MUIC] initialization failed!\n");
-        return ret ;
-    }
+		return ret;
+	}
 #else
 	ts5usba_muic_initialize();
 #endif
@@ -413,19 +469,21 @@ static s32 ts5usba_muic_probe(struct i2c_client *client, const struct i2c_device
 	 * muic_wq_func() actually performs the accessory detection.
 	 */
 #if 1
-	ret = request_threaded_irq(PM8058_GPIO_IRQ(PM8058_IRQ_BASE,MUIC_INT_GPIO),NULL, ts5usba_muic_interrupt_handler,
-			IRQF_TRIGGER_FALLING | IRQF_DISABLED,	 "muic_irq", &client->dev);
+	ret =
+	    request_threaded_irq(PM8058_GPIO_IRQ
+				 (PM8058_IRQ_BASE, MUIC_INT_GPIO), NULL,
+				 ts5usba_muic_interrupt_handler,
+				 IRQF_TRIGGER_FALLING | IRQF_DISABLED,
+				 "muic_irq", &client->dev);
 #else
 	ret = request_irq(MSM_GPIO_TO_INT(sys_gpio),
 			  ts5usba_muic_interrupt_handler,
-			  IRQF_TRIGGER_FALLING,
-			  "muic_irq",
-			  &client->dev);
+			  IRQF_TRIGGER_FALLING, "muic_irq", &client->dev);
 
 	printk("error : %d\n", ret);
 #endif
 
-	if (ret < 0){
+	if (ret < 0) {
 		printk(KERN_INFO "[MUIC] MUIC_INT_N IRQ line set up failed!\n");
 		free_irq(gpio_to_irq(sys_gpio), &client->dev);
 		return -ENOSYS;
@@ -433,8 +491,9 @@ static s32 ts5usba_muic_probe(struct i2c_client *client, const struct i2c_device
 #if 0
 	/* Make the interrupt on MUIC INT wake up OMAP which is in suspend mode */
 	ret = enable_irq_wake(gpio_to_irq(MUIC_INT_GPIO));
-	if(ret < 0){
-		printk(KERN_INFO "[MUIC]MUIC_INT_N wake up source setting failed!\n");
+	if (ret < 0) {
+		printk(KERN_INFO
+		       "[MUIC]MUIC_INT_N wake up source setting failed!\n");
 		disable_irq_wake(gpio_to_irq(MUIC_INT_GPIO));
 		return -ENOSYS;
 	}
@@ -448,10 +507,12 @@ static s32 ts5usba_muic_probe(struct i2c_client *client, const struct i2c_device
 
 	/* If an erronous situation occurs, try again */
 	retry_no = 0;
-	while(ret < 0 && retry_no < 3){
-		printk(KERN_INFO "[MUIC] probe(): TS5USBA33402_device_detection() failed %d times\n", retry_no);
+	while (ret < 0 && retry_no < 3) {
+		printk(KERN_INFO
+		       "[MUIC] probe(): TS5USBA33402_device_detection() failed %d times\n",
+		       retry_no);
 		ret = ts5usba_device_detection(NOT_UPON_IRQ);
-		retry_no ++;
+		retry_no++;
 	}
 #endif
 
@@ -460,7 +521,8 @@ static s32 ts5usba_muic_probe(struct i2c_client *client, const struct i2c_device
 	return ret;
 }
 
-static s32 ts5usba_muic_remove(struct i2c_client *client){
+static s32 ts5usba_muic_remove(struct i2c_client *client)
+{
 	free_irq(gpio_to_irq(MUIC_INT_GPIO), &client->dev);
 	gpio_free(MUIC_INT_GPIO);
 
@@ -468,40 +530,44 @@ static s32 ts5usba_muic_remove(struct i2c_client *client){
 
 	return 0;
 }
-static s32 ts5usba_muic_suspend(struct i2c_client *client, pm_message_t state){
+
+static s32 ts5usba_muic_suspend(struct i2c_client *client, pm_message_t state)
+{
 	client->dev.power.power_state = state;
 	return 0;
 }
-		
-static s32 ts5usba_muic_resume(struct i2c_client *client){
+
+static s32 ts5usba_muic_resume(struct i2c_client *client)
+{
 	client->dev.power.power_state = PMSG_ON;
 	return 0;
 }
 
 static const struct i2c_device_id ts5usba_muic_ids[] = {
 	{"ts5usba_i2c_muic", 0},
-	{/* end of list */},
+	{ /* end of list */ },
 };
-
 
 static struct i2c_driver ts5usba_muic_driver = {
-	.probe	 	= ts5usba_muic_probe,
-	.remove	 	= ts5usba_muic_remove,
-	.suspend 	= ts5usba_muic_suspend,
-	.resume  	= ts5usba_muic_resume,
-	.id_table	= ts5usba_muic_ids,
-	.driver	 	= {
-	.name       = "ts5usba_i2c_muic",
-	.owner      = THIS_MODULE,
-	},
+	.probe = ts5usba_muic_probe,
+	.remove = ts5usba_muic_remove,
+	.suspend = ts5usba_muic_suspend,
+	.resume = ts5usba_muic_resume,
+	.id_table = ts5usba_muic_ids,
+	.driver = {
+		   .name = "ts5usba_i2c_muic",
+		   .owner = THIS_MODULE,
+		   },
 };
 
-static s32 __init ts5usba_muic_init(void){
-    printk(KERN_WARNING "[MUIC] muic_init()\n");
+static s32 __init ts5usba_muic_init(void)
+{
+	printk(KERN_WARNING "[MUIC] muic_init()\n");
 	return i2c_add_driver(&ts5usba_muic_driver);
 }
 
-static void __exit ts5usba_muic_exit(void){
+static void __exit ts5usba_muic_exit(void)
+{
 	i2c_del_driver(&ts5usba_muic_driver);
 }
 
@@ -511,4 +577,3 @@ module_exit(ts5usba_muic_exit);
 MODULE_AUTHOR("LG Electronics");
 MODULE_DESCRIPTION("TS5USBA MUIC Driver");
 MODULE_LICENSE("GPL");
-

@@ -14,7 +14,6 @@ or by any means without written permission of: Silicon Image, Inc.,
 1060 East Arques Avenue, Sunnyvale, California 94085                           
 ===========================================================================*/
 
-
 /*===========================================================================
 
                       EDIT HISTORY FOR FILE
@@ -28,11 +27,9 @@ when              who                         what, where, why
                      INCLUDE FILES FOR MODULE
 ===========================================================================*/
 
-
 /*===========================================================================
                    FUNCTION DEFINITIONS
 ===========================================================================*/
-
 
 void SiI9244_interrupt_event(void);
 bool SiI9244_init(void);
@@ -40,8 +37,5 @@ bool SiI9244_init(void);
 /*extern byte GetCbusRcpData(void);
 extern void ResetCbusRcpData(void);*/
 
-
 //MHL IOCTL INTERFACE
 #define MHL_READ_RCP_DATA 0x1
-
-

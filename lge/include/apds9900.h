@@ -22,17 +22,17 @@
 #ifdef CONFIG_LGE_SENSOR_PROXIMITY
 struct apds9900_platform_data {
 	int irq_num;
-	int (*power)(unsigned char onoff);
-	unsigned int  prox_int_low_threshold;
-	unsigned int  prox_int_high_threshold;
-	unsigned int  als_threshold_hsyteresis;
-	unsigned int  ppcount;
-	unsigned int  B;
-	unsigned int  C;
-	unsigned int  D;
-	unsigned int  alsit;
-	unsigned int  ga_value;
-	unsigned int  df_value;	
-	unsigned int  atime;	
+	int (*power) (unsigned char onoff);
+	unsigned int prox_int_low_threshold;
+	unsigned int prox_int_high_threshold;
+	unsigned int als_threshold_hsyteresis;
+	unsigned int ppcount;
+	unsigned int B;
+	unsigned int C;
+	unsigned int D;
+	unsigned int alsit;
+	unsigned int ga_value;
+	unsigned int df_value;
+	unsigned int atime;
 };
 #endif

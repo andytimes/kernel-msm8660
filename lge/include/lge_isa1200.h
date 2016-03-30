@@ -36,7 +36,7 @@
 
 struct isa1200_reg_cmd {
 	u8 addr;
-    u8 data;
+	u8 data;
 };
 
 /* following information is for initializing platform device */
@@ -49,17 +49,15 @@ struct lge_isa1200_platform_data {
 	const char *vibrator_name;	/* vibrator device name */
 
 	/* following information is about hw configuration */
-	unsigned int gpio_hen;		/* Haptic Motor Driver ENable */
-	unsigned int gpio_len;		/* LDO ENable */
-	//int (*power)(int enable);		/* power control VBAT. NULL assumes power is always-on.  */
-	int (*clock)(int enable, int amp);		/* clock control for PWM/CLK. NULL assumes clock is always-on. */
+	unsigned int gpio_hen;	/* Haptic Motor Driver ENable */
+	unsigned int gpio_len;	/* LDO ENable */
+	//int (*power)(int enable);             /* power control VBAT. NULL assumes power is always-on.  */
+	int (*clock) (int enable, int amp);	/* clock control for PWM/CLK. NULL assumes clock is always-on. */
 
-	int max_timeout; /* maximum available timeout in millisec */
-	int default_vib_strength; /*                                                               */
+	int max_timeout;	/* maximum available timeout in millisec */
+	int default_vib_strength;	/*                                                               */
 
-	struct isa1200_reg_seq *init_seq; /* initialization sequence */
+	struct isa1200_reg_seq *init_seq;	/* initialization sequence */
 };
 
 #endif
-
-

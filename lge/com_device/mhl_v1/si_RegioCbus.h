@@ -12,15 +12,11 @@
 
 #ifndef __SI_REGIO_H__
 #define __SI_REGIO_H__
-
 #include <linux/types.h>
-
+    
 #include "Common_Def.h"
-
-
-
-byte SiIRegioCbusRead ( word regAddr, byte channel );
-void SiIRegioCbusWrite ( word regAddr, byte channel, byte value );
-
+     byte SiIRegioCbusRead(word regAddr, byte channel);
+void SiIRegioCbusWrite(word regAddr, byte channel, byte value);
+ 
 #endif // __SI_REGIO_H__
-
+    

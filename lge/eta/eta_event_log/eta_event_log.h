@@ -15,7 +15,7 @@
 #define ETA_EVENT_LOG_IOC_MAGIC 'l'
 #define ETA_EVENT_LOG_IOC_CHANGE_LOG_MASK _IOW(ETA_EVENT_LOG_IOC_MAGIC, 0, unsigned int)
 
-struct eta_event_log_type{
+struct eta_event_log_type {
 	unsigned char log_id;
 	unsigned short log_len;
 	unsigned int x_hold;
@@ -30,13 +30,12 @@ enum {
 };
 
 enum {
-	ETA_TOUCH_MOVETO = 0, /*Move the pointer to the specified location*/
-	ETA_TOUCH_MOVEBY = 1, /*Move the pointer by the specified values*/
-	ETA_TOUCH_TAB = 2, /*Tab at the current location*/
-	ETA_TOUCH_DOUBLETAB = 3, /*Double tab at the current location*/
-	ETA_TOUCH_DOWN = 4, /*Touch down at the current location*/
-	ETA_TOUCH_UP = 5, /*Touch up at the current location*/
+	ETA_TOUCH_MOVETO = 0,	/*Move the pointer to the specified location */
+	ETA_TOUCH_MOVEBY = 1,	/*Move the pointer by the specified values */
+	ETA_TOUCH_TAB = 2,	/*Tab at the current location */
+	ETA_TOUCH_DOUBLETAB = 3,	/*Double tab at the current location */
+	ETA_TOUCH_DOWN = 4,	/*Touch down at the current location */
+	ETA_TOUCH_UP = 5,	/*Touch up at the current location */
 	ETA_TOUCH_DEFAULT = 0xff,
 };
 #endif /*                     */
-

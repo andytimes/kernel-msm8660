@@ -44,7 +44,7 @@ struct smem_heap_entry {
 	unsigned allocated;
 	unsigned offset;
 	unsigned size;
-	unsigned reserved; /* bits 1:0 reserved, bits 31:2 aux smem base addr */
+	unsigned reserved;	/* bits 1:0 reserved, bits 31:2 aux smem base addr */
 };
 #define BASE_ADDR_MASK 0xfffffffc
 
@@ -74,9 +74,9 @@ struct smsm_interrupt_info {
 };
 #elif defined(CONFIG_MSM_SMD_PKG3)
 struct smsm_interrupt_info {
-  uint32_t aArm_en_mask;
-  uint32_t aArm_interrupts_pending;
-  uint32_t aArm_wakeup_reason;
+	uint32_t aArm_en_mask;
+	uint32_t aArm_interrupts_pending;
+	uint32_t aArm_wakeup_reason;
 };
 #elif !defined(CONFIG_MSM_SMD)
 /* Don't trigger the error */
@@ -147,29 +147,29 @@ struct smd_half_channel_word_access {
 };
 
 struct smd_half_channel_access {
-	void (*set_state)(volatile void *half_channel, unsigned data);
-	unsigned (*get_state)(volatile void *half_channel);
-	void (*set_fDSR)(volatile void *half_channel, unsigned char data);
-	unsigned (*get_fDSR)(volatile void *half_channel);
-	void (*set_fCTS)(volatile void *half_channel, unsigned char data);
-	unsigned (*get_fCTS)(volatile void *half_channel);
-	void (*set_fCD)(volatile void *half_channel, unsigned char data);
-	unsigned (*get_fCD)(volatile void *half_channel);
-	void (*set_fRI)(volatile void *half_channel, unsigned char data);
-	unsigned (*get_fRI)(volatile void *half_channel);
-	void (*set_fHEAD)(volatile void *half_channel, unsigned char data);
-	unsigned (*get_fHEAD)(volatile void *half_channel);
-	void (*set_fTAIL)(volatile void *half_channel, unsigned char data);
-	unsigned (*get_fTAIL)(volatile void *half_channel);
-	void (*set_fSTATE)(volatile void *half_channel, unsigned char data);
-	unsigned (*get_fSTATE)(volatile void *half_channel);
-	void (*set_fBLOCKREADINTR)(volatile void *half_channel,
-					unsigned char data);
-	unsigned (*get_fBLOCKREADINTR)(volatile void *half_channel);
-	void (*set_tail)(volatile void *half_channel, unsigned data);
-	unsigned (*get_tail)(volatile void *half_channel);
-	void (*set_head)(volatile void *half_channel, unsigned data);
-	unsigned (*get_head)(volatile void *half_channel);
+	void (*set_state) (volatile void *half_channel, unsigned data);
+	unsigned (*get_state) (volatile void *half_channel);
+	void (*set_fDSR) (volatile void *half_channel, unsigned char data);
+	unsigned (*get_fDSR) (volatile void *half_channel);
+	void (*set_fCTS) (volatile void *half_channel, unsigned char data);
+	unsigned (*get_fCTS) (volatile void *half_channel);
+	void (*set_fCD) (volatile void *half_channel, unsigned char data);
+	unsigned (*get_fCD) (volatile void *half_channel);
+	void (*set_fRI) (volatile void *half_channel, unsigned char data);
+	unsigned (*get_fRI) (volatile void *half_channel);
+	void (*set_fHEAD) (volatile void *half_channel, unsigned char data);
+	unsigned (*get_fHEAD) (volatile void *half_channel);
+	void (*set_fTAIL) (volatile void *half_channel, unsigned char data);
+	unsigned (*get_fTAIL) (volatile void *half_channel);
+	void (*set_fSTATE) (volatile void *half_channel, unsigned char data);
+	unsigned (*get_fSTATE) (volatile void *half_channel);
+	void (*set_fBLOCKREADINTR) (volatile void *half_channel,
+				    unsigned char data);
+	unsigned (*get_fBLOCKREADINTR) (volatile void *half_channel);
+	void (*set_tail) (volatile void *half_channel, unsigned data);
+	unsigned (*get_tail) (volatile void *half_channel);
+	void (*set_head) (volatile void *half_channel, unsigned data);
+	unsigned (*get_head) (volatile void *half_channel);
 };
 
 int is_word_access_ch(unsigned ch_type);
@@ -197,10 +197,9 @@ struct smem_ram_ptn {
 	unsigned reserved2, reserved3, reserved4, reserved5;
 } __attribute__ ((__packed__));
 
-
 struct smem_ram_ptable {
-	#define _SMEM_RAM_PTABLE_MAGIC_1 0x9DA5E0A8
-	#define _SMEM_RAM_PTABLE_MAGIC_2 0xAF9EC4E2
+#define _SMEM_RAM_PTABLE_MAGIC_1 0x9DA5E0A8
+#define _SMEM_RAM_PTABLE_MAGIC_2 0xAF9EC4E2
 	unsigned magic[2];
 	unsigned version;
 	unsigned reserved1;
@@ -239,15 +238,14 @@ enum {
 };
 
 enum {
-	SYS_MEMORY = 1,        /* system memory*/
-	BOOT_REGION_MEMORY1,   /* boot loader memory 1*/
-	BOOT_REGION_MEMORY2,   /* boot loader memory 2,reserved*/
-	APPSBL_MEMORY,         /* apps boot loader memory*/
-	APPS_MEMORY,           /* apps  usage memory*/
+	SYS_MEMORY = 1,		/* system memory */
+	BOOT_REGION_MEMORY1,	/* boot loader memory 1 */
+	BOOT_REGION_MEMORY2,	/* boot loader memory 2,reserved */
+	APPSBL_MEMORY,		/* apps boot loader memory */
+	APPS_MEMORY,		/* apps  usage memory */
 };
 
 extern spinlock_t smem_lock;
-
 
 void smd_diag(void);
 

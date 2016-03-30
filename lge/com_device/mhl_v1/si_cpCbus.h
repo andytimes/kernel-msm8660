@@ -9,7 +9,6 @@
 //
 // Copyright 2008-2009, Silicon Image, Inc.  All rights reserved.
 //***************************************************************************/
-
-void CpCbusHandler ( void );
-void CpCbusInitialize ( void );
-
+ void CpCbusHandler(void);
+void CpCbusInitialize(void);
+ 

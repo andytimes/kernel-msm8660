@@ -16,16 +16,15 @@
  *
  */
 
-
 #include "sensor_mt9e013.h"
 
 static struct mt9e013_i2c_reg_conf mipi_settings[] = {
 	{0x3064, 0x7800},	//embedded_data_enable
 	{0x31AE, 0x0202},	//2-lane MIPI SERIAL_FORMAT
-//	{0x31B8, 0x0E3F},	//MIPI_timing
-	/*set data to RAW10 format*/
-	{0x0112, 0x0A0A},	/*CCP_DATA_FORMAT*/
-	{0x30F0, 0x800D},	/*VCM CONTROL : Enable Power collapse, vcm_slew =5*/
+//      {0x31B8, 0x0E3F},       //MIPI_timing
+	/*set data to RAW10 format */
+	{0x0112, 0x0A0A},	/*CCP_DATA_FORMAT */
+	{0x30F0, 0x800D},	/*VCM CONTROL : Enable Power collapse, vcm_slew =5 */
 };
 
 /*PLL Configuration
@@ -40,62 +39,62 @@ static struct mt9e013_i2c_reg_conf pll_settings[] = {
 };
 
 static struct mt9e013_i2c_reg_conf prev_settings[] = {
-	/*Output Size (1640x1232)*/
+	/*Output Size (1640x1232) */
 //                                          
-	{0x0344, 0x0000},/*X_ADDR_START*/
-	{0x0348, 0x0CCF},/*X_ADDR_END*/	//                                                                                                               
-	{0x0346, 0x0000},/*Y_ADDR_START*/
-	{0x034A, 0x09A1},/*Y_ADDR_END*/
-	{0x034C, 0x0668},/*X_OUTPUT_SIZE*/
-	{0x034E, 0x04D0},/*Y_OUTPUT_SIZE*/
+	{0x0344, 0x0000},	/*X_ADDR_START */
+	{0x0348, 0x0CCF},	/*X_ADDR_END *///                                                                                                               
+	{0x0346, 0x0000},	/*Y_ADDR_START */
+	{0x034A, 0x09A1},	/*Y_ADDR_END */
+	{0x034C, 0x0668},	/*X_OUTPUT_SIZE */
+	{0x034E, 0x04D0},	/*Y_OUTPUT_SIZE */
 //                                          
 
-	{0x306E, 0xFCB0},/*DATAPATH_SELECT*/
-	{0x3040, 0xC4C3},/*READ_MODE*/
-	{0x3178, 0x0000},/*ANALOG_CONTROL5*/
-	{0x3ED0, 0x1E24},/*DAC_LD_4_5*/
-	{0x0400, 0x0002},/*SCALING_MODE*/
-	{0x0404, 0x0010},/*SCALE_M*/
-	/*Timing configuration*/
-	{0x0342, 0x1280},/*LINE_LENGTH_PCK*/
-	{0x0340, 0x0563},/*FRAME_LENGTH_LINES*/
-	{0x0202, 0x055F},/*COARSE_INTEGRATION_TIME*/
-	{0x3014, 0x0846},/*FINE_INTEGRATION_TIME_*/
-	{0x3010, 0x0130},/*FINE_CORRECTION*/
-	
+	{0x306E, 0xFCB0},	/*DATAPATH_SELECT */
+	{0x3040, 0xC4C3},	/*READ_MODE */
+	{0x3178, 0x0000},	/*ANALOG_CONTROL5 */
+	{0x3ED0, 0x1E24},	/*DAC_LD_4_5 */
+	{0x0400, 0x0002},	/*SCALING_MODE */
+	{0x0404, 0x0010},	/*SCALE_M */
+	/*Timing configuration */
+	{0x0342, 0x1280},	/*LINE_LENGTH_PCK */
+	{0x0340, 0x0563},	/*FRAME_LENGTH_LINES */
+	{0x0202, 0x055F},	/*COARSE_INTEGRATION_TIME */
+	{0x3014, 0x0846},	/*FINE_INTEGRATION_TIME_ */
+	{0x3010, 0x0130},	/*FINE_CORRECTION */
+
 };
 
 static struct mt9e013_i2c_reg_conf snap_settings[] = {
-	/*Output Size (3280x2464)*/
+	/*Output Size (3280x2464) */
 	//[2-lane MIPI 3280x2464 14.8FPS 67.6ms RAW10 Ext=24MHz Vt_pix_clk=192MHz Op_pix_clk=76.8MHz FOV=3280x2464] 
-	{0x0344, 0x0000},		//X_ADDR_START 0
-	{0x0348, 0x0CCF},		//X_ADDR_END 3279
-	{0x0346, 0x0000},		//Y_ADDR_START 0
-	{0x034A, 0x099F},		//Y_ADDR_END 2463
-	{0x034C, 0x0CD0},		//X_OUTPUT_SIZE 3280
-	{0x034E, 0x09A0},		//Y_OUTPUT_SIZE 2464
+	{0x0344, 0x0000},	//X_ADDR_START 0
+	{0x0348, 0x0CCF},	//X_ADDR_END 3279
+	{0x0346, 0x0000},	//Y_ADDR_START 0
+	{0x034A, 0x099F},	//Y_ADDR_END 2463
+	{0x034C, 0x0CD0},	//X_OUTPUT_SIZE 3280
+	{0x034E, 0x09A0},	//Y_OUTPUT_SIZE 2464
 
-	{0x306E, 0xFC80},/*DATAPATH_SELECT*/
-	{0x3040, 0xC041},/*READ_MODE*/
-	{0x3178, 0x0000},/*ANALOG_CONTROL5*/
-	{0x3ED0, 0x1E24},/*DAC_LD_4_5*/
-	{0x0400, 0x0000},/*SCALING_MODE*/
-	{0x0404, 0x0010},/*SCALE_M*/
+	{0x306E, 0xFC80},	/*DATAPATH_SELECT */
+	{0x3040, 0xC041},	/*READ_MODE */
+	{0x3178, 0x0000},	/*ANALOG_CONTROL5 */
+	{0x3ED0, 0x1E24},	/*DAC_LD_4_5 */
+	{0x0400, 0x0000},	/*SCALING_MODE */
+	{0x0404, 0x0010},	/*SCALE_M */
 
-	/*Timing configuration*/
-	{0x0342, 0x1370},/*LINE_LENGTH_PCK*/
-	{0x0340, 0x0A2F},/*FRAME_LENGTH_LINES*/
+	/*Timing configuration */
+	{0x0342, 0x1370},	/*LINE_LENGTH_PCK */
+	{0x0340, 0x0A2F},	/*FRAME_LENGTH_LINES */
 //                                          
 // shutter lag
-//	{0x0202, 0x0A2F},/*COARSE_INTEGRATION_TIME*/
+//      {0x0202, 0x0A2F},/*COARSE_INTEGRATION_TIME*/
 //                                          
-	{0x3014, 0x03F6},/*FINE_INTEGRATION_TIME_ */
-	{0x3010, 0x0078},/*FINE_CORRECTION*/
+	{0x3014, 0x03F6},	/*FINE_INTEGRATION_TIME_ */
+	{0x3010, 0x0078},	/*FINE_CORRECTION */
 
 };
 
 static struct mt9e013_i2c_reg_conf FHD_settings[] = {
-	/*Output Size (2640x1486)*/
+	/*Output Size (2640x1486) */
 	{0x0344, 0x0140},	//X_ADDR_START 320
 	{0x0348, 0x0B8F},	//X_ADDR_END 2959
 	{0x0346, 0x01EA},	//Y_ADDR_START 490
@@ -103,20 +102,19 @@ static struct mt9e013_i2c_reg_conf FHD_settings[] = {
 	{0x034C, 0x0A50},	//X_OUTPUT_SIZE 2640
 	{0x034E, 0x05CE},	//Y_OUTPUT_SIZE 1486
 
-	{0x306E, 0xFC80},/*DATAPATH_SELECT*/
-	{0x3040, 0xC041},/*READ_MODE*/
-	{0x3178, 0x0000},/*ANALOG_CONTROL5*/
-	{0x3ED0, 0x1E24},/*DAC_LD_4_5*/
-	{0x0400, 0x0000},/*SCALING_MODE*/
-	{0x0404, 0x0010},/*SCALE_M*/
-	/*Timing configuration*/
-	{0x0342, 0x0FD8},/*LINE_LENGTH_PCK*/		//4056
-	{0x0340, 0x065D},/*FRAME_LENGTH_LINES*/		//1629
-	{0x0202, 0x0629},/*COARSE_INTEGRATION_TIME*///1577
-	{0x3014, 0x0C82},/*FINE_INTEGRATION_TIME_ *///3202
-	{0x3010, 0x0078},/*FINE_CORRECTION*///120
+	{0x306E, 0xFC80},	/*DATAPATH_SELECT */
+	{0x3040, 0xC041},	/*READ_MODE */
+	{0x3178, 0x0000},	/*ANALOG_CONTROL5 */
+	{0x3ED0, 0x1E24},	/*DAC_LD_4_5 */
+	{0x0400, 0x0000},	/*SCALING_MODE */
+	{0x0404, 0x0010},	/*SCALE_M */
+	/*Timing configuration */
+	{0x0342, 0x0FD8},	/*LINE_LENGTH_PCK *///4056
+	{0x0340, 0x065D},	/*FRAME_LENGTH_LINES *///1629
+	{0x0202, 0x0629},	/*COARSE_INTEGRATION_TIME *///1577
+	{0x3014, 0x0C82},	/*FINE_INTEGRATION_TIME_ *///3202
+	{0x3010, 0x0078},	/*FINE_CORRECTION *///120
 };
-
 
 static struct mt9e013_i2c_reg_conf recommend_settings[] = {
 	//mipi timing setting
@@ -210,7 +208,6 @@ static struct mt9e013_i2c_reg_conf recommend_settings[] = {
 
 };
 
-
 struct mt9e013_reg mt9e013_regs = {
 	.reg_mipi = &mipi_settings[0],
 	.reg_mipi_size = ARRAY_SIZE(mipi_settings),
@@ -226,5 +223,5 @@ struct mt9e013_reg mt9e013_regs = {
 	.reg_snap_size = ARRAY_SIZE(snap_settings),
 
 	.reg_FHD = &FHD_settings[0],
-	.reg_FHD_size = ARRAY_SIZE(FHD_settings),	
+	.reg_FHD_size = ARRAY_SIZE(FHD_settings),
 };

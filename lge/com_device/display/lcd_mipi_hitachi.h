@@ -32,6 +32,6 @@
 #define LGE_MIPI_LGIT_H
 
 int mipi_hitachi_device_register(struct msm_panel_info *pinfo,
-					u32 channel, u32 panel);
+				 u32 channel, u32 panel);
 
-#endif  /* MIPI_LGIT_H */
+#endif /* MIPI_LGIT_H */

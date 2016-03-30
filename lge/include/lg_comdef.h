@@ -9,7 +9,7 @@ typedef unsigned char byte;
 typedef unsigned short word;
 typedef unsigned long dword;
 typedef unsigned char boolean;
-typedef unsigned long qword[ 2 ];
+typedef unsigned long qword[2];
 
 typedef uint8 diagpkt_cmd_code_type;
 typedef uint8 diagpkt_subsys_id_type;
@@ -23,6 +23,6 @@ typedef uint16 diagpkt_subsys_rsp_cnt;
 #define ON 1
 #define OFF 0
 /*                                                                                          */
-#define LG_FW_WLAN_TEST 1 
+#define LG_FW_WLAN_TEST 1
 /*                                                                                          */
 #endif /* LG_COMDEF_H */

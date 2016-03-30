@@ -5,11 +5,11 @@
 #define __MUIC_H_
 
 #define TS5USBA_DEVICE_ID 0x44
-#define MUIC_INT_GPIO 14 //yongman.kwon 14 means 15th gpio.
+#define MUIC_INT_GPIO 14	//yongman.kwon 14 means 15th gpio.
 
 typedef enum {
-	NOT_UPON_IRQ,	
-	UPON_IRQ,	
+	NOT_UPON_IRQ,
+	UPON_IRQ,
 } TYPE_UPON_IRQ;
 
 #define TS5USBA_DEVICE_ID_ADDR 0x00
@@ -31,7 +31,7 @@ typedef enum {
 #define TS5USBA_VLDO_MASK 0x08
 #define TS5USBA_SEMREN_MASK 0x04
 #define TS5USBA_ADC_EN_MASK 0x02
-#define TS5USBA_DP_EN_MASK 0x01 
+#define TS5USBA_DP_EN_MASK 0x01
 
 /* start descripting control2 register masking value */
 #define TS5USBA_INT_POL_MASK 0x80
@@ -74,25 +74,23 @@ typedef enum {
 #define TS5USBA_CH_PORT_MASK 0x40
 
 struct ts5usba_reg {
-  uint8_t addr;
-  uint8_t value;
+	uint8_t addr;
+	uint8_t value;
 };
 
-typedef enum 
-  {
-    CHARGER_TYPE_NONE,
-    DEDICATED_CHARGER,
-    CHARGING_HOST,
-    INVALID_CHARGER
-  }charger_type;
+typedef enum {
+	CHARGER_TYPE_NONE,
+	DEDICATED_CHARGER,
+	CHARGING_HOST,
+	INVALID_CHARGER
+} charger_type;
 
-typedef enum
-  {
-    FACTORY_UART,
-    FACTORY_USB,
-    TA_ONLY,
-    USB_ONLY,
-    AUDIO,
-    INVALID
-  }cable_id_type;
+typedef enum {
+	FACTORY_UART,
+	FACTORY_USB,
+	TA_ONLY,
+	USB_ONLY,
+	AUDIO,
+	INVALID
+} cable_id_type;
 #endif

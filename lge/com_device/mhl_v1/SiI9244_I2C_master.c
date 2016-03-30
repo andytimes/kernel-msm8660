@@ -36,20 +36,18 @@ when              who                         what, where, why
 #include <linux/workqueue.h>
 #include <linux/freezer.h>
 #include <linux/delay.h>
-#include <linux/syscalls.h> 
-#include <linux/fcntl.h> 
-#include <asm/uaccess.h> 
+#include <linux/syscalls.h>
+#include <linux/fcntl.h>
+#include <asm/uaccess.h>
 #include <linux/types.h>
 #include <linux/miscdevice.h>
 
-#include <linux/syscalls.h> 
-#include <linux/fcntl.h> 
-#include <asm/uaccess.h> 
-
+#include <linux/syscalls.h>
+#include <linux/fcntl.h>
+#include <asm/uaccess.h>
 
 #include "Common_Def.h"
 #include "SiI9244_I2C_slave_add.h"
-
 
 /*===========================================================================
 
@@ -61,11 +59,9 @@ when              who                         what, where, why
 #define LAST_BYTE      1
 #define NOT_LAST_BYTE  0
 
-
 #define TPI_INDEXED_PAGE_REG		0xBC
 #define TPI_INDEXED_OFFSET_REG		0xBD
 #define TPI_INDEXED_VALUE_REG		0xBE
-
 
 /*===========================================================================
 
@@ -77,199 +73,191 @@ when              who                         what, where, why
 void I2C_WriteByte(byte deviceID, byte offset, byte value)
 {
 	int ret = 0;
-	struct i2c_client* client_ptr = get_sii9244_client(deviceID);
-	if(!client_ptr)
-	{
-		printk("[MHL]I2C_WriteByte error %x\n",deviceID); 
-		return;	
+	struct i2c_client *client_ptr = get_sii9244_client(deviceID);
+	if (!client_ptr) {
+		printk("[MHL]I2C_WriteByte error %x\n", deviceID);
+		return;
 	}
-	
-	if(deviceID == 0x72)
-		ret = sii9244_i2c_write(client_ptr,offset,value);
-	else if(deviceID == 0x7A)
-		ret = sii9244_i2c_write(client_ptr,offset,value);
-	else if(deviceID == 0x92)
-		ret = sii9244_i2c_write(client_ptr,offset,value);
-	else if(deviceID == 0xC8)
-		ret = sii9244_i2c_write(client_ptr,offset,value);
+
+	if (deviceID == 0x72)
+		ret = sii9244_i2c_write(client_ptr, offset, value);
+	else if (deviceID == 0x7A)
+		ret = sii9244_i2c_write(client_ptr, offset, value);
+	else if (deviceID == 0x92)
+		ret = sii9244_i2c_write(client_ptr, offset, value);
+	else if (deviceID == 0xC8)
+		ret = sii9244_i2c_write(client_ptr, offset, value);
 #if 0
-	if (ret < 0)
-	{
-		printk("I2C_WriteByte: Device ID=0x%X, Err ret = %d \n", deviceID, ret);
+	if (ret < 0) {
+		printk("I2C_WriteByte: Device ID=0x%X, Err ret = %d \n",
+		       deviceID, ret);
 	}
-	printk("I2C_WriteByte: Device ID=0x%X, offset = 0x%x value = 0x%x\n", deviceID, offset, value);
+	printk("I2C_WriteByte: Device ID=0x%X, offset = 0x%x value = 0x%x\n",
+	       deviceID, offset, value);
 #endif
 
 }
-
 
 byte I2C_ReadByte(byte deviceID, byte offset)
 {
-    	byte number = 0;
-	struct i2c_client* client_ptr = get_sii9244_client(deviceID);
-	if(!client_ptr)
-	{
-		printk("[MHL]I2C_ReadByte error %x\n",deviceID); 
-		return 0;	
+	byte number = 0;
+	struct i2c_client *client_ptr = get_sii9244_client(deviceID);
+	if (!client_ptr) {
+		printk("[MHL]I2C_ReadByte error %x\n", deviceID);
+		return 0;
 	}
 
-  
-  	if(deviceID == 0x72)
-		number = sii9244_i2c_read(client_ptr,offset);
-	else if(deviceID == 0x7A)
-		number = sii9244_i2c_read(client_ptr,offset);
-	else if(deviceID == 0x92)
-		number = sii9244_i2c_read(client_ptr,offset);
-	else if(deviceID == 0xC8)
-		number = sii9244_i2c_read(client_ptr,offset);
+	if (deviceID == 0x72)
+		number = sii9244_i2c_read(client_ptr, offset);
+	else if (deviceID == 0x7A)
+		number = sii9244_i2c_read(client_ptr, offset);
+	else if (deviceID == 0x92)
+		number = sii9244_i2c_read(client_ptr, offset);
+	else if (deviceID == 0xC8)
+		number = sii9244_i2c_read(client_ptr, offset);
 
 #if 0
-	if (number < 0)
-	{
-		printk("I2C_ReadByte: Device ID=0x%X, Err ret = %d \n", deviceID, number);
+	if (number < 0) {
+		printk("I2C_ReadByte: Device ID=0x%X, Err ret = %d \n",
+		       deviceID, number);
 	}
 #endif
 
-    return (number);
+	return (number);
 
 }
 
-byte ReadByteTPI (byte Offset) 
+byte ReadByteTPI(byte Offset)
 {
 	return I2C_ReadByte(SA_TX_Page0_Primary, Offset);
 }
 
-void WriteByteTPI (byte Offset, byte Data) 
+void WriteByteTPI(byte Offset, byte Data)
 {
 	I2C_WriteByte(SA_TX_Page0_Primary, Offset, Data);
 }
 
-
-
-void ReadModifyWriteTPI(byte Offset, byte Mask, byte Data) 
+void ReadModifyWriteTPI(byte Offset, byte Mask, byte Data)
 {
 
 	byte Temp;
 
-	Temp = ReadByteTPI(Offset);		// Read the current value of the register.
-	Temp &= ~Mask;					// Clear the bits that are set in Mask.
-	Temp |= (Data & Mask);			// OR in new value. Apply Mask to Value for safety.
-	WriteByteTPI(Offset, Temp);		// Write new value back to register.
+	Temp = ReadByteTPI(Offset);	// Read the current value of the register.
+	Temp &= ~Mask;		// Clear the bits that are set in Mask.
+	Temp |= (Data & Mask);	// OR in new value. Apply Mask to Value for safety.
+	WriteByteTPI(Offset, Temp);	// Write new value back to register.
 }
 
-byte ReadByteCBUS (byte Offset) 
+byte ReadByteCBUS(byte Offset)
 {
 	return I2C_ReadByte(SA_TX_CBUS_Primary, Offset);
 }
 
-void WriteByteCBUS(byte Offset, byte Data) 
+void WriteByteCBUS(byte Offset, byte Data)
 {
 	I2C_WriteByte(SA_TX_CBUS_Primary, Offset, Data);
 }
 
-void ReadModifyWriteCBUS(byte Offset, byte Mask, byte Value) 
+void ReadModifyWriteCBUS(byte Offset, byte Mask, byte Value)
 {
-  byte Temp;
+	byte Temp;
 
-  Temp = ReadByteCBUS(Offset);
-  Temp &= ~Mask;
-  Temp |= (Value & Mask);
-  WriteByteCBUS(Offset, Temp);
+	Temp = ReadByteCBUS(Offset);
+	Temp &= ~Mask;
+	Temp |= (Value & Mask);
+	WriteByteCBUS(Offset, Temp);
 }
 
-
 //////////////////////////////////////////////////////////////////////////////
 //
-// FUNCTION		:	ReadIndexedRegister ()
+// FUNCTION             :       ReadIndexedRegister ()
 //
-// PURPOSE		:	Read the value from an indexed register.
+// PURPOSE              :       Read the value from an indexed register.
 //
-//					Write:
-//						1. 0xBC => Indexed page num
-//						2. 0xBD => Indexed register offset
+//                                      Write:
+//                                              1. 0xBC => Indexed page num
+//                                              2. 0xBD => Indexed register offset
 //
-//					Read:
-//						3. 0xBE => Returns the indexed register value
+//                                      Read:
+//                                              3. 0xBE => Returns the indexed register value
 //
-// INPUT PARAMS	:	PageNum	-	indexed page number
-//					Offset	-	offset of the register within the indexed page.
+// INPUT PARAMS :       PageNum -       indexed page number
+//                                      Offset  -       offset of the register within the indexed page.
 //
-// OUTPUT PARAMS:	None
+// OUTPUT PARAMS:       None
 //
-// GLOBALS USED	:	None
+// GLOBALS USED :       None
 //
-// RETURNS		:	The value read from the indexed register.
+// RETURNS              :       The value read from the indexed register.
 //
 //////////////////////////////////////////////////////////////////////////////
 
-byte ReadIndexedRegister (byte PageNum, byte Offset) 
+byte ReadIndexedRegister(byte PageNum, byte Offset)
 {
-	WriteByteTPI(TPI_INDEXED_PAGE_REG, PageNum);		// Indexed page
-	WriteByteTPI(TPI_INDEXED_OFFSET_REG, Offset);		// Indexed register
-	return ReadByteTPI(TPI_INDEXED_VALUE_REG);			// Return read value
+	WriteByteTPI(TPI_INDEXED_PAGE_REG, PageNum);	// Indexed page
+	WriteByteTPI(TPI_INDEXED_OFFSET_REG, Offset);	// Indexed register
+	return ReadByteTPI(TPI_INDEXED_VALUE_REG);	// Return read value
 }
 
-
 //////////////////////////////////////////////////////////////////////////////
 //
-// FUNCTION		:	WriteIndexedRegister ()
+// FUNCTION             :       WriteIndexedRegister ()
 //
-// PURPOSE		:	Write a value to an indexed register
+// PURPOSE              :       Write a value to an indexed register
 //
-//					Write:
-//						1. 0xBC => Indexed page num
-//						2. 0xBD => Indexed register offset
-//						3. 0xBE => Set the indexed register value
+//                                      Write:
+//                                              1. 0xBC => Indexed page num
+//                                              2. 0xBD => Indexed register offset
+//                                              3. 0xBE => Set the indexed register value
 //
-// INPUT PARAMS	:	PageNum	-	indexed page number
-//					Offset	-	offset of the register within the indexed page.
-//					Data	-	the value to be written.
+// INPUT PARAMS :       PageNum -       indexed page number
+//                                      Offset  -       offset of the register within the indexed page.
+//                                      Data    -       the value to be written.
 //
-// OUTPUT PARAMS:	None
+// OUTPUT PARAMS:       None
 //
-// GLOBALS USED :	None
+// GLOBALS USED :       None
 //
-// RETURNS		:	None
+// RETURNS              :       None
 //
 //////////////////////////////////////////////////////////////////////////////
 
-void WriteIndexedRegister (byte PageNum, byte Offset, byte Data) 
+void WriteIndexedRegister(byte PageNum, byte Offset, byte Data)
 {
-	WriteByteTPI(TPI_INDEXED_PAGE_REG, PageNum);		// Indexed page
-	WriteByteTPI(TPI_INDEXED_OFFSET_REG, Offset);		// Indexed register
-	WriteByteTPI(TPI_INDEXED_VALUE_REG, Data);			// Write value
+	WriteByteTPI(TPI_INDEXED_PAGE_REG, PageNum);	// Indexed page
+	WriteByteTPI(TPI_INDEXED_OFFSET_REG, Offset);	// Indexed register
+	WriteByteTPI(TPI_INDEXED_VALUE_REG, Data);	// Write value
 }
 
-
 //////////////////////////////////////////////////////////////////////////////
 //
-// FUNCTION		:	ReadModifyWriteIndexedRegister ()
+// FUNCTION             :       ReadModifyWriteIndexedRegister ()
 //
-// PURPOSE		:	Set or clear individual bits in a TPI register.
+// PURPOSE              :       Set or clear individual bits in a TPI register.
 //
-// INPUT PARAMS	:	PageNum	-	indexed page number
-//					Offset	-	the offset of the indexed register to be modified.
-//					Mask	-	"1" for each indexed register bit that needs to be
-//								modified
-//					Data	-	The desired value for the register bits in their
-//								proper positions
+// INPUT PARAMS :       PageNum -       indexed page number
+//                                      Offset  -       the offset of the indexed register to be modified.
+//                                      Mask    -       "1" for each indexed register bit that needs to be
+//                                                              modified
+//                                      Data    -       The desired value for the register bits in their
+//                                                              proper positions
 //
-// OUTPUT PARAMS:	None
+// OUTPUT PARAMS:       None
 //
-// GLOBALS USED	:	None
+// GLOBALS USED :       None
 //
-// RETURNS		:	void
+// RETURNS              :       void
 //
 //////////////////////////////////////////////////////////////////////////////
 
-void ReadModifyWriteIndexedRegister (byte PageNum, byte Offset, byte Mask, byte Data) 
+void ReadModifyWriteIndexedRegister(byte PageNum, byte Offset, byte Mask,
+				    byte Data)
 {
 
 	byte Temp;
 
-	Temp = ReadIndexedRegister (PageNum, Offset);	// Read the current value of the register.
-	Temp &= ~Mask;									// Clear the bits that are set in Mask.
-	Temp |= (Data & Mask);							// OR in new value. Apply Mask to Value for safety.
-	WriteByteTPI(TPI_INDEXED_VALUE_REG, Temp);		// Write new value back to register.
+	Temp = ReadIndexedRegister(PageNum, Offset);	// Read the current value of the register.
+	Temp &= ~Mask;		// Clear the bits that are set in Mask.
+	Temp |= (Data & Mask);	// OR in new value. Apply Mask to Value for safety.
+	WriteByteTPI(TPI_INDEXED_VALUE_REG, Temp);	// Write new value back to register.
 }
-

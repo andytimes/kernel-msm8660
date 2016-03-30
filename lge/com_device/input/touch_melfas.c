@@ -59,10 +59,11 @@
 #define TS_MFS_GET_PRESSURE(_pressure) \
 		_pressure
 
-int melfas_ts_get_data(struct i2c_client *client, struct t_data* data, struct b_data* button, u8* total_num)
+int melfas_ts_get_data(struct i2c_client *client, struct t_data *data,
+		       struct b_data *button, u8 * total_num)
 {
-	struct melfas_ts_data* ts =
-			(struct melfas_ts_data*)get_touch_handle(client);
+	struct melfas_ts_data *ts =
+	    (struct melfas_ts_data *)get_touch_handle(client);
 
 	int i;
 	u16 touchType = 0, touchState = 0, touchID = 0;
@@ -73,10 +74,12 @@ int melfas_ts_get_data(struct i2c_client *client, struct t_data* data, struct b_
 	u8 index = 0;
 
 	if (unlikely(touch_debug_mask & DEBUG_TRACE))
-		TOUCH_DEBUG_MSG("\n");	
+		TOUCH_DEBUG_MSG("\n");
 
 	/* Read packet size */
-	if (unlikely(touch_i2c_read(client, MIP_INPUT_EVENT_PACKET_SIZE, 1, &packet_size) < 0)) {
+	if (unlikely
+	    (touch_i2c_read
+	     (client, MIP_INPUT_EVENT_PACKET_SIZE, 1, &packet_size) < 0)) {
 		TOUCH_ERR_MSG("MIP_INPUT_EVENT_PACKET_SIZE read fail\n");
 		goto err_melfas_getdata;
 	}
@@ -88,19 +91,22 @@ int melfas_ts_get_data(struct i2c_client *client, struct t_data* data, struct b_
 	}
 
 	/* Read event information */
-	if (unlikely(touch_i2c_read(client, MIP_INPUT_EVENT_INFORMATION, packet_size, event_data) < 0)) {
+	if (unlikely
+	    (touch_i2c_read
+	     (client, MIP_INPUT_EVENT_INFORMATION, packet_size,
+	      event_data) < 0)) {
 		TOUCH_ERR_MSG("MIP_INPUT_EVENT_PACKET_SIZE read fail\n");
 		goto err_melfas_getdata;
 	}
 
 	/* decode low data */
 	for (i = 0; i < packet_size; i = i + 6) {
-		touchType = TS_MFS_GET_TYPE(event_data[i]);		/* Touch Screen, Touch Key */
-		touchState = TS_MFS_GET_STATE(event_data[i]); 	/* touchAction = (buf[0]>>7)&&0x01;*/
+		touchType = TS_MFS_GET_TYPE(event_data[i]);	/* Touch Screen, Touch Key */
+		touchState = TS_MFS_GET_STATE(event_data[i]);	/* touchAction = (buf[0]>>7)&&0x01; */
 		/* Touch Screen -> n.th finger input
 		 * Touch Key -> n.th touch key area. 
 		 */
-		reportID = TS_MFS_GET_REPORT_ID(event_data[i]);		
+		reportID = TS_MFS_GET_REPORT_ID(event_data[i]);
 		posX = (u16) TS_MFS_GET_X_POSITION(event_data[i + 1], event_data[i + 2]);	/* X position (0 ~ 4096, 12 bit) */
 		posY = (u16) TS_MFS_GET_Y_POSITION(event_data[i + 1], event_data[i + 3]);	/* Y position (0 ~ 4096, 12 bit) */
 		width = event_data[i + 4];
@@ -108,9 +114,9 @@ int melfas_ts_get_data(struct i2c_client *client, struct t_data* data, struct b_
 		if (touchType == TOUCH_KEY)
 			keyID = reportID;
 		else if (touchType == TOUCH_SCREEN)
-			touchID = reportID-1;
+			touchID = reportID - 1;
 
-		if (touchID > MAX_FINGER-1) {
+		if (touchID > MAX_FINGER - 1) {
 			// TODO: Dose it needs?
 			TOUCH_ERR_MSG("invaliad data\n");
 			goto err_melfas_getdata;
@@ -128,15 +134,18 @@ int melfas_ts_get_data(struct i2c_client *client, struct t_data* data, struct b_
 			data[index].pressure = 10;	// dummy value - need to improve
 
 			index++;
-		} 
+		}
 
 		/* button data */
 		// TODO: button priority for defencing multi press
 		if (touchType == TOUCH_KEY) {
-			if (keyID > ts->pdata->caps->number_of_button || keyID == 0) {
-				TOUCH_ERR_MSG("Touchkey ID error: id = %d\n", keyID);
+			if (keyID > ts->pdata->caps->number_of_button
+			    || keyID == 0) {
+				TOUCH_ERR_MSG("Touchkey ID error: id = %d\n",
+					      keyID);
 			} else {
-				button->key_code = ts->pdata->caps->button_name[keyID-1];
+				button->key_code =
+				    ts->pdata->caps->button_name[keyID - 1];
 				button->state = touchState;
 			}
 
@@ -159,21 +168,25 @@ err_melfas_getdata:
 	return -EIO;
 }
 
-int get_ic_info(struct melfas_ts_data* ts, struct touch_fw_info* fw_info)
+int get_ic_info(struct melfas_ts_data *ts, struct touch_fw_info *fw_info)
 {
 	u8 buf[TS_READ_VERSION_INFO_LEN];
-	
+
 	memset(fw_info, 0, sizeof(fw_info));
 
 	if (unlikely(touch_i2c_read(ts->client, TS_READ_VERSION_ADDR,
-			TS_READ_VERSION_INFO_LEN, buf) < 0)) {
+				    TS_READ_VERSION_INFO_LEN, buf) < 0)) {
 		TOUCH_ERR_MSG("TS_READ_VERSION_ADDR read fail\n");
 		return -EIO;
 	}
 
 	TOUCH_INFO_MSG("= Melfas Version Info =\n");
-	TOUCH_INFO_MSG("Panel Version :: %d, HW Revision :: %d, HW Compatibility GR :: %d\n", buf[0], buf[1], buf[2]);
-	TOUCH_INFO_MSG("Core Version :: %d, Private Custom Version :: %d, Public Custom Version :: %d\n", buf[3], buf[4], buf[5]);
+	TOUCH_INFO_MSG
+	    ("Panel Version :: %d, HW Revision :: %d, HW Compatibility GR :: %d\n",
+	     buf[0], buf[1], buf[2]);
+	TOUCH_INFO_MSG
+	    ("Core Version :: %d, Private Custom Version :: %d, Public Custom Version :: %d\n",
+	     buf[3], buf[4], buf[5]);
 
 	fw_info->fw_rev = buf[3];
 
@@ -182,10 +195,10 @@ int get_ic_info(struct melfas_ts_data* ts, struct touch_fw_info* fw_info)
 	return 0;
 }
 
-int melfas_ts_init(struct i2c_client* client, struct touch_fw_info* fw_info)
+int melfas_ts_init(struct i2c_client *client, struct touch_fw_info *fw_info)
 {
-	struct melfas_ts_data* ts =
-			(struct melfas_ts_data*)get_touch_handle(client);
+	struct melfas_ts_data *ts =
+	    (struct melfas_ts_data *)get_touch_handle(client);
 
 	if (touch_debug_mask & DEBUG_TRACE)
 		TOUCH_DEBUG_MSG("\n");
@@ -199,10 +212,10 @@ int melfas_ts_init(struct i2c_client* client, struct touch_fw_info* fw_info)
 	return 0;
 }
 
-int melfas_ts_power(struct i2c_client* client, int power_ctrl)
+int melfas_ts_power(struct i2c_client *client, int power_ctrl)
 {
-	struct melfas_ts_data* ts =
-			(struct melfas_ts_data*)get_touch_handle(client);
+	struct melfas_ts_data *ts =
+	    (struct melfas_ts_data *)get_touch_handle(client);
 
 	if (touch_debug_mask & DEBUG_TRACE)
 		TOUCH_DEBUG_MSG("\n");
@@ -212,8 +225,7 @@ int melfas_ts_power(struct i2c_client* client, int power_ctrl)
 		if (ts->pdata->pwr->use_regulator) {
 			regulator_disable(ts->regulator_vio);
 			regulator_disable(ts->regulator_vdd);
-		}
-		else
+		} else
 			ts->pdata->pwr->power(0);
 
 		break;
@@ -221,8 +233,7 @@ int melfas_ts_power(struct i2c_client* client, int power_ctrl)
 		if (ts->pdata->pwr->use_regulator) {
 			regulator_enable(ts->regulator_vdd);
 			regulator_enable(ts->regulator_vio);
-		}
-		else
+		} else
 			ts->pdata->pwr->power(1);
 
 		/* P2 H/W bug fix */
@@ -244,9 +255,9 @@ int melfas_ts_power(struct i2c_client* client, int power_ctrl)
 	return 0;
 }
 
-int melfas_ts_probe(struct i2c_client* client)
+int melfas_ts_probe(struct i2c_client *client)
 {
-	struct melfas_ts_data* ts;
+	struct melfas_ts_data *ts;
 	int ret = 0;
 
 	if (touch_debug_mask & DEBUG_TRACE)
@@ -265,30 +276,44 @@ int melfas_ts_probe(struct i2c_client* client)
 	ts->pdata = client->dev.platform_data;
 
 	if (ts->pdata->pwr->use_regulator) {
-		ts->regulator_vdd = regulator_get_exclusive(NULL, ts->pdata->pwr->vdd);
+		ts->regulator_vdd =
+		    regulator_get_exclusive(NULL, ts->pdata->pwr->vdd);
 		if (IS_ERR(ts->regulator_vdd)) {
-			TOUCH_ERR_MSG("FAIL: regulator_get_vdd - %s\n", ts->pdata->pwr->vdd);
+			TOUCH_ERR_MSG("FAIL: regulator_get_vdd - %s\n",
+				      ts->pdata->pwr->vdd);
 			ret = -EPERM;
 			goto err_get_vdd_failed;
 		}
 
-		ts->regulator_vio = regulator_get_exclusive(NULL, ts->pdata->pwr->vio);
+		ts->regulator_vio =
+		    regulator_get_exclusive(NULL, ts->pdata->pwr->vio);
 		if (IS_ERR(ts->regulator_vio)) {
-			TOUCH_ERR_MSG("FAIL: regulator_get_vio - %s\n", ts->pdata->pwr->vio);
+			TOUCH_ERR_MSG("FAIL: regulator_get_vio - %s\n",
+				      ts->pdata->pwr->vio);
 			ret = -EPERM;
 			goto err_get_vio_failed;
 		}
 
 		if (ts->pdata->pwr->vdd_voltage > 0) {
-			ret = regulator_set_voltage(ts->regulator_vdd, ts->pdata->pwr->vdd_voltage, ts->pdata->pwr->vdd_voltage);
+			ret =
+			    regulator_set_voltage(ts->regulator_vdd,
+						  ts->pdata->pwr->vdd_voltage,
+						  ts->pdata->pwr->vdd_voltage);
 			if (ret < 0)
-				TOUCH_ERR_MSG("FAIL: VDD voltage setting - (%duV)\n", ts->pdata->pwr->vdd_voltage);
+				TOUCH_ERR_MSG
+				    ("FAIL: VDD voltage setting - (%duV)\n",
+				     ts->pdata->pwr->vdd_voltage);
 		}
 
 		if (ts->pdata->pwr->vio_voltage > 0) {
-			ret = regulator_set_voltage(ts->regulator_vio, ts->pdata->pwr->vio_voltage, ts->pdata->pwr->vio_voltage);
+			ret =
+			    regulator_set_voltage(ts->regulator_vio,
+						  ts->pdata->pwr->vio_voltage,
+						  ts->pdata->pwr->vio_voltage);
 			if (ret < 0)
-				TOUCH_ERR_MSG("FAIL: VIO voltage setting - (%duV)\n",ts->pdata->pwr->vio_voltage);
+				TOUCH_ERR_MSG
+				    ("FAIL: VIO voltage setting - (%duV)\n",
+				     ts->pdata->pwr->vio_voltage);
 		}
 	}
 
@@ -304,10 +329,10 @@ err_alloc_data_failed:
 	return ret;
 }
 
-void melfas_ts_remove(struct i2c_client* client)
+void melfas_ts_remove(struct i2c_client *client)
 {
-	struct melfas_ts_data* ts =
-			(struct melfas_ts_data*)get_touch_handle(client);
+	struct melfas_ts_data *ts =
+	    (struct melfas_ts_data *)get_touch_handle(client);
 
 	if (touch_debug_mask & DEBUG_TRACE)
 		TOUCH_DEBUG_MSG("\n");
@@ -320,10 +345,10 @@ void melfas_ts_remove(struct i2c_client* client)
 	kfree(ts);
 }
 
-int melfas_ts_fw_upgrade(struct i2c_client* client, const char* fw_path)
+int melfas_ts_fw_upgrade(struct i2c_client *client, const char *fw_path)
 {
-	struct melfas_ts_data* ts =
-			(struct melfas_ts_data*)get_touch_handle(client);
+	struct melfas_ts_data *ts =
+	    (struct melfas_ts_data *)get_touch_handle(client);
 	int ret = 0;
 
 	ts->is_probed = 0;
@@ -338,15 +363,13 @@ int melfas_ts_fw_upgrade(struct i2c_client* client, const char* fw_path)
 
 int melfas_ts_ic_ctrl(struct i2c_client *client, u8 code, u16 value)
 {
-//	struct melfas_ts_data* ts =
-//			(struct melfas_ts_data*)get_touch_handle(client);
+//      struct melfas_ts_data* ts =
+//                      (struct melfas_ts_data*)get_touch_handle(client);
 	u8 buf = 0;
 
-	switch (code)
-	{
+	switch (code) {
 	case IC_CTRL_BASELINE:
-		switch (value)
-		{
+		switch (value) {
 		case BASELINE_OPEN:
 			break;
 		case BASELINE_FIX:
@@ -364,7 +387,8 @@ int melfas_ts_ic_ctrl(struct i2c_client *client, u8 code, u16 value)
 		}
 		break;
 	case IC_CTRL_WRITE:
-		if (touch_i2c_write_byte(client, ((value & 0xFF00) >> 8), (value & 0xFF)) < 0) {
+		if (touch_i2c_write_byte
+		    (client, ((value & 0xFF00) >> 8), (value & 0xFF)) < 0) {
 			TOUCH_ERR_MSG("IC_CTRL_WRITE fail\n");
 			return -EIO;
 		}
@@ -379,13 +403,13 @@ int melfas_ts_ic_ctrl(struct i2c_client *client, u8 code, u16 value)
 }
 
 struct touch_device_driver melfas_ts_driver = {
-	.probe 	= melfas_ts_probe,		// ok - none
-	.remove	= melfas_ts_remove,		// ok - none
-	.init  	= melfas_ts_init,		// ok
-	.data  	= melfas_ts_get_data,	// ok
-	.power 	= melfas_ts_power,		// ok
-	.fw_upgrade = NULL, // melfas_ts_fw_upgrade,
-	.ic_ctrl	= melfas_ts_ic_ctrl,// ok
+	.probe = melfas_ts_probe,	// ok - none
+	.remove = melfas_ts_remove,	// ok - none
+	.init = melfas_ts_init,	// ok
+	.data = melfas_ts_get_data,	// ok
+	.power = melfas_ts_power,	// ok
+	.fw_upgrade = NULL,	// melfas_ts_fw_upgrade,
+	.ic_ctrl = melfas_ts_ic_ctrl,	// ok
 };
 
 static int __devinit touch_init(void)
@@ -410,4 +434,3 @@ module_exit(touch_exit);
 MODULE_AUTHOR("yehan.ahn@lge.com, hyesung.shin@lge.com");
 MODULE_DESCRIPTION("LGE Touch Driver");
 MODULE_LICENSE("GPL");
-
