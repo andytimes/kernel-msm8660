@@ -65,9 +65,9 @@
 
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
 #define MSM_FB_EXT_BUF_SIZE  \
-		(roundup((1920 * 1080 * 4), 4096) * 2) /* 4 bpp x 2 page */
+		(roundup((1920 * 1080 * 4), 4096) * 2)	/* 4 bpp x 2 page */
 #elif defined(CONFIG_FB_MSM_TVOUT)
-#define MSM_FB_EXT_BUF_SIZE  (720 * 576 * 2 * 2) /* 2 bpp x 2 pages */
+#define MSM_FB_EXT_BUF_SIZE  (720 * 576 * 2 * 2)	/* 2 bpp x 2 pages */
 #else
 #define MSM_FB_EXT_BUFT_SIZE	0
 #endif
@@ -77,8 +77,8 @@
 #define MSM_FB_SIZE roundup(MSM_FB_PRIM_BUF_SIZE + MSM_FB_EXT_BUF_SIZE + \
 				MSM_FB_EXT_BUF_CAPTION_SIZE + MSM_FB_DSUB_PMEM_ADDER, 4096)
 
-#define MSM_PMEM_SF_SIZE 0x4000000 /* 64 Mbytes */
-#define MSM_HDMI_PRIM_PMEM_SF_SIZE 0x4000000 /* 64 Mbytes */
+#define MSM_PMEM_SF_SIZE 0x4000000	/* 64 Mbytes */
+#define MSM_HDMI_PRIM_PMEM_SF_SIZE 0x4000000	/* 64 Mbytes */
 
 extern unsigned char hdmi_is_primary;
 #if 0
@@ -93,13 +93,13 @@ unsigned char hdmi_is_primary;
 #define MSM_FB_OVERLAY0_WRITEBACK_SIZE roundup((1376 * 768 * 3 * 2), 4096)
 #else
 #define MSM_FB_OVERLAY0_WRITEBACK_SIZE (0)
-#endif  /* CONFIG_FB_MSM_OVERLAY0_WRITEBACK */
+#endif /* CONFIG_FB_MSM_OVERLAY0_WRITEBACK */
 
 #ifdef CONFIG_FB_MSM_OVERLAY1_WRITEBACK
 #define MSM_FB_OVERLAY1_WRITEBACK_SIZE roundup((1920 * 1088 * 3 * 2), 4096)
 #else
 #define MSM_FB_OVERLAY1_WRITEBACK_SIZE (0)
-#endif  /* CONFIG_FB_MSM_OVERLAY1_WRITEBACK */
+#endif /* CONFIG_FB_MSM_OVERLAY1_WRITEBACK */
 
 #define MIPI_VIDEO_LGIT_PANEL_NAME		"mipi_video_lgit_wvga"
 #define HDMI_PANEL_NAME	"hdmi_msm"
@@ -116,25 +116,22 @@ extern int refresh_qlut_display(void);
 
 static struct resource msm_fb_resources[] = {
 	{
-		.flags  = IORESOURCE_DMA,
-	}
+	 .flags = IORESOURCE_DMA,
+	 }
 };
 
 static int msm_fb_detect_panel(const char *name)
 {
 	if (!strncmp(name, MIPI_VIDEO_LGIT_PANEL_NAME,
-			strnlen(MIPI_VIDEO_LGIT_PANEL_NAME,
-				PANEL_NAME_MAX_LEN)))
+		     strnlen(MIPI_VIDEO_LGIT_PANEL_NAME, PANEL_NAME_MAX_LEN)))
 		return 0;
 
 	if (!strncmp(name, HDMI_PANEL_NAME,
-			strnlen(HDMI_PANEL_NAME,
-				PANEL_NAME_MAX_LEN)))
+		     strnlen(HDMI_PANEL_NAME, PANEL_NAME_MAX_LEN)))
 		return 0;
 
 	if (!strncmp(name, TVOUT_PANEL_NAME,
-			strnlen(TVOUT_PANEL_NAME,
-				PANEL_NAME_MAX_LEN)))
+		     strnlen(TVOUT_PANEL_NAME, PANEL_NAME_MAX_LEN)))
 		return 0;
 
 	pr_warning("%s: not supported '%s'", __func__, name);
@@ -153,9 +150,9 @@ int update_preset_lcdc_lut(void)
 	cmap.transp = NULL;
 
 #ifdef CONFIG_LCD_KCAL
-	cmap.red = (uint16_t *)&(kcal_value.red);
-	cmap.green = (uint16_t *)&(kcal_value.green);
-	cmap.blue = (uint16_t *)&(kcal_value.blue);
+	cmap.red = (uint16_t *) & (kcal_value.red);
+	cmap.green = (uint16_t *) & (kcal_value.green);
+	cmap.blue = (uint16_t *) & (kcal_value.blue);
 #else
 	cmap.red = NULL;
 	cmap.green = NULL;
@@ -172,37 +169,37 @@ int update_preset_lcdc_lut(void)
 
 static struct msm_fb_platform_data msm_fb_pdata = {
 	.detect_client = msm_fb_detect_panel,
-	
+
 };
 
 static struct platform_device msm_fb_device = {
-	.name   = "msm_fb",
-	.id     = 0,
-	.num_resources     = ARRAY_SIZE(msm_fb_resources),
-	.resource          = msm_fb_resources,
-	.dev.platform_data = &msm_fb_pdata,  
+	.name = "msm_fb",
+	.id = 0,
+	.num_resources = ARRAY_SIZE(msm_fb_resources),
+	.resource = msm_fb_resources,
+	.dev.platform_data = &msm_fb_pdata,
 };
 
 #ifdef CONFIG_FB_MSM_HDMI_MSM_PANEL
 static struct resource hdmi_msm_resources[] = {
 	{
-		.name  = "hdmi_msm_qfprom_addr",
-		.start = 0x00700000,
-		.end   = 0x007060FF,
-		.flags = IORESOURCE_MEM,
-	},
+	 .name = "hdmi_msm_qfprom_addr",
+	 .start = 0x00700000,
+	 .end = 0x007060FF,
+	 .flags = IORESOURCE_MEM,
+	 },
 	{
-		.name  = "hdmi_msm_hdmi_addr",
-		.start = 0x04A00000,
-		.end   = 0x04A00FFF,
-		.flags = IORESOURCE_MEM,
-	},
+	 .name = "hdmi_msm_hdmi_addr",
+	 .start = 0x04A00000,
+	 .end = 0x04A00FFF,
+	 .flags = IORESOURCE_MEM,
+	 },
 	{
-		.name  = "hdmi_msm_irq",
-		.start = HDMI_IRQ,
-		.end   = HDMI_IRQ,
-		.flags = IORESOURCE_IRQ,
-	},
+	 .name = "hdmi_msm_irq",
+	 .start = HDMI_IRQ,
+	 .end = HDMI_IRQ,
+	 .flags = IORESOURCE_IRQ,
+	 },
 };
 
 static int hdmi_enable_5v(int on);
@@ -235,16 +232,15 @@ static struct platform_device hdmi_msm_device = {
 
 static void mipi_config_gpio(int on)
 {
-	if(on)
-	{
+	if (on) {
 		/* Sub lcd  reset */
-		gpio_tlmm_config(LCD_RESET_N,0);
-		gpio_direction_output(LCD_RESET_N,1);
+		gpio_tlmm_config(LCD_RESET_N, 0);
+		gpio_direction_output(LCD_RESET_N, 1);
 	}
 }
 
 #ifdef CONFIG_LGE_DISPLAY_MIPI_LGIT_IJB_VIDEO_HD_PT
-extern void lm3530_lcd_backlight_set_level( int level);
+extern void lm3530_lcd_backlight_set_level(int level);
 static int mipi_lgit_backlight_level(int level, int max, int min)
 {
 	lm3530_lcd_backlight_set_level(level);
@@ -262,7 +258,7 @@ static struct platform_device mipi_dsi_lgit_panel_device = {
 	.id = 0,
 	.dev = {
 		.platform_data = &mipi_lgit_pdata,
-	}
+		}
 };
 #endif
 
@@ -273,12 +269,12 @@ static struct platform_device mipi_dsi_lgit_panel_device = {
  * therefore it need to be put at low power mode if
  * it was not used instead of turn it off.
  */
-static struct regulator* reg_8901_l2 = NULL;
-static struct regulator* reg_8901_l3 = NULL;
-static struct regulator* reg_8901_mvs = NULL;
+static struct regulator *reg_8901_l2 = NULL;
+static struct regulator *reg_8901_l3 = NULL;
+static struct regulator *reg_8901_mvs = NULL;
 static int mipi_dsi_panel_power(int on)
 {
-	int flag_on = !!on;
+	int flag_on = ! !on;
 	static int mipi_dsi_power_save_on;
 	int rc = 0;
 
@@ -293,7 +289,7 @@ static int mipi_dsi_panel_power(int on)
 			reg_8901_l2 = NULL;
 			goto power_error;
 		}
-	}	
+	}
 	if (reg_8901_mvs == NULL) {
 		reg_8901_mvs = regulator_get(NULL, "8901_mvs0");
 		if (IS_ERR(reg_8901_mvs)) {
@@ -309,55 +305,57 @@ static int mipi_dsi_panel_power(int on)
 		}
 	}
 
-	if(on){
+	if (on) {
 		rc = regulator_set_voltage(reg_8901_l2, 3000000, 3000000);
 		if (!rc)
 			rc = regulator_enable(reg_8901_l2);
 		if (rc) {
 			pr_err("'%s' regulator enable failed, rc=%d\n",
-					"8901_l2", rc);
+			       "8901_l2", rc);
 			return rc;
 		}
-		udelay(100); // 100us
-		
+		udelay(100);	// 100us
+
 		if (!rc)
-			rc = regulator_enable(reg_8901_mvs); // +1V8_LCD_IO
+			rc = regulator_enable(reg_8901_mvs);	// +1V8_LCD_IO
 		if (rc) {
 			pr_err("'%s' regulator enable failed, rc=%d\n",
-					"8901_mvs", rc);
+			       "8901_mvs", rc);
 			return rc;
 		}
-		udelay(500); // 100us
+		udelay(500);	// 100us
 
-		rc = regulator_set_voltage(reg_8901_l3, 3000000, 3000000); // +3V0_LCD_VCI
+		rc = regulator_set_voltage(reg_8901_l3, 3000000, 3000000);	// +3V0_LCD_VCI
 		if (!rc)
 			rc = regulator_enable(reg_8901_l3);
 		if (rc) {
 			pr_err("'%s' regulator enable failed, rc=%d\n",
-					"8901_l3", rc);
+			       "8901_l3", rc);
 			return rc;
 		}
-		udelay(100); // 100us
-	}
-	else{
+		udelay(100);	// 100us
+	} else {
 
-        gpio_set_value(MDP_VSYNC_GPIO,0);
-		gpio_tlmm_config(GPIO_CFG(MDP_VSYNC_GPIO, 0, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),GPIO_CFG_ENABLE);
+		gpio_set_value(MDP_VSYNC_GPIO, 0);
+		gpio_tlmm_config(GPIO_CFG
+				 (MDP_VSYNC_GPIO, 0, GPIO_CFG_INPUT,
+				  GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
+				 GPIO_CFG_ENABLE);
 		rc = regulator_disable(reg_8901_l3);
 		if (rc)
 			pr_warning("'%s' regulator disable failed, rc=%d\n",
-					"8901_l2", rc);
-		udelay(100); // 100us		
+				   "8901_l2", rc);
+		udelay(100);	// 100us           
 		rc = regulator_disable(reg_8901_mvs);
 		if (rc)
 			pr_warning("'%s' regulator disable failed, rc=%d\n",
-					"8901_mvs", rc);
-		udelay(100); // 100us
+				   "8901_mvs", rc);
+		udelay(100);	// 100us
 		rc = regulator_disable(reg_8901_l2);
 		if (rc)
 			pr_warning("'%s' regulator disable failed, rc=%d\n",
-					"8901_l3", rc);
-		udelay(100); // 100us
+				   "8901_l3", rc);
+		udelay(100);	// 100us
 		pr_info("%s(off): success\n", __func__);
 
 	}
@@ -367,11 +365,9 @@ power_error:
 }
 #endif
 struct mipi_dsi_platform_data mipi_dsi_pdata = {
-    //.vsync_gpio = MDP_VSYNC_GPIO,
-	.dsi_power_save   = mipi_dsi_panel_power,
+	//.vsync_gpio = MDP_VSYNC_GPIO,
+	.dsi_power_save = mipi_dsi_panel_power,
 };
-
-
 
 void __init msm8x60_allocate_memory_regions(void)
 {
@@ -397,13 +393,13 @@ void __init msm8x60_set_display_params(char *prim_panel, char *ext_panel)
 		strlcpy(msm_fb_pdata.prim_panel_name, prim_panel,
 			PANEL_NAME_MAX_LEN);
 		pr_debug("msm_fb_pdata.prim_panel_name %s\n",
-			msm_fb_pdata.prim_panel_name);
+			 msm_fb_pdata.prim_panel_name);
 
 		if (!strncmp((char *)msm_fb_pdata.prim_panel_name,
-			HDMI_PANEL_NAME, strnlen(HDMI_PANEL_NAME,
-				PANEL_NAME_MAX_LEN))) {
+			     HDMI_PANEL_NAME, strnlen(HDMI_PANEL_NAME,
+						      PANEL_NAME_MAX_LEN))) {
 			pr_debug("HDMI is the primary display by"
-				" boot parameter\n");
+				 " boot parameter\n");
 			hdmi_is_primary = 1;
 		}
 	}
@@ -411,7 +407,7 @@ void __init msm8x60_set_display_params(char *prim_panel, char *ext_panel)
 		strlcpy(msm_fb_pdata.ext_panel_name, ext_panel,
 			PANEL_NAME_MAX_LEN);
 		pr_debug("msm_fb_pdata.ext_panel_name %s\n",
-			msm_fb_pdata.ext_panel_name);
+			 msm_fb_pdata.ext_panel_name);
 	}
 }
 
@@ -427,10 +423,10 @@ static struct kcal_platform_data kcal_pdata = {
 };
 
 static struct platform_device kcal_platrom_device = {
-	.name   = "kcal_ctrl",
+	.name = "kcal_ctrl",
 	.dev = {
 		.platform_data = &kcal_pdata,
-	}
+		}
 };
 #endif
 
@@ -456,51 +452,53 @@ static struct platform_device *panel_devices[] __initdata = {
 
 };
 
-void __init msm_panel_init(void){
+void __init msm_panel_init(void)
+{
 	platform_add_devices(panel_devices, ARRAY_SIZE(panel_devices));
 }
+
 //                                                  
 struct backlight_platform_data {
-   void (*platform_init)(void);
-   int gpio;
-   unsigned int mode;
-   int max_current;
-   int init_on_boot;
-   int min_brightness;
-   int max_brightness;   
+	void (*platform_init) (void);
+	int gpio;
+	unsigned int mode;
+	int max_current;
+	int init_on_boot;
+	int min_brightness;
+	int max_brightness;
 };
 
 static struct backlight_platform_data lm3530_data = {
 	.gpio = 49,
-	.max_current = 0xb7, //0x17, // CABC
+	.max_current = 0xb7,	//0x17, // CABC
 
 	/* max_current table - linear mapping & PWM enable
-	0xA3 = 5 mA full-scale current
-	0xA7 = 8.5 A full-scale current
-	0xAB= 12 mA full-scale current
-	0xAF = 15.5 mA full-scale current
-	0xB3 = 19 mA full-scale current
-	0xB7 = 22.5 mA full-scale current
-	0xBB = 26 mA full-scale current
-	0xBF= 29.5 mA full-scale current
-	*/
-	.min_brightness = 0x02, // 0x05, //0x09,
+	   0xA3 = 5 mA full-scale current
+	   0xA7 = 8.5 A full-scale current
+	   0xAB= 12 mA full-scale current
+	   0xAF = 15.5 mA full-scale current
+	   0xB3 = 19 mA full-scale current
+	   0xB7 = 22.5 mA full-scale current
+	   0xBB = 26 mA full-scale current
+	   0xBF= 29.5 mA full-scale current
+	 */
+	.min_brightness = 0x02,	// 0x05, //0x09,
 	.max_brightness = 0x71,
 };
-	
+
 struct i2c_registry {
-	u8                     machs;
-	int                    bus;
+	u8 machs;
+	int bus;
 	struct i2c_board_info *info;
-	int                    len;
+	int len;
 };
 
 #define LM3530_BACKLIGHT_ADDRESS 0x38
 static struct i2c_board_info msm_i2c_backlight_info[] = {
 	{
-		I2C_BOARD_INFO("lm3530", LM3530_BACKLIGHT_ADDRESS),
-		.platform_data = &lm3530_data,
-	}
+	 I2C_BOARD_INFO("lm3530", LM3530_BACKLIGHT_ADDRESS),
+	 .platform_data = &lm3530_data,
+	 }
 };
 
 static struct i2c_registry backlight_device __initdata = {
@@ -510,15 +508,16 @@ static struct i2c_registry backlight_device __initdata = {
 	ARRAY_SIZE(msm_i2c_backlight_info),
 };
 
-void __init i2c_register_backlight_info(void){
+void __init i2c_register_backlight_info(void)
+{
 	i2c_register_board_info(backlight_device.bus,
-							backlight_device.info,
-							backlight_device.len);
+				backlight_device.info, backlight_device.len);
 }
 
-
 #if !defined(CONFIG_GPIO_SX150X) && !defined(CONFIG_GPIO_SX150X_MODULE)
-static inline void display_common_power(int on) {}
+static inline void display_common_power(int on)
+{
+}
 #endif
 
 static int mipi_dsi_panel_power(int on);
@@ -538,7 +537,7 @@ static int hdmi_enable_5v(int on)
 {
 #ifndef CONFIG_MACH_LGE_I_BOARD
 	static struct regulator *reg_8901_hdmi_mvs;	/* HDMI_5V */
-	static struct regulator *reg_8901_mpp0;		/* External 5V */
+	static struct regulator *reg_8901_mpp0;	/* External 5V */
 	static int prev_on;
 	int rc;
 
@@ -554,13 +553,13 @@ static int hdmi_enable_5v(int on)
 		rc = regulator_enable(reg_8901_mpp0);
 		if (rc) {
 			pr_err("'%s' regulator enable failed, rc=%d\n",
-				"reg_8901_mpp0", rc);
+			       "reg_8901_mpp0", rc);
 			return rc;
 		}
 		rc = regulator_enable(reg_8901_hdmi_mvs);
 		if (rc) {
 			pr_err("'%s' regulator enable failed, rc=%d\n",
-				"8901_hdmi_mvs", rc);
+			       "8901_hdmi_mvs", rc);
 			return rc;
 		}
 		pr_info("%s(on): success\n", __func__);
@@ -568,33 +567,33 @@ static int hdmi_enable_5v(int on)
 		rc = regulator_disable(reg_8901_hdmi_mvs);
 		if (rc)
 			pr_warning("'%s' regulator disable failed, rc=%d\n",
-				"8901_hdmi_mvs", rc);
+				   "8901_hdmi_mvs", rc);
 		rc = regulator_disable(reg_8901_mpp0);
 		if (rc)
 			pr_warning("'%s' regulator disable failed, rc=%d\n",
-				"reg_8901_mpp0", rc);
+				   "reg_8901_mpp0", rc);
 		pr_info("%s(off): success\n", __func__);
 	}
 	prev_on = on;
-#endif //                       
+#endif //
 	return 0;
 }
 
 static int hdmi_core_power(int on, int show)
 {
 #ifndef CONFIG_MACH_LGE_I_BOARD
-	static struct regulator *reg_8058_l16;		/* VDD_HDMI */
-#endif //                       
+	static struct regulator *reg_8058_l16;	/* VDD_HDMI */
+#endif //
 	static int prev_on;
 	int rc;
 
 	if (on == prev_on)
 		return 0;
-	
+
 #ifndef CONFIG_MACH_LGE_I_BOARD
 	if (!reg_8058_l16)
 		_GET_REGULATOR(reg_8058_l16, "8058_l16");
-#endif //                       
+#endif //
 
 	if (on) {
 #ifndef CONFIG_MACH_LGE_I_BOARD
@@ -603,26 +602,26 @@ static int hdmi_core_power(int on, int show)
 			rc = regulator_enable(reg_8058_l16);
 		if (rc) {
 			pr_err("'%s' regulator enable failed, rc=%d\n",
-				"8058_l16", rc);
+			       "8058_l16", rc);
 			return rc;
 		}
-#endif //                       
+#endif //
 		rc = gpio_request(170, "HDMI_DDC_CLK");
 		if (rc) {
 			pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
-				"HDMI_DDC_CLK", 170, rc);
+			       "HDMI_DDC_CLK", 170, rc);
 			goto error1;
 		}
 		rc = gpio_request(171, "HDMI_DDC_DATA");
 		if (rc) {
 			pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
-				"HDMI_DDC_DATA", 171, rc);
+			       "HDMI_DDC_DATA", 171, rc);
 			goto error2;
 		}
 		rc = gpio_request(172, "HDMI_HPD");
 		if (rc) {
 			pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
-				"HDMI_HPD", 172, rc);
+			       "HDMI_HPD", 172, rc);
 			goto error3;
 		}
 		pr_info("%s(on): success\n", __func__);
@@ -631,12 +630,12 @@ static int hdmi_core_power(int on, int show)
 		gpio_free(171);
 		gpio_free(172);
 
-#ifndef CONFIG_MACH_LGE_I_BOARD		
+#ifndef CONFIG_MACH_LGE_I_BOARD
 		rc = regulator_disable(reg_8058_l16);
 		if (rc)
 			pr_warning("'%s' regulator disable failed, rc=%d\n",
-				"8058_l16", rc);
-#endif //                       
+				   "8058_l16", rc);
+#endif //
 		pr_info("%s(off): success\n", __func__);
 	}
 
@@ -649,9 +648,9 @@ error3:
 error2:
 	gpio_free(170);
 error1:
-#ifndef CONFIG_MACH_LGE_I_BOARD	
+#ifndef CONFIG_MACH_LGE_I_BOARD
 	regulator_disable(reg_8058_l16);
-#endif //                       
+#endif //
 	return rc;
 }
 
@@ -667,19 +666,19 @@ static int hdmi_gpio_config(int on)
 		rc = gpio_request(170, "HDMI_DDC_CLK");
 		if (rc) {
 			pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
-					"HDMI_DDC_CLK", 170, rc);
+			       "HDMI_DDC_CLK", 170, rc);
 			goto error1;
 		}
 		rc = gpio_request(171, "HDMI_DDC_DATA");
 		if (rc) {
 			pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
-					"HDMI_DDC_DATA", 171, rc);
+			       "HDMI_DDC_DATA", 171, rc);
 			goto error2;
 		}
 		rc = gpio_request(172, "HDMI_HPD");
 		if (rc) {
 			pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
-					"HDMI_HPD", 172, rc);
+			       "HDMI_HPD", 172, rc);
 			goto error3;
 		}
 		pr_debug("%s(on): success\n", __func__);
@@ -700,10 +699,11 @@ error2:
 error1:
 	return rc;
 }
+
 static int hdmi_cec_power(int on)
-{	
+{
 #ifndef CONFIG_MACH_LGE_I_BOARD
-	static struct regulator *reg_8901_l3;		/* HDMI_CEC */
+	static struct regulator *reg_8901_l3;	/* HDMI_CEC */
 	static int prev_on;
 	int rc;
 
@@ -719,13 +719,13 @@ static int hdmi_cec_power(int on)
 			rc = regulator_enable(reg_8901_l3);
 		if (rc) {
 			pr_err("'%s' regulator enable failed, rc=%d\n",
-				"8901_l3", rc);
+			       "8901_l3", rc);
 			return rc;
 		}
 		rc = gpio_request(169, "HDMI_CEC_VAR");
 		if (rc) {
 			pr_err("'%s'(%d) gpio_request failed, rc=%d\n",
-				"HDMI_CEC_VAR", 169, rc);
+			       "HDMI_CEC_VAR", 169, rc);
 			goto error;
 		}
 		pr_info("%s(on): success\n", __func__);
@@ -734,17 +734,17 @@ static int hdmi_cec_power(int on)
 		rc = regulator_disable(reg_8901_l3);
 		if (rc)
 			pr_warning("'%s' regulator disable failed, rc=%d\n",
-				"8901_l3", rc);
+				   "8901_l3", rc);
 		pr_info("%s(off): success\n", __func__);
 	}
 
 	prev_on = on;
-	
+
 	return 0;
 error:
 	regulator_disable(reg_8901_l3);
 	return rc;
-#endif //                       
+#endif //
 
 	return 0;
 }
@@ -757,100 +757,100 @@ error:
 
 static struct msm_bus_vectors rotator_init_vectors[] = {
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab = 0,
-		.ib = 0,
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 0,
+	 .ib = 0,
+	 },
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 0,
-		.ib = 0,
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = 0,
+	 .ib = 0,
+	 },
 };
 
 static struct msm_bus_vectors rotator_ui_vectors[] = {
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab  = 0,
-		.ib  = 0,
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 0,
+	 .ib = 0,
+	 },
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab  = (1024 * 600 * 4 * 2 * 60),
-		.ib  = (1024 * 600 * 4 * 2 * 60 * 1.5),
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = (1024 * 600 * 4 * 2 * 60),
+	 .ib = (1024 * 600 * 4 * 2 * 60 * 1.5),
+	 },
 };
 
 static struct msm_bus_vectors rotator_vga_vectors[] = {
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab  = (640 * 480 * 2 * 2 * 30),
-		.ib  = (640 * 480 * 2 * 2 * 30 * 1.5),
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = (640 * 480 * 2 * 2 * 30),
+	 .ib = (640 * 480 * 2 * 2 * 30 * 1.5),
+	 },
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab  = (640 * 480 * 2 * 2 * 30),
-		.ib  = (640 * 480 * 2 * 2 * 30 * 1.5),
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = (640 * 480 * 2 * 2 * 30),
+	 .ib = (640 * 480 * 2 * 2 * 30 * 1.5),
+	 },
 };
 
 static struct msm_bus_vectors rotator_720p_vectors[] = {
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab  = (1280 * 736 * 2 * 2 * 30),
-		.ib  = (1280 * 736 * 2 * 2 * 30 * 1.5),
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = (1280 * 736 * 2 * 2 * 30),
+	 .ib = (1280 * 736 * 2 * 2 * 30 * 1.5),
+	 },
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab  = (1280 * 736 * 2 * 2 * 30),
-		.ib  = (1280 * 736 * 2 * 2 * 30 * 1.5),
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = (1280 * 736 * 2 * 2 * 30),
+	 .ib = (1280 * 736 * 2 * 2 * 30 * 1.5),
+	 },
 };
 
 static struct msm_bus_vectors rotator_1080p_vectors[] = {
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab  = (1920 * 1088 * 2 * 2 * 30),
-		.ib  = (1920 * 1088 * 2 * 2 * 30 * 1.5),
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = (1920 * 1088 * 2 * 2 * 30),
+	 .ib = (1920 * 1088 * 2 * 2 * 30 * 1.5),
+	 },
 	{
-		.src = MSM_BUS_MASTER_ROTATOR,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab  = (1920 * 1088 * 2 * 2 * 30),
-		.ib  = (1920 * 1088 * 2 * 2 * 30 * 1.5),
-	},
+	 .src = MSM_BUS_MASTER_ROTATOR,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = (1920 * 1088 * 2 * 2 * 30),
+	 .ib = (1920 * 1088 * 2 * 2 * 30 * 1.5),
+	 },
 };
 
 static struct msm_bus_paths rotator_bus_scale_usecases[] = {
 	{
-		ARRAY_SIZE(rotator_init_vectors),
-		rotator_init_vectors,
-	},
+	 ARRAY_SIZE(rotator_init_vectors),
+	 rotator_init_vectors,
+	 },
 	{
-		ARRAY_SIZE(rotator_ui_vectors),
-		rotator_ui_vectors,
-	},
+	 ARRAY_SIZE(rotator_ui_vectors),
+	 rotator_ui_vectors,
+	 },
 	{
-		ARRAY_SIZE(rotator_vga_vectors),
-		rotator_vga_vectors,
-	},
+	 ARRAY_SIZE(rotator_vga_vectors),
+	 rotator_vga_vectors,
+	 },
 	{
-		ARRAY_SIZE(rotator_720p_vectors),
-		rotator_720p_vectors,
-	},
+	 ARRAY_SIZE(rotator_720p_vectors),
+	 rotator_720p_vectors,
+	 },
 	{
-		ARRAY_SIZE(rotator_1080p_vectors),
-		rotator_1080p_vectors,
-	},
+	 ARRAY_SIZE(rotator_1080p_vectors),
+	 rotator_1080p_vectors,
+	 },
 };
 
 struct msm_bus_scale_pdata rotator_bus_scale_pdata = {
@@ -864,134 +864,136 @@ static struct msm_bus_vectors mdp_init_vectors[] = {
 	 * Please leave 0 as is and don't use it
 	 */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab = 0,
-		.ib = 0,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 0,
+	 .ib = 0,
+	 },
 	/* Master and slaves can be from different fabrics */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 0,
-		.ib = 0,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = 0,
+	 .ib = 0,
+	 },
 };
 
 static struct msm_bus_vectors mdp_sd_smi_vectors[] = {
 	/* Default case static display/UI/2d/3d if FB SMI */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab = 175110000,
-		.ib = 218887500,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 175110000,
+	 .ib = 218887500,
+	 },
 	/* Master and slaves can be from different fabrics */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 0,
-		.ib = 0,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = 0,
+	 .ib = 0,
+	 },
 };
 
 static struct msm_bus_vectors mdp_sd_ebi_vectors[] = {
 	/* Default case static display/UI/2d/3d if FB SMI */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab = 0,
-		.ib = 0,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 0,
+	 .ib = 0,
+	 },
 	/* Master and slaves can be from different fabrics */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-#if 1 /* avoid underrun at boot time */
-		.ab = 334080000,
-		.ib = 417600000 * 2,
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+#if 1				/* avoid underrun at boot time */
+	 .ab = 334080000,
+	 .ib = 417600000 * 2,
 #else /*Temporary code - for boot error */
-		.ab = 0,
-		.ib = 270000000 * 2,
+	 .ab = 0,
+	 .ib = 270000000 * 2,
 #endif
-	},
+	 },
 };
+
 static struct msm_bus_vectors mdp_vga_vectors[] = {
 	/* VGA and less video */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab = 216000000,
-		.ib = 270000000,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 216000000,
+	 .ib = 270000000,
+	 },
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 334080000,
-		.ib = 417600000 * 2,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = 334080000,
+	 .ib = 417600000 * 2,
+	 },
 };
 
 static struct msm_bus_vectors mdp_720p_vectors[] = {
 	/* 720p and less video */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab = 407937024,
-		.ib = 509921280,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 407937024,
+	 .ib = 509921280,
+	 },
 	/* Master and slaves can be from different fabrics */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 407937024,
-		.ib = 509921280*2,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = 407937024,
+	 .ib = 509921280 * 2,
+	 },
 };
 
 static struct msm_bus_vectors mdp_1080p_vectors[] = {
 	/* 1080p and less video */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab = 544794624,
-		.ib = 680993280,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 544794624,
+	 .ib = 680993280,
+	 },
 	/* Master and slaves can be from different fabrics */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 544794624,
-		.ib = 680993280*2,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = 544794624,
+	 .ib = 680993280 * 2,
+	 },
 };
 
 static struct msm_bus_paths mdp_bus_scale_usecases[] = {
 	{
-		ARRAY_SIZE(mdp_init_vectors),
-		mdp_init_vectors,
-	},
+	 ARRAY_SIZE(mdp_init_vectors),
+	 mdp_init_vectors,
+	 },
 	{
-		ARRAY_SIZE(mdp_sd_smi_vectors),
-		mdp_sd_smi_vectors,
-	},
+	 ARRAY_SIZE(mdp_sd_smi_vectors),
+	 mdp_sd_smi_vectors,
+	 },
 	{
-		ARRAY_SIZE(mdp_sd_ebi_vectors),
-		mdp_sd_ebi_vectors,
-	},
+	 ARRAY_SIZE(mdp_sd_ebi_vectors),
+	 mdp_sd_ebi_vectors,
+	 },
 	{
-		ARRAY_SIZE(mdp_vga_vectors),
-		mdp_vga_vectors,
-	},
+	 ARRAY_SIZE(mdp_vga_vectors),
+	 mdp_vga_vectors,
+	 },
 	{
-		ARRAY_SIZE(mdp_720p_vectors),
-		mdp_720p_vectors,
-	},
+	 ARRAY_SIZE(mdp_720p_vectors),
+	 mdp_720p_vectors,
+	 },
 	{
-		ARRAY_SIZE(mdp_1080p_vectors),
-		mdp_1080p_vectors,
-	},
+	 ARRAY_SIZE(mdp_1080p_vectors),
+	 mdp_1080p_vectors,
+	 },
 };
+
 static struct msm_bus_scale_pdata mdp_bus_scale_pdata = {
 	mdp_bus_scale_usecases,
 	ARRAY_SIZE(mdp_bus_scale_usecases),
@@ -1005,66 +1007,67 @@ static struct msm_bus_vectors dtv_bus_init_vectors[] = {
 	 * Please leave 0 as is and don't use it
 	 */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab = 0,
-		.ib = 0,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 0,
+	 .ib = 0,
+	 },
 	/* Master and slaves can be from different fabrics */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 0,
-		.ib = 0,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = 0,
+	 .ib = 0,
+	 },
 };
+
 static struct msm_bus_vectors dtv_bus_def_vectors[] = {
 	/* For now, 0th array entry is reserved.
 	 * Please leave 0 as is and don't use it
 	 */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_SMI,
-		.ab = 566092800,
-		.ib = 707616000,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 566092800,
+	 .ib = 707616000,
+	 },
 	/* Master and slaves can be from different fabrics */
 	{
-		.src = MSM_BUS_MASTER_MDP_PORT0,
-		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab = 566092800,
-		.ib = 707616000,
-	},
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = 566092800,
+	 .ib = 707616000,
+	 },
 };
 
 static struct msm_bus_vectors dtv_bus_hdmi_prim_vectors[] = {
-        /* For now, 0th array entry is reserved.
-         * Please leave 0 as is and don't use it
-         */
-        {
-                .src = MSM_BUS_MASTER_MDP_PORT0,
-                .dst = MSM_BUS_SLAVE_SMI,
-                .ab = 2000000000,
-                .ib = 2000000000,
-        },
-        /* Master and slaves can be from different fabrics */
-        {
-                .src = MSM_BUS_MASTER_MDP_PORT0,
-                .dst = MSM_BUS_SLAVE_EBI_CH0,
-                .ab = 2000000000,
-                .ib = 2000000000,
-        },
+	/* For now, 0th array entry is reserved.
+	 * Please leave 0 as is and don't use it
+	 */
+	{
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_SMI,
+	 .ab = 2000000000,
+	 .ib = 2000000000,
+	 },
+	/* Master and slaves can be from different fabrics */
+	{
+	 .src = MSM_BUS_MASTER_MDP_PORT0,
+	 .dst = MSM_BUS_SLAVE_EBI_CH0,
+	 .ab = 2000000000,
+	 .ib = 2000000000,
+	 },
 };
 
 static struct msm_bus_paths dtv_bus_scale_usecases[] = {
 	{
-		ARRAY_SIZE(dtv_bus_init_vectors),
-		dtv_bus_init_vectors,
-	},
+	 ARRAY_SIZE(dtv_bus_init_vectors),
+	 dtv_bus_init_vectors,
+	 },
 	{
-		ARRAY_SIZE(dtv_bus_def_vectors),
-		dtv_bus_def_vectors,
-	},
+	 ARRAY_SIZE(dtv_bus_def_vectors),
+	 dtv_bus_def_vectors,
+	 },
 };
 
 static struct msm_bus_scale_pdata dtv_bus_scale_pdata = {
@@ -1078,27 +1081,26 @@ static struct lcdc_platform_data dtv_pdata = {
 };
 
 static struct msm_bus_paths dtv_hdmi_prim_bus_scale_usecases[] = {
-        {
-                ARRAY_SIZE(dtv_bus_init_vectors),
-                dtv_bus_init_vectors,
-        },
-        {
-                ARRAY_SIZE(dtv_bus_hdmi_prim_vectors),
-                dtv_bus_hdmi_prim_vectors,
-        },
+	{
+	 ARRAY_SIZE(dtv_bus_init_vectors),
+	 dtv_bus_init_vectors,
+	 },
+	{
+	 ARRAY_SIZE(dtv_bus_hdmi_prim_vectors),
+	 dtv_bus_hdmi_prim_vectors,
+	 },
 };
 
 static struct msm_bus_scale_pdata dtv_hdmi_prim_bus_scale_pdata = {
-        dtv_hdmi_prim_bus_scale_usecases,
-        ARRAY_SIZE(dtv_hdmi_prim_bus_scale_usecases),
-        .name = "dtv",
+	dtv_hdmi_prim_bus_scale_usecases,
+	ARRAY_SIZE(dtv_hdmi_prim_bus_scale_usecases),
+	.name = "dtv",
 };
 
 static struct lcdc_platform_data dtv_hdmi_prim_pdata = {
-        .bus_scale_table = &dtv_hdmi_prim_bus_scale_pdata,
+	.bus_scale_table = &dtv_hdmi_prim_bus_scale_pdata,
 };
 #endif
-
 
 static struct msm_panel_common_pdata mdp_pdata = {
 	//.gpio = MDP_VSYNC_GPIO,
@@ -1115,16 +1117,13 @@ static struct msm_panel_common_pdata mdp_pdata = {
 	.mdp_iommu_split_domain = 0,
 };
 
-
-void __init msm8x60_mdp_writeback(struct memtype_reserve* reserve_table)
+void __init msm8x60_mdp_writeback(struct memtype_reserve *reserve_table)
 {
 	mdp_pdata.ov0_wb_size = MSM_FB_OVERLAY0_WRITEBACK_SIZE;
 	mdp_pdata.ov1_wb_size = MSM_FB_OVERLAY1_WRITEBACK_SIZE;
 #if defined(CONFIG_ANDROID_PMEM) && !defined(CONFIG_MSM_MULTIMEDIA_USE_ION)
-    reserve_table[mdp_pdata.mem_hid].size +=
-        mdp_pdata.ov0_wb_size;
-    reserve_table[mdp_pdata.mem_hid].size +=
-        mdp_pdata.ov1_wb_size;
+	reserve_table[mdp_pdata.mem_hid].size += mdp_pdata.ov0_wb_size;
+	reserve_table[mdp_pdata.mem_hid].size += mdp_pdata.ov1_wb_size;
 #endif
 }
 
@@ -1134,10 +1133,9 @@ void __init msm_fb_add_devices(void)
 
 	msm_fb_register_device("mipi_dsi", &mipi_dsi_pdata);
 #ifdef CONFIG_MSM_BUS_SCALING
-        if (hdmi_is_primary)
-                msm_fb_register_device("dtv", &dtv_hdmi_prim_pdata);
-        else
-                msm_fb_register_device("dtv", &dtv_pdata);
+	if (hdmi_is_primary)
+		msm_fb_register_device("dtv", &dtv_hdmi_prim_pdata);
+	else
+		msm_fb_register_device("dtv", &dtv_pdata);
 #endif
 }
-

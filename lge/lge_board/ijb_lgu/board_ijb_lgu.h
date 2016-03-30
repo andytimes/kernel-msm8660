@@ -26,7 +26,7 @@
 void __init i2c_register_backlight_info(void);
 void __init msm8x60_allocate_memory_regions(void);
 void __init msm8x60_set_display_params(char *prim_panel, char *ext_panel);
-void  msm8x60_mdp_writeback(struct memtype_reserve *reserve_table);
+void msm8x60_mdp_writeback(struct memtype_reserve *reserve_table);
 void __init msm_panel_init(void);
 void __init msm_fb_add_devices(void);
 

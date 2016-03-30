@@ -30,7 +30,6 @@
 #define MSM_GSBI11_QUP_I2C_BUS_ID 12
 #endif
 
-
 #define LGE_GSBI_BUS_ID_AUDIO_AMP_WM9093    MSM_GSBI3_QUP_I2C_BUS_ID
 #define LGE_GSBI_BUS_ID_VIB_ISA1200         MSM_GSBI3_QUP_I2C_BUS_ID
 
@@ -69,7 +68,7 @@
 
 /* gpio and clock control for vibrator */
 #define GPIO_LIN_MOTOR_EN		        158
-#if 0 //                                                                     
+#if 0				//
 #define GPIO_LIN_MOTOR_PWM	        	31
 #else
 #define GPIO_LIN_MOTOR_PWM	        	29
@@ -107,15 +106,15 @@ extern struct platform_device msm_pcm_hostless;
 extern struct platform_device msm_gsbi1_qup_spi_device;
 extern struct platform_device msm_gsbi10_qup_spi_device;
 #ifdef CONFIG_LGE_BROADCAST_TDMB
-extern struct platform_device msm_gsbi11_qup_spi_device;	
-#endif  //                          
+extern struct platform_device msm_gsbi11_qup_spi_device;
+#endif //
 #endif
 
 #ifdef CONFIG_LGE_FUEL_GAUGE
 extern struct platform_device msm_gsbi5_qup_i2c_device;
-#endif 
+#endif
 
-#ifdef CONFIG_LGE_SENSOR_ACCELEROMETER  /*                                                       */
+#ifdef CONFIG_LGE_SENSOR_ACCELEROMETER	/*                                                       */
 extern struct platform_device msm_gsbi10_qup_i2c_device;
 #endif
 
@@ -159,7 +158,7 @@ extern struct msm_bus_scale_pdata rotator_bus_scale_pdata;
 extern struct platform_device msm_rpm_stat_device;
 #endif
 
-#ifdef CONFIG_MSM_RPM   /*                                                       */
+#ifdef CONFIG_MSM_RPM		/*                                                       */
 extern struct platform_device msm8660_rpm_device;
 #endif
 
