@@ -11,5 +11,4 @@ obj-y += misc/
 obj-y += display/
 obj-y += audio/
 obj-y += mhl_v1/
-obj-y += felica/
 obj-y += device_lge.o

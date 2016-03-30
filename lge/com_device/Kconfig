@@ -48,7 +48,3 @@ endmenu
 menu "MHL"
 source "lge/com_device/mhl_v1/Kconfig"
 endmenu
-
-menu "FeliCa"
-source "lge/com_device/felica/Kconfig"
-endmenu
