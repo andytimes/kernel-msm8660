@@ -23,7 +23,7 @@ config LGE_MACH_BOARD_REVC
 
 menu "Audio"
 source "lge/com_device/audio/Kconfig"
-endmenu 
+endmenu
 
 menu "Camera"
 source "lge/com_device/camera/Kconfig"
@@ -31,7 +31,7 @@ endmenu
 
 menu "Display"
 source "lge/com_device/display/Kconfig"
-endmenu 
+endmenu
 
 menu "Input"
 source "lge/com_device/input/Kconfig"
@@ -51,8 +51,4 @@ endmenu
 
 menu "FeliCa"
 source "lge/com_device/felica/Kconfig"
-endmenu
-
-menu "OneSeg"
-source "lge/com_device/broadcast/Kconfig"
 endmenu
