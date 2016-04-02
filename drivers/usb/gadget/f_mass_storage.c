@@ -397,21 +397,6 @@ struct fsg_common;
  */
 static char *envp_ack[2] = {"AUTORUN=ACK", NULL};
 
-#ifdef CONFIG_USB_G_LGE_ANDROID_AUTORUN_VZW
-static char *envp_mode[][2] = {
-    {"AUTORUN=change_unknown", NULL},
-    {"AUTORUN=change_acm", NULL},
-    {"AUTORUN=change_mtp", NULL},
-    {"AUTORUN=change_ums", NULL},
-    {"AUTORUN=change_ask", NULL},
-    {"AUTORUN=change_charge", NULL},
-    {"AUTORUN=change_tether", NULL},
-    {"AUTORUN=change_fdg", NULL},
-    {"AUTORUN=change_ptp", NULL},
-    {"AUTORUN=query_value", NULL},
-    {"AUTORUN=device_info", NULL},
-};
-#endif
 #ifdef CONFIG_USB_G_LGE_ANDROID_AUTORUN_LGE
 static char *envp_mode[2] = {"AUTORUN=change_mode", NULL};
 #endif
@@ -2368,10 +2353,6 @@ static int do_scsi_command(struct fsg_common *common)
 				common->mode_state = MODE_STATE_UNKNOWN;
 			}
 			pr_info("%s: SC_LGE_MODE - %d\n", __func__, common->mode_state);
-#ifdef CONFIG_USB_G_LGE_ANDROID_AUTORUN_VZW
-			kobject_uevent_env(&autorun_device.this_device->kobj,
-					KOBJ_CHANGE, (char **)(&envp_mode[common->mode_state]));
-#endif
 #ifdef CONFIG_USB_G_LGE_ANDROID_AUTORUN_LGE
 			kobject_uevent_env(&autorun_device.this_device->kobj,
 					KOBJ_CHANGE, envp_mode);
