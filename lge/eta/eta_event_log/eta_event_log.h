@@ -38,4 +38,4 @@ enum {
 	ETA_TOUCH_UP = 5,	/*Touch up at the current location */
 	ETA_TOUCH_DEFAULT = 0xff,
 };
-#endif /*                     */
+#endif // _LGE_ETA_EVENT_LOG_H_

@@ -21,9 +21,7 @@
  *  along with this program; if not, you can find it at http://www.fsf.org
  */
 
-#if 1				/*                                               */
-#include <linux/module.h>	/* kernel module definitions */
-#endif
+#include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/input.h>
 #include <board_lge.h>

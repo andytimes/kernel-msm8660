@@ -17,9 +17,7 @@
  *  along with this program; if not, you can find it at http://www.fsf.org
  */
 
-#if 1				/*                                               */
-#include <linux/module.h>	/* kernel module definitions */
-#endif
+#include <linux/module.h>
 #include <linux/miscdevice.h>
 #include <linux/platform_device.h>
 #include <linux/fs.h>
@@ -227,7 +225,8 @@ void eta_event_log_event(struct input_handle *handle, unsigned int type,
 	       code, value);
 
 	if ((type == EV_KEY) && (ETA_EVENT_LOG_ID_KEY & eta_event_log_mask)) {
-		eta_event_log_data.log_id = ETA_EVENT_LOG_ID_KEY;	/* LOG_ID, 1 key, 2 touch */
+		/* LOG_ID, 1 key, 2 touch */
+		eta_event_log_data.log_id = ETA_EVENT_LOG_ID_KEY;
 		eta_event_log_data.log_len = 18;	/* LOG_LEN */
 		eta_event_log_data.x_hold = value;	/* hold */
 		eta_event_log_data.y_code = code;
@@ -240,7 +239,8 @@ void eta_event_log_event(struct input_handle *handle, unsigned int type,
 		case ABS_MT_TOUCH_MAJOR:
 			{
 				touch_status++;
-				if (value > 0) {	/* value = 1 is touch pressed case */
+				/* value = 1 is touch pressed case */
+				if (value > 0) {
 					if (touch_prev_action == ETA_TOUCH_DOWN)
 						eta_event_log_data.action =
 						    (unsigned char)
@@ -260,20 +260,23 @@ void eta_event_log_event(struct input_handle *handle, unsigned int type,
 			}
 		case ABS_MT_POSITION_X:
 			{
-				eta_event_log_data.x_hold = value * 1000 / 1541;	// 1.541 = 1110(max X)/720(width)
+				// 1.541 = 1110(max X)/720(width)
+				eta_event_log_data.x_hold = value * 1000 / 1541;
 				touch_status++;
 				break;
 			}
 		case ABS_MT_POSITION_Y:
 			{
-				eta_event_log_data.y_code = value * 1000 / 1541;	// 1.541 = 1973(max Y)/1280(height)
+				// 1.541 = 1973(max Y)/1280(height)
+				eta_event_log_data.y_code = value * 1000 / 1541;
 				touch_status++;
 				break;
 			}
 		}
 
 		if (touch_status == 3) {
-			eta_event_log_data.log_id = ETA_EVENT_LOG_ID_TOUCH;	/* LOG_ID, 1 key, 2 touch */
+			/* LOG_ID, 1 key, 2 touch */
+			eta_event_log_data.log_id = ETA_EVENT_LOG_ID_TOUCH;
 			eta_event_log_data.log_len = 22;	/*LOG_LEN */
 			touch_status = 0;
 			schedule_work(&eta_event_log_work);

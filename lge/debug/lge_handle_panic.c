@@ -13,9 +13,7 @@
  * GNU General Public License for more details.
  */
 
-#if 1				/*                                               */
-#include <linux/module.h>	/* kernel module definitions */
-#endif
+#include <linux/module.h>
 #include <linux/device.h>
 #include <linux/platform_device.h>
 #include <linux/reboot.h>
@@ -75,27 +73,6 @@ __setup("lge.hreset=", check_hidden_reset);
 static int copy_frame_buffer(struct notifier_block *this, unsigned long event,
 			     void *ptr)
 {
-#if 0
-	unsigned char *fb_addr;
-	unsigned char *copy_addr, *f;
-	unsigned int i;
-	//void *copy_phys_addr;
-	//int fb_size = 720*1280*4;
-
-	copy_addr = (unsigned char *)lge_get_fb_copy_virt_addr();
-	fb_addr = (unsigned char *)lge_get_fb_addr();
-
-	printk("%s: copy %x\n", __func__, (unsigned int)copy_addr);
-	printk("%s: fbady %x\n", __func__, (unsigned int)fb_addr);
-
-	f = copy_addr;
-
-	for (i = 0; i < 1280 * 736 * 4; i++)
-		*f++ = *fb_addr++;
-
-	*((unsigned *)copy_addr) = 0x12345678;
-	printk("%s: hidden magic %x\n", __func__, *((unsigned *)copy_addr));
-#endif
 	return NOTIFY_DONE;
 }
 
@@ -126,7 +103,6 @@ static int __init check_crash_handler(char *reset_mode)
 __setup("lge.crash_enable=", check_crash_handler);
 #endif
 
-// silent_reset_fusion2_kernel >>>>
 #if defined(CONFIG_LGE_SILENT_RESET_PATCH)
 #define SRESET_MAGIC  0x68720010
 struct silent_reset_flag {
@@ -183,7 +159,6 @@ static ssize_t is_silent_show(struct device *dev, struct device_attribute *addr,
 static DEVICE_ATTR(is_sreset, S_IRUGO | S_IWUSR | S_IWGRP, is_silent_show,
 		   NULL);
 #endif
-// silent_reset_fusion2_kernel <<<<
 
 static int dummy_arg;
 static int gen_bug(const char *val, struct kernel_param *kp)
@@ -304,14 +279,6 @@ static int restore_crash_log(struct notifier_block *this, unsigned long event,
 
 	spin_lock_irqsave(&lge_panic_lock, flags);
 
-#if 0
-	printk(KERN_EMERG "%s", crash_dump_log->buffer);
-	printk(KERN_EMERG "%s: buffer size %d\n", __func__,
-	       crash_dump_log->size);
-	printk(KERN_EMERG "%s: %d\n", __func__, crash_buf_size);
-#endif
-
-	//lge_set_reboot_reason(CRASH_REBOOT);
 	crash_dump_log->magic_key = PANIC_MAGIC_KEY;
 
 	spin_unlock_irqrestore(&lge_panic_lock, flags);
@@ -356,7 +323,6 @@ static int __init lge_panic_handler_probe(struct platform_device *pdev)
 	size_t buffer_size;
 	void *buffer;
 	int ret = 0;
-	//silent_reset_fusion2_kernel
 #if defined(CONFIG_LGE_SILENT_RESET_PATCH)
 	void *sreset_flag_buf;
 	size_t sreset_start;
@@ -393,8 +359,9 @@ static int __init lge_panic_handler_probe(struct platform_device *pdev)
 		crash_dump_log->enable = 0;
 	}
 #endif
-#if defined(CONFIG_LGE_SILENT_RESET_PATCH)	//silent_reset_fusion2_kernel
-	sreset_start = res->end + 1 + 1024 + 1024;	/* crash buffer + ctx size + hrset */
+#if defined(CONFIG_LGE_SILENT_RESET_PATCH)
+	/* crash buffer + ctx size + hrset */
+	sreset_start = res->end + 1 + 1024 + 1024;
 	sreset_flag_buf = ioremap(sreset_start, 1024);
 	printk(KERN_INFO "lge_silent_reset: got buffer at %zx, size 1024\n",
 	       sreset_start);
